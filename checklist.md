@@ -1,4 +1,4 @@
-# 📄 `CHECKLIST.md` — Контроль выполнения диплома RBS
+# 📄 `CHECKLIST.md` — Контроль выполнения проекта RBS
 
 > Этот файл используется как **трекер прогресса разработки**.
 > Каждый пункт считается выполненным только после прохождения проверки (DoD).
@@ -7,10 +7,10 @@
 
 ## 🟢 Этап 0. Подготовка и проектирование
 
-* [ ] Зафиксирован MVP сценарий (register → login → restaurants → booking → notification)
-* [ ] Определены роли `USER` и `ADMIN`
-* [ ] Составлена таблица доступа (endpoint → role)
-* [ ] Утверждён вариант security: **JWT в Gateway (HS256)**
+* [x] Зафиксирован MVP сценарий (register → login → restaurants → booking → notification)
+* [x] Определены роли `USER`, `MANAGER` и `OWNER`
+* [x] Составлена таблица доступа (endpoint → role)
+* [x] Утверждён вариант security: **JWT в Gateway (HS256)**
 
 **DoD:**
 MVP и роли описаны в README.
@@ -19,18 +19,18 @@ MVP и роли описаны в README.
 
 ## 🟢 Этап 1. Скелет проекта (Gradle multi-module)
 
-* [ ] Создан multi-module Gradle проект (Kotlin DSL)
-* [ ] Модули:
+* [x] Создан multi-module Gradle проект (Kotlin DSL)
+* [x] Модули:
 
-    * [ ] eureka-server
-    * [ ] api-gateway
-    * [ ] user-service
-    * [ ] restaurant-service
-    * [ ] booking-service
-    * [ ] notification-service
-    * [ ] common
-* [ ] Настроены BOM Spring Boot / Spring Cloud
-* [ ] `./gradlew clean build` проходит без ошибок
+    * [x] eureka-server
+    * [x] api-gateway
+    * [x] user-service
+    * [x] restaurant-service
+    * [x] booking-service
+    * [x] notification-service
+    * [x] common
+* [x] Настроены BOM Spring Boot / Spring Cloud
+* [x] `./gradlew clean build` проходит без ошибок
 
 **DoD:**
 Проект полностью собирается.
@@ -41,22 +41,22 @@ MVP и роли описаны в README.
 
 ### Eureka Server
 
-* [ ] Eureka Server запускается на `8761`
-* [ ] UI доступен
+* [x] Eureka Server запускается на `8761`
+* [x] UI доступен
 
 ### Eureka Client
 
-* [ ] Все сервисы регистрируются в Eureka
-* [ ] Все сервисы имеют статус `UP`
+* [x] Все сервисы регистрируются в Eureka
+* [x] Все сервисы имеют статус `UP`
 
 ### API Gateway
 
-* [ ] Gateway запускается на `8080`
-* [ ] Настроены маршруты:
+* [x] Gateway запускается на `8080`
+* [x] Настроены маршруты:
 
-    * [ ] `/auth/**` → user-service
-    * [ ] `/restaurants/**` → restaurant-service
-    * [ ] `/bookings/**` → booking-service
+    * [x] `/auth/**` → user-service
+    * [x] `/restaurants/**` → restaurant-service
+    * [x] `/bookings/**` → booking-service
 
 **DoD:**
 Через Gateway доступны `/actuator/health` всех сервисов.
@@ -65,16 +65,16 @@ MVP и роли описаны в README.
 
 ## 🟢 Этап 3. Базы данных и миграции
 
-* [ ] Docker Compose поднимает PostgreSQL
-* [ ] Созданы БД:
+* [x] Docker Compose поднимает PostgreSQL
+* [x] Созданы БД:
 
-    * [ ] userdb
-    * [ ] restaurantdb
-    * [ ] bookingdb
-    * [ ] notificationdb
-* [ ] Каждый сервис подключён к своей БД
-* [ ] Подключён Flyway
-* [ ] Есть `V1__init.sql` в каждом сервисе
+    * [x] userdb
+    * [x] restaurantdb
+    * [x] bookingdb
+    * [x] notificationdb
+* [x] Каждый сервис подключён к своей БД
+* [ ] Подключён LiquiBase
+* [x] Есть `V1__init.sql` в каждом сервисе
 
 **DoD:**
 При старте сервисов таблицы создаются автоматически.
