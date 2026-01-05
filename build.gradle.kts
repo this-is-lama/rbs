@@ -12,11 +12,22 @@ allprojects {
     }
 }
 
+
 subprojects {
-    // Общая Java-версия для всех модулей
+    // единая Java версия для всех модулей
     plugins.withId("java") {
         extensions.configure<JavaPluginExtension> {
             toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+
+    // подключаем dependency-management в каждый модуль
+    apply(plugin = "io.spring.dependency-management")
+
+    // импортируем Spring Cloud BOM один раз для всех модулей
+    the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
+        imports {
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
         }
     }
 }

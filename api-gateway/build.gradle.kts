@@ -4,11 +4,6 @@ plugins {
     id("io.spring.dependency-management")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
-    }
-}
 
 dependencies {
     // Reactive Gateway (WebFlux + Netty)
