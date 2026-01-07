@@ -12,6 +12,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
 
+    //MinIO
+    implementation("io.minio:minio:8.6.0")
+
     // Security (если у тебя роль ADMIN/USER и т.п.)
     implementation("org.springframework.boot:spring-boot-starter-security")
 
@@ -30,7 +33,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
-    // если будешь поднимать redis тестами:
+
     // testImplementation("org.testcontainers:redis")
 }
 
