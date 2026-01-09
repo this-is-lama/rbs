@@ -1,6 +1,11 @@
 server:
   port: 8083
 
+jwt:
+  secret: ${JWT_SECRET}
+  lifetime: 15m
+  issuer: user-service
+
 spring:
   application:
     name: user-service
