@@ -4,19 +4,22 @@ plugins {
     id("io.spring.dependency-management")
 }
 
+val jwtVersion = "0.13.0"
 
 dependencies {
-    // Reactive Gateway (WebFlux + Netty)
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
-
-    // Service Discovery
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 
-    // Reactive Security (для фильтров в Gateway)
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
-    // Monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    //jwt
+    implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
 
     // Lombok
     compileOnly("org.projectlombok:lombok")
