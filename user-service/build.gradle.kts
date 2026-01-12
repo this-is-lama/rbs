@@ -7,6 +7,7 @@ plugins {
 val jwtVersion = "0.13.0"
 val mapstructVersion = "1.6.3"
 val lombokMapstruct = "0.2.0"
+
 dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -14,7 +15,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.liquibase:liquibase-core")
+
     runtimeOnly("org.postgresql:postgresql")
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -33,12 +34,10 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok")
 
     //mapstruct
-    dependencies {
-        implementation("org.mapstruct:mapstruct:$mapstructVersion")
-        annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+    implementation("org.mapstruct:mapstruct:$mapstructVersion")
+    annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstruct")
 
-        annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstruct")
-    }
 
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

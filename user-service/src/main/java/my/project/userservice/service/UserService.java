@@ -3,19 +3,19 @@ package my.project.userservice.service;
 import lombok.RequiredArgsConstructor;
 import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.entity.UserEntity;
+import my.project.userservice.exception.UserNotEnabledException;
+import my.project.userservice.exception.UserNotFoundException;
 import my.project.userservice.repository.UserRepository;
 import my.project.userservice.util.UserMapper;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +27,10 @@ public class UserService implements UserDetailsService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		UserEntity user = findByEmail(email).orElseThrow(() ->
-				new UsernameNotFoundException("Пользователь '%s' не найден".formatted(email))
-		);
+	public UserDetails loadUserByUsername(String email) {
+		UserEntity user = findByEmail(email);
 		if (!user.isEnabled()) {
-			throw new UsernameNotFoundException("Пользователь отключён");
+			throw new UserNotEnabledException(email);
 		}
 		return new User(
 				user.getEmail(),
@@ -42,8 +40,13 @@ public class UserService implements UserDetailsService {
 	}
 
 	@Transactional(readOnly = true)
-	public Optional<UserEntity> findByEmail(String email) {
-		return userRepository.findByEmail(email);
+	public UserEntity findByEmail(String email) {
+		return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+	}
+
+	@Transactional(readOnly = true)
+	public boolean existsByEmail(String email) {
+		return userRepository.existsByEmail(email);
 	}
 
 	@Transactional

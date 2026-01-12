@@ -85,14 +85,14 @@ MVP и роли описаны в README.
 
 * [ ] DTO:
 
-    * [ ] UserDto
+    * [x] UserDto
     * [ ] RestaurantDto
     * [ ] TableDto
     * [ ] MenuItemDto
     * [ ] BookingDto
 * [ ] Enums:
 
-    * [ ] Role
+    * [x] Role
     * [ ] BookingStatus
 * [ ] Events:
 
@@ -105,17 +105,17 @@ DTO и события переиспользуются между сервиса
 
 ## 🟢 Этап 5. User Service — Auth + JWT
 
-* [ ] Таблица `users` создана
-* [ ] Пароли хэшируются (bcrypt)
-* [ ] Эндпоинты:
+* [x] Таблица `users` создана
+* [x] Пароли хэшируются (bcrypt)
+* [x] Эндпоинты:
 
-    * [ ] `POST /auth/register`
-    * [ ] `POST /auth/login`
-* [ ] JWT содержит:
+    * [x] `POST /auth/register`
+    * [x] `POST /auth/login`
+* [x] JWT содержит:
 
-    * [ ] `sub` (userId)
-    * [ ] `role`
-    * [ ] `exp`
+    * [x] `sub`
+    * [x] `role`
+    * [x] `exp`
 
 **DoD:**
 Login возвращает валидный JWT.

@@ -1,4 +1,4 @@
-package my.project.userservice.util;
+package my.project.userservice.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -18,7 +18,7 @@ import java.util.Date;
 import java.util.List;
 
 @Component
-public class JwtUtils {
+public class JwtService {
 
 	private static final String ROLES_CLAIM = "roles";
 
@@ -26,12 +26,9 @@ public class JwtUtils {
 	private final Duration lifetime;
 	private final String issuer;
 
-	public JwtUtils(
-			@Value("${jwt.secret}") String secret,
-			@Value("${jwt.lifetime}") Duration lifetime,
-			@Value("${jwt.issuer:user-service}") String issuer
-	) {
-		// ожидаем Base64 секрет (лучший вариант)
+	public JwtService(@Value("${jwt.secret}") String secret,
+					  @Value("${jwt.lifetime}") Duration lifetime,
+					  @Value("${jwt.issuer:user-service}") String issuer) {
 		this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
 		this.lifetime = lifetime;
 		this.issuer = issuer;
@@ -47,11 +44,11 @@ public class JwtUtils {
 
 		return Jwts.builder()
 				.issuer(issuer)
-				.subject(userDetails.getUsername()) // сейчас email; позже можно заменить на userId
+				.subject(userDetails.getUsername())
 				.issuedAt(Date.from(now))
 				.expiration(Date.from(exp))
 				.claim(ROLES_CLAIM, roles)
-				.signWith(secretKey) // JJWT сам выберет корректный HS-алгоритм по ключу
+				.signWith(secretKey)
 				.compact();
 	}
 

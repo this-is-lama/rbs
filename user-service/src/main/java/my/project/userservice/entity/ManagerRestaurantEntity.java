@@ -11,7 +11,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table
+@Table(name = "manager_restaurants")
 public class ManagerRestaurantEntity {
 
 	@EmbeddedId

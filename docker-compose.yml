@@ -105,6 +105,7 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USER: ${PG_USER}
       DB_PASS: ${PG_PASS}
+      JWT_SECRET: ${JWT_SECRET}
     networks: [rbs-net]
     depends_on:
       - eureka-server

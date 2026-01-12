@@ -6,37 +6,42 @@ import my.project.userservice.dto.AuthResponse;
 import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.dto.RegistrationResponse;
 import my.project.userservice.entity.UserEntity;
-import my.project.userservice.util.JwtUtils;
+import my.project.userservice.exception.InvalidCredentialsException;
+import my.project.userservice.exception.UserEmailAlreadyUse;
+import my.project.userservice.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class    AuthService {
 
     private final UserService userService;
-    private final JwtUtils jwtUtils;
+    private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse login(AuthRequest req) {
+        Authentication auth;
         try {
-            authenticationManager.authenticate(
+            auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(req.email(), req.password())
             );
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Неправильный логин или пароль");
+            throw new InvalidCredentialsException();
         }
-        var userDetails = userService.loadUserByUsername(req.email());
-        String token = jwtUtils.generateToken(userDetails);
+        var userDetails = (UserDetails) auth.getPrincipal();
+        String token = jwtService.generateToken(userDetails);
         return new AuthResponse(token);
     }
 
     public RegistrationResponse register(RegistrationRequest req) {
-        if (userService.findByEmail(req.email()).isPresent()) {
-            throw new IllegalArgumentException("Пользователь с таким email уже существует");
+        if (userService.existsByEmail(req.email())) {
+            throw new UserEmailAlreadyUse();
         }
         UserEntity user = userService.save(req);
         return new RegistrationResponse(user.getId(), user.getEmail());
