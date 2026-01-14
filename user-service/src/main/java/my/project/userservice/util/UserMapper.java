@@ -1,11 +1,15 @@
 package my.project.userservice.util;
 
 import my.project.userservice.dto.RegistrationRequest;
+import my.project.userservice.dto.UserProfileResponse;
 import my.project.userservice.entity.UserEntity;
-import org.mapstruct.*;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -15,4 +19,7 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     UserEntity toEntity(RegistrationRequest req, @Context PasswordEncoder passwordEncoder);
+
+    @Mapping(target = "role", expression = "java(user.getRole().name())")
+    UserProfileResponse toResponse(UserEntity user);
 }

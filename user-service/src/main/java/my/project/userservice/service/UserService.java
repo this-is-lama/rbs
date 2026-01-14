@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,13 +31,19 @@ public class UserService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String email) {
 		UserEntity user = findByEmail(email);
 		if (!user.isEnabled()) {
-			throw new UserNotEnabledException(email);
+			throw new UserNotEnabledException(user.getId());
 		}
 		return new User(
 				user.getEmail(),
 				user.getPasswordHash(),
 				List.of(new SimpleGrantedAuthority(user.getRole().name()))
 		);
+	}
+
+	@Transactional(readOnly = true)
+	public UserEntity findById(UUID id) {
+		return userRepository.findById(id)
+				.orElseThrow(() -> new UserNotFoundException(id));
 	}
 
 	@Transactional(readOnly = true)

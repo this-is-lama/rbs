@@ -1,3 +1,3 @@
 package my.project.userservice.dto;
 
-public record AuthResponse(String token) {}
+public record AuthResponse(String token, String refreshToken) {}

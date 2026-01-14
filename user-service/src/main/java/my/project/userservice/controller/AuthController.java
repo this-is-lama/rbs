@@ -1,10 +1,7 @@
 package my.project.userservice.controller;
 
 import lombok.RequiredArgsConstructor;
-import my.project.userservice.dto.AuthRequest;
-import my.project.userservice.dto.AuthResponse;
-import my.project.userservice.dto.RegistrationRequest;
-import my.project.userservice.dto.RegistrationResponse;
+import my.project.userservice.dto.*;
 import my.project.userservice.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,5 +25,10 @@ public class AuthController {
 	@PostMapping("/register")
 	public ResponseEntity<RegistrationResponse> register(@RequestBody RegistrationRequest req) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(req));
+	}
+
+	@PostMapping("/refresh")
+	public ResponseEntity<RefreshResponse> refresh(@RequestBody RefreshRequest req) {
+		return ResponseEntity.ok(authService.refresh(req));
 	}
 }

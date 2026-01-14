@@ -12,7 +12,8 @@ public enum ExceptionCode {
 	USER_NOT_FOUND(HttpStatus.NOT_FOUND),
 	USER_NOT_ENABLED(HttpStatus.FORBIDDEN),
 	USER_EMAIL_ALREADY_USE(HttpStatus.CONFLICT),
-	INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED),;
+	INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED),
+	INVALID_TOKEN(HttpStatus.UNAUTHORIZED),;
 
 	private final HttpStatus status;
 }

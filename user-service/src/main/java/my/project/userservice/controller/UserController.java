@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import my.project.userservice.dto.UserProfileResponse;
 import my.project.userservice.entity.UserEntity;
 import my.project.userservice.service.UserService;
-import my.project.userservice.util.UserProfileMapper;
+import my.project.userservice.util.UserMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -17,12 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
 	private final UserService userService;
-	private final UserProfileMapper userProfileMapper;
+	private final UserMapper userMapper;
 
 	@GetMapping("/me")
 	public ResponseEntity<UserProfileResponse> me(Authentication authentication) {
-		String email = authentication.getName();
-		UserEntity user = userService.findByEmail(email);
-		return ResponseEntity.ok(userProfileMapper.toResponse(user));
+		UUID id = UUID.fromString(authentication.getName());
+		UserEntity user = userService.findById(id);
+		return ResponseEntity.ok(userMapper.toResponse(user));
 	}
 }

@@ -1,8 +1,8 @@
 package my.project.userservice.exception;
 
-public class UserEmailAlreadyUse extends ApiException {
+public class UserEmailAlreadyUseException extends ApiException {
 
-	public UserEmailAlreadyUse() {
+	public UserEmailAlreadyUseException() {
 		super(ExceptionCode.USER_EMAIL_ALREADY_USE, "Пользователь с такой почтой уже существует");
 	}
 }

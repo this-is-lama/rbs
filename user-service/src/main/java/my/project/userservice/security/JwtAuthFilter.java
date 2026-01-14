@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -38,18 +39,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		}
 
 		String token = header.substring(7);
-
 		if (!jwtService.validateToken(token)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
-		String username = jwtService.getUsername(token);
+		UUID userId = jwtService.getUserIdFromToken(token);
 		var authorities = jwtService.getRoles(token).stream()
 				.map(SimpleGrantedAuthority::new)
 				.toList();
+		var auth = new UsernamePasswordAuthenticationToken(userId.toString(), null, authorities);
 
-		var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
 		SecurityContextHolder.getContext().setAuthentication(auth);
 		filterChain.doFilter(request, response);
 	}
