@@ -1,9 +1,6 @@
 package my.project.userservice.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import my.project.userservice.entity.UserEntity;
@@ -60,7 +57,7 @@ public class JwtService {
 				.claim(ROLES_CLAIM, roles)
 				.claim(EMAIL_CLAIM, user.getEmail())
 				.claim(TOKEN_TYPE, ACCESS_TOKEN)
-				.signWith(secretKey)
+				.signWith(secretKey, SignatureAlgorithm.HS256)
 				.compact();
 	}
 
@@ -74,7 +71,7 @@ public class JwtService {
 				.issuedAt(Date.from(now))
 				.expiration(Date.from(exp))
 				.claim(TOKEN_TYPE, REFRESH_TOKEN)
-				.signWith(refreshSecretKey)
+				.signWith(refreshSecretKey, SignatureAlgorithm.HS256)
 				.compact();
 	}
 

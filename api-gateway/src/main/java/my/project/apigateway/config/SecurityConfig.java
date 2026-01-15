@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
@@ -64,7 +65,10 @@ public class SecurityConfig {
     public ReactiveJwtDecoder jwtDecoder(@Value("${jwt.secret}") String secret,
                                          @Value("${jwt.issuer:user-service}") String issuer) {
         SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
-        NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder.withSecretKey(key).build();
+        NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder
+                .withSecretKey(key)
+                .macAlgorithm(MacAlgorithm.HS256)
+                .build();
 
         OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuer);
 
