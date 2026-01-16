@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import my.project.userservice.dto.UserProfileResponse;
 import my.project.userservice.entity.UserEntity;
 import my.project.userservice.service.UserService;
-import my.project.userservice.util.UserMapper;
+import my.project.userservice.mapper.UserMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;

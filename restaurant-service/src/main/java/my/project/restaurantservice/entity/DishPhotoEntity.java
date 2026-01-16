@@ -12,13 +12,20 @@ import java.util.UUID;
 @Entity
 @Table(
     name = "dish_photos",
-    uniqueConstraints = @UniqueConstraint(name = "uk_dish_photos_object_key", columnNames = "object_key"),
-    indexes = @Index(name = "idx_dish_photos_dish_id", columnList = "dish_id")
+    uniqueConstraints = @UniqueConstraint(
+            name = "uk_dish_photos_object_key",
+            columnNames = "object_key"
+    ),
+    indexes = @Index(
+            name = "idx_dish_photos_dish_id",
+            columnList = "dish_id"
+    )
 )
 public class DishPhotoEntity {
 
     @Id
     @GeneratedValue
+    @Column(columnDefinition = "uuid")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

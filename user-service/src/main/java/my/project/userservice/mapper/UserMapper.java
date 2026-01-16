@@ -1,4 +1,4 @@
-package my.project.userservice.util;
+package my.project.userservice.mapper;
 
 import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.dto.UserProfileResponse;

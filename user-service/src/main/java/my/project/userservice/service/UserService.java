@@ -6,7 +6,7 @@ import my.project.userservice.entity.UserEntity;
 import my.project.userservice.exception.UserNotEnabledException;
 import my.project.userservice.exception.UserNotFoundException;
 import my.project.userservice.repository.UserRepository;
-import my.project.userservice.util.UserMapper;
+import my.project.userservice.mapper.UserMapper;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;

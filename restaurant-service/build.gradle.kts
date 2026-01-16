@@ -4,32 +4,43 @@ plugins {
     id("io.spring.dependency-management")
 }
 
+val mapstructVersion = "1.6.3"
+val minioVersion = "8.6.0"
+val lombokMapstruct = "0.2.0"
 
 dependencies {
+
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-    // Data
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
 
     //MinIO
-    implementation("io.minio:minio:8.6.0")
+    implementation("io.minio:minio:$minioVersion")
 
-    // Security (если у тебя роль ADMIN/USER и т.п.)
     implementation("org.springframework.boot:spring-boot-starter-security")
 
-    // Cache
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
-    // Observability
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
-    // Service Discovery + Inter-service calls
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
 
-    // Tests
+    // Lombok
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+
+    //mapstruct
+    implementation("org.mapstruct:mapstruct:$mapstructVersion")
+    annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstruct")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")

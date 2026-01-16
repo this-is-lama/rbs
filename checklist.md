@@ -124,17 +124,17 @@ Login возвращает валидный JWT.
 
 ## 🟢 Этап 6. API Gateway — Security (JWT HS256)
 
-* [ ] Gateway валидирует JWT по `JWT_SECRET`
-* [ ] Проверяется `exp`
-* [ ] Реализованы правила доступа:
+* [x] Gateway валидирует JWT по `JWT_SECRET`
+* [x] Проверяется `exp`
+* [x] Реализованы правила доступа:
 
-    * [ ] public
-    * [ ] authenticated
-    * [ ] admin only
-* [ ] Gateway добавляет headers:
+    * [x] public
+    * [x] authenticated
+    * [x] admin only
+* [x] Gateway добавляет headers:
 
-    * [ ] `X-User-Id`
-    * [ ] `X-User-Role`
+    * [x] `X-User-Id`
+    * [x] `X-User-Role`
 
 **DoD:**
 

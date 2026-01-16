@@ -11,17 +11,13 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(
-    name = "restaurant_photos",
-    uniqueConstraints = @UniqueConstraint(
-            name = "uk_restaurant_photos_object_key",
-            columnNames = "object_key"
-    ),
+    name = "restaurant_contacts",
     indexes = @Index(
-            name = "idx_restaurant_photos_restaurant_id",
+            name = "idx_restaurant_contacts_restaurant_id",
             columnList = "restaurant_id"
     )
 )
-public class RestaurantPhotoEntity {
+public class ContactEntity {
 
     @Id
     @GeneratedValue
@@ -32,21 +28,12 @@ public class RestaurantPhotoEntity {
     @JoinColumn(name = "restaurant_id", nullable = false)
     private RestaurantEntity restaurant;
 
-    @Column(name = "object_key", nullable = false, length = 512, unique = true)
-    private String objectKey;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 50)
+    private ContactType type;
 
-
-    @Column(name = "is_main", nullable = false)
-    private boolean isMain;
-
-    @Column(name = "sort_order", nullable = false)
-    private int sortOrder;
-
-    @Column(name = "content_type", nullable = false, length = 100)
-    private String contentType;
-
-    @Column(name = "size_bytes", nullable = false)
-    private long sizeBytes;
+    @Column(name = "value", nullable = false, length = 255)
+    private String value;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

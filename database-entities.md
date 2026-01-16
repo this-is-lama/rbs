@@ -54,120 +54,207 @@
 
 ---
 
-## Restaurant Service Database (`restaurantdb`)
+Отлично, это **очень правильный шаг** 👍
+Ниже — **доработанная финальная спецификация схемы `restaurantdb`**, оформленная **как полноценная техническая документация**, с явным указанием:
 
-База данных `restaurantdb` хранит справочные данные ресторанов, их столы, меню и **метаданные изображений**.
-Сами изображения **не хранятся в базе данных** — они размещаются в **object storage (MinIO, S3-совместимое хранилище)**, а в БД сохраняются только ссылки и ключи объектов.
+* `PK / FK`
+* `NOT NULL / NULL`
+* `UNIQUE`
+* индексов
+* бизнес-ограничений
 
----
+Такой документ спокойно можно:
 
-### Таблица `restaurants`
-
-Хранит основную информацию о ресторанах.
-
-| Поле          | Тип         | Описание                           |
-| ------------- | ----------- | ---------------------------------- |
-| `id`          | UUID        | Уникальный идентификатор ресторана |
-| `name`        | varchar     | Название ресторана                 |
-| `description` | text        | Описание                           |
-| `address`     | varchar     | Адрес                              |
-| `phone`       | varchar     | Контактный телефон                 |
-| `is_active`   | boolean     | Активен ли ресторан                |
-| `created_at`  | timestamptz | Дата создания                      |
-| `updated_at`  | timestamptz | Дата обновления                    |
+* класть в `README.md`
+* использовать как основу для **Liquibase**
+* показывать на ревью / защите проекта
 
 ---
 
-### Таблица `restaurant_tables`
 
-Хранит информацию о столах в ресторане.
 
-| Поле            | Тип         | Описание                |
-| --------------- | ----------- | ----------------------- |
-| `id`            | UUID        | Идентификатор стола     |
-| `restaurant_id` | UUID        | ID ресторана            |
-| `table_number`  | int         | Номер стола в ресторане |
-| `capacity`      | int         | Вместимость             |
-| `is_active`     | boolean     | Активен ли стол         |
-| `created_at`    | timestamptz | Дата создания           |
-| `updated_at`    | timestamptz | Дата обновления         |
+## Restaurant Service Database: `restaurantdb`
 
-* уникальность: `(restaurant_id, table_number)`
+База данных `restaurantdb` хранит **справочные данные ресторанов**, их контактную информацию, столы, меню и **метаданные изображений**.
+
+Изображения хранятся во **внешнем object storage (MinIO / S3-compatible)**.
+В базе данных сохраняются **только метаданные и ссылки**.
 
 ---
 
-### Таблица `menu_items`
+## 📌 Table: `restaurants`
 
-Хранит блюда, доступные в меню ресторана.
+Хранит **основную информацию о ресторанах**.
 
-| Поле            | Тип         | Описание                    |
-| --------------- | ----------- | --------------------------- |
-| `id`            | UUID        | Идентификатор блюда         |
-| `restaurant_id` | UUID        | ID ресторана                |
-| `name`          | varchar     | Название блюда              |
-| `description`   | text        | Описание                    |
-| `price_cents`   | int         | Цена в минимальных единицах |
-| `is_available`  | boolean     | Доступно ли блюдо           |
-| `created_at`    | timestamptz | Дата создания               |
-| `updated_at`    | timestamptz | Дата обновления             |
+| Column        | Type         | Constraints  | Description                        |
+| ------------- | ------------ | ------------ | ---------------------------------- |
+| `id`          | UUID         | PK, NOT NULL | Уникальный идентификатор ресторана |
+| `name`        | varchar(255) | NOT NULL     | Название ресторана                 |
+| `category`    | varchar(100) | NOT NULL     | Категория ресторана                |
+| `description` | text         | NULL         | Описание ресторана                 |
+| `address`     | varchar(255) | NOT NULL     | Физический адрес                   |
+| `is_active`   | boolean      | NOT NULL     | Признак активности                 |
+| `start_time`  | time         | NOT NULL     | Время открытия                     |
+| `end_time`    | time         | NOT NULL     | Время закрытия                     |
+| `created_at`  | timestamptz  | NOT NULL     | Дата создания                      |
+| `updated_at`  | timestamptz  | NOT NULL     | Дата обновления                    |
 
----
+**Indexes**
 
-## Хранение изображений (MinIO / Object Storage)
-
-Фотографии ресторанов и блюд хранятся во **внешнем object storage (MinIO)**.
-`Restaurant Service` отвечает за загрузку файлов и сохранение метаданных изображений в базе данных.
-
-В базе данных хранятся **только ссылки и ключи объектов**, а не бинарные данные изображений.
+* PK: `restaurants_pkey (id)`
 
 ---
 
-### Таблица `restaurant_images`
+## 📞 Table: `restaurant_contacts`
 
-Хранит изображения, связанные с рестораном (например, обложка и галерея).
+Контактная информация ресторана.
 
-| Поле            | Тип         | Описание                           |
-| --------------- | ----------- | ---------------------------------- |
-| `id`            | UUID        | Идентификатор изображения          |
-| `restaurant_id` | UUID        | ID ресторана                       |
-| `object_key`    | varchar     | Ключ объекта в MinIO (bucket/path) |
-| `url`           | varchar     | Публичный или presigned URL        |
-| `sort_order`    | int         | Порядок отображения                |
-| `created_at`    | timestamptz | Дата загрузки                      |
+| Column          | Type         | Constraints  | Description            |
+| --------------- | ------------ | ------------ | ---------------------- |
+| `id`            | UUID         | PK, NOT NULL | Идентификатор контакта |
+| `restaurant_id` | UUID         | FK, NOT NULL | Ресторан               |
+| `type`          | varchar(50)  | NOT NULL     | Тип контакта           |
+| `value`         | varchar(255) | NOT NULL     | Значение               |
+| `created_at`    | timestamptz  | NOT NULL     | Дата создания          |
 
-* один ресторан может иметь **несколько изображений**
-* `sort_order` используется для выбора главного изображения
+**Constraints**
 
----
+* FK: `restaurant_contacts.restaurant_id → restaurants.id`
 
-### Таблица `menu_item_images`
+**Indexes**
 
-Хранит изображения блюд меню.
-
-| Поле           | Тип         | Описание                    |
-| -------------- | ----------- | --------------------------- |
-| `id`           | UUID        | Идентификатор изображения   |
-| `menu_item_id` | UUID        | ID блюда                    |
-| `object_key`   | varchar     | Ключ объекта в MinIO        |
-| `url`          | varchar     | Публичный или presigned URL |
-| `created_at`   | timestamptz | Дата загрузки               |
-
-* одно блюдо может иметь одно или несколько изображений
-* изображения используются только для отображения, бизнес-логика меню от них не зависит
+* `idx_restaurant_contacts_restaurant_id (restaurant_id)`
 
 ---
 
-## Взаимодействие с изображениями
+## 📸 Table: `restaurant_photos`
 
-Типовой сценарий работы с изображениями:
+Метаданные изображений ресторана.
 
-1. MANAGER или OWNER загружает изображение через `Restaurant Service`
-2. Сервис сохраняет файл в MinIO
-3. MinIO возвращает `object_key` и (опционально) `url`
-4. Метаданные изображения сохраняются в `restaurantdb`
-5. Клиенты получают изображения по URL
+| Column          | Type         | Constraints      | Description               |
+| --------------- | ------------ | ---------------- | ------------------------- |
+| `id`            | UUID         | PK, NOT NULL     | Идентификатор изображения |
+| `restaurant_id` | UUID         | FK, NOT NULL     | Ресторан                  |
+| `object_key`    | varchar(512) | NOT NULL, UNIQUE | Ключ объекта в MinIO      |
+| `url`           | varchar(500) | NULL             | Публичный URL             |
+| `is_main`       | boolean      | NOT NULL         | Главное изображение       |
+| `sort_order`    | integer      | NOT NULL         | Порядок                   |
+| `content_type`  | varchar(100) | NOT NULL         | MIME-тип                  |
+| `size_bytes`    | bigint       | NOT NULL         | Размер файла              |
+| `created_at`    | timestamptz  | NOT NULL         | Дата загрузки             |
+
+**Constraints**
+
+* FK: `restaurant_photos.restaurant_id → restaurants.id`
+
+**Indexes**
+
+* `idx_restaurant_photos_restaurant_id (restaurant_id)`
+* `uk_restaurant_photos_object_key (object_key)`
 
 ---
+
+## 🍽 Table: `restaurant_tables`
+
+Столы ресторана.
+
+| Column          | Type        | Constraints  | Description         |
+| --------------- | ----------- | ------------ | ------------------- |
+| `id`            | UUID        | PK, NOT NULL | Идентификатор стола |
+| `restaurant_id` | UUID        | FK, NOT NULL | Ресторан            |
+| `table_number`  | integer     | NOT NULL     | Номер стола         |
+| `capacity`      | integer     | NOT NULL     | Вместимость         |
+| `is_active`     | boolean     | NOT NULL     | Активен             |
+| `created_at`    | timestamptz | NOT NULL     | Дата создания       |
+| `updated_at`    | timestamptz | NOT NULL     | Дата обновления     |
+
+**Constraints**
+
+* FK: `restaurant_tables.restaurant_id → restaurants.id`
+* UNIQUE: `(restaurant_id, table_number)`
+
+**Indexes**
+
+* `idx_restaurant_tables_restaurant_id (restaurant_id)`
+
+---
+
+## 🍕 Table: `dishes`
+
+Блюда ресторана.
+
+| Column          | Type         | Constraints  | Description         |
+| --------------- | ------------ | ------------ | ------------------- |
+| `id`            | UUID         | PK, NOT NULL | Идентификатор блюда |
+| `restaurant_id` | UUID         | FK, NOT NULL | Ресторан            |
+| `name`          | varchar(255) | NOT NULL     | Название            |
+| `category`      | varchar(100) | NOT NULL     | Категория           |
+| `description`   | text         | NULL         | Описание            |
+| `price_cents`   | integer      | NOT NULL     | Цена                |
+| `weight`        | integer      | NOT NULL     | Вес (г)             |
+| `is_available`  | boolean      | NOT NULL     | Доступно            |
+| `created_at`    | timestamptz  | NOT NULL     | Дата создания       |
+| `updated_at`    | timestamptz  | NOT NULL     | Дата обновления     |
+
+**Constraints**
+
+* FK: `dishes.restaurant_id → restaurants.id`
+
+**Indexes**
+
+* `idx_dishes_restaurant_id (restaurant_id)`
+
+---
+
+## 🖼 Table: `dish_photos`
+
+Метаданные изображений блюд.
+
+| Column         | Type         | Constraints      | Description   |
+| -------------- | ------------ | ---------------- | ------------- |
+| `id`           | UUID         | PK, NOT NULL     | Идентификатор |
+| `dish_id`      | UUID         | FK, NOT NULL     | Блюдо         |
+| `object_key`   | varchar(512) | NOT NULL, UNIQUE | Ключ MinIO    |
+| `url`          | varchar(500) | NULL             | URL           |
+| `is_main`      | boolean      | NOT NULL         | Главное       |
+| `sort_order`   | integer      | NOT NULL         | Порядок       |
+| `content_type` | varchar(100) | NOT NULL         | MIME          |
+| `size_bytes`   | bigint       | NOT NULL         | Размер        |
+| `created_at`   | timestamptz  | NOT NULL         | Дата          |
+
+**Constraints**
+
+* FK: `dish_photos.dish_id → dishes.id`
+
+**Indexes**
+
+* `idx_dish_photos_dish_id (dish_id)`
+* `uk_dish_photos_object_key (object_key)`
+
+---
+
+## 🔗 Logical Model
+
+```
+restaurants
+ ├── restaurant_contacts
+ ├── restaurant_photos
+ ├── restaurant_tables
+ └── dishes
+       └── dish_photos
+```
+
+---
+
+## 🧠 Design Decisions
+
+* Все PK — `UUID`
+* Все FK — `NOT NULL`
+* Межсервисные связи — **только через UUID**
+* Изображения — через object storage
+* Схема оптимизирована под **Liquibase + JPA**
+
+
 
 ## Booking Service Database (`bookingdb`)
 
