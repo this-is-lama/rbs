@@ -9,7 +9,12 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
 		componentModel = "spring",
-		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+		uses = {
+				WorkingHoursMapper.class,
+				ContactMapper.class,
+				DishMapper.class,
+		}
 )
 public interface RestaurantMapper {
 

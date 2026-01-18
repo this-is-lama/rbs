@@ -1,6 +1,5 @@
 package my.project.restaurantservice.dto;
 
-import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.TableEntity;
 
 import java.util.List;
@@ -16,6 +15,6 @@ public record RestaurantResponse(
 		Boolean isActive,
 		List<WorkingHoursDto> workingHours,
 		List<ContactDto> contacts,
-		List<DishEntity> dishes,
+		List<DishResponse> dishes,
 		List<TableEntity> tables
 ) {}

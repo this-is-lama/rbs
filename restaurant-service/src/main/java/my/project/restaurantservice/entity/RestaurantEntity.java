@@ -2,6 +2,8 @@ package my.project.restaurantservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -51,10 +53,12 @@ public class RestaurantEntity {
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     @Builder.Default
     private List<WorkingHoursEntity> workingHours = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     @Builder.Default
     private List<ContactEntity> contacts = new ArrayList<>();
 
@@ -67,6 +71,7 @@ public class RestaurantEntity {
     private List<TableEntity> tables = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     @Builder.Default
     private List<DishEntity> dishes = new ArrayList<>();
 

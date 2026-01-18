@@ -51,7 +51,7 @@ public class RestaurantService {
 
 	@Transactional(readOnly = true)
 	public RestaurantResponse findById(UUID id) {
-		RestaurantEntity restaurant = repository.findDetailsById(id)
+		RestaurantEntity restaurant = repository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Restaurant not found: " + id));
 
 		return restaurantMapper.toResponse(restaurant);
