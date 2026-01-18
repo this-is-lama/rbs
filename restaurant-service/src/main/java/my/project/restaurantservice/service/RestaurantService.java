@@ -2,11 +2,9 @@ package my.project.restaurantservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import my.project.restaurantservice.dto.CreateRestaurantRequest;
-import my.project.restaurantservice.dto.RestaurantResponse;
-import my.project.restaurantservice.entity.ContactEntity;
+import my.project.restaurantservice.dto.RestaurantDto;
+import my.project.restaurantservice.dto.RestaurantInfoDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
-import my.project.restaurantservice.entity.WorkingHoursEntity;
 import my.project.restaurantservice.mapper.ContactMapper;
 import my.project.restaurantservice.mapper.RestaurantMapper;
 import my.project.restaurantservice.mapper.WorkingHoursMapper;
@@ -30,19 +28,19 @@ public class RestaurantService {
 
 	private final RestaurantRepository repository;
 
+	@Transactional
+	public UUID save(RestaurantDto dto) {
+		RestaurantEntity restaurant = restaurantMapper.toEntity(dto);
 
-	public UUID save(CreateRestaurantRequest req) {
-		RestaurantEntity restaurant = restaurantMapper.toEntity(req);
+		restaurant.setActive(dto.isActive() != null && dto.isActive());
 
-		restaurant.setActive(req.isActive() != null && req.isActive());
-
-		if (req.contacts() != null) {
-			contactMapper.toEntities(req.contacts())
+		if (dto.contacts() != null) {
+			contactMapper.toEntities(dto.contacts())
 					.forEach(restaurant::addContact);
 		}
 
-		if (req.workingHours() != null) {
-			workingHoursMapper.toEntities(req.workingHours())
+		if (dto.workingHours() != null) {
+			workingHoursMapper.toEntities(dto.workingHours())
 					.forEach(restaurant::addWorkingHours);
 		}
 
@@ -50,11 +48,22 @@ public class RestaurantService {
 	}
 
 	@Transactional(readOnly = true)
-	public RestaurantResponse findById(UUID id) {
+	public RestaurantDto findById(UUID id) {
 		RestaurantEntity restaurant = repository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Restaurant not found: " + id));
 
-		return restaurantMapper.toResponse(restaurant);
+		return restaurantMapper.toDto(restaurant);
+	}
+
+	@Transactional(readOnly = true)
+	public List<RestaurantInfoDto> findAll() {
+		List<RestaurantEntity> restaurants = repository.findAll();
+		return restaurantMapper.toInfoDto(restaurants);
+	}
+
+	@Transactional
+	public void delete(UUID id) {
+		repository.deleteById(id);
 	}
 
 	@Transactional(readOnly = true)

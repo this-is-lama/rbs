@@ -1,11 +1,13 @@
 package my.project.restaurantservice.mapper;
 
-import my.project.restaurantservice.dto.CreateRestaurantRequest;
-import my.project.restaurantservice.dto.RestaurantResponse;
+import my.project.restaurantservice.dto.RestaurantDto;
+import my.project.restaurantservice.dto.RestaurantInfoDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+
+import java.util.List;
 
 @Mapper(
 		componentModel = "spring",
@@ -14,6 +16,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 				WorkingHoursMapper.class,
 				ContactMapper.class,
 				DishMapper.class,
+				TableMapper.class
 		}
 )
 public interface RestaurantMapper {
@@ -23,11 +26,13 @@ public interface RestaurantMapper {
 	@Mapping(target = "updatedAt", ignore = true)
 	@Mapping(target = "workingHours", ignore = true)
 	@Mapping(target = "contacts", ignore = true)
-	RestaurantEntity toEntity(CreateRestaurantRequest req);
+	@Mapping(target = "dishes", ignore = true)
+	@Mapping(target = "tables", ignore = true)
+	RestaurantEntity toEntity(RestaurantDto dto);
 
+	RestaurantDto toDto(RestaurantEntity entity);
 
-	RestaurantResponse toResponse(RestaurantEntity entity);
-
+	List<RestaurantInfoDto> toInfoDto(List<RestaurantEntity> entities);
 
 }
 

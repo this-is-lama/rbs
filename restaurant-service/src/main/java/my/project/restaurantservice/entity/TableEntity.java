@@ -38,6 +38,9 @@ public class TableEntity {
     @Column(name = "table_number", nullable = false)
     private int tableNumber;
 
+    @Column(name = "description")
+    private String description;
+
     @Column(name = "capacity", nullable = false)
     private int capacity;
 

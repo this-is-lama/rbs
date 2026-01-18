@@ -1,6 +1,9 @@
 package my.project.restaurantservice.dto;
 
-public record TableCreateRequest(
+import java.util.UUID;
+
+public record TableDto(
+		UUID id,
 		int tableNumber,
 		String description,
 		int capacity,

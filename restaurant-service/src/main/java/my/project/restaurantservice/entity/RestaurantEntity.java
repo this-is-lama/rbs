@@ -67,6 +67,7 @@ public class RestaurantEntity {
     private List<RestaurantPhotoEntity> photos = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     @Builder.Default
     private List<TableEntity> tables = new ArrayList<>();
 

@@ -7,5 +7,4 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface DishRepository extends JpaRepository<DishEntity, UUID> {
-}
+public interface DishRepository extends JpaRepository<DishEntity, UUID> {}

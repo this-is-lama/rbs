@@ -1,7 +1,6 @@
 package my.project.restaurantservice.mapper;
 
-import my.project.restaurantservice.dto.CreateDishRequest;
-import my.project.restaurantservice.dto.DishResponse;
+import my.project.restaurantservice.dto.DishDto;
 import my.project.restaurantservice.entity.DishEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,12 +19,12 @@ public interface DishMapper {
 	@Mapping(target = "createdAt", ignore = true)
 	@Mapping(target = "updatedAt", ignore = true)
 	@Mapping(target = "photos", ignore = true)
-	DishEntity toEntity(CreateDishRequest createDishRequest);
+	DishEntity toEntity(DishDto dto);
 
-	DishResponse toResponse(DishEntity dishEntity);
+	DishDto toDto(DishEntity dishEntity);
 
 
-	List<DishEntity> toEntities(List<CreateDishRequest> createDishRequest);
+	List<DishEntity> toEntity(List<DishDto> dtoList);
 
-	List<CreateDishRequest> toDtos(List<DishEntity> dishEntities);
+	List<DishDto> toDto(List<DishEntity> dishes);
 }

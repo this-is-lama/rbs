@@ -2,8 +2,7 @@ package my.project.restaurantservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import my.project.restaurantservice.dto.CreateDishRequest;
-import my.project.restaurantservice.dto.DishResponse;
+import my.project.restaurantservice.dto.DishDto;
 import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.mapper.DishMapper;
@@ -18,14 +17,12 @@ import java.util.UUID;
 public class DishService {
 
 	private final DishRepository dishRepository;
-
 	private final DishMapper dishMapper;
-
 	private final RestaurantService restaurantService;
 
 	@Transactional
-	public UUID save(CreateDishRequest req, UUID restId) {
-		DishEntity dish = dishMapper.toEntity(req);
+	public UUID save(DishDto dto, UUID restId) {
+		DishEntity dish = dishMapper.toEntity(dto);
 
 		RestaurantEntity restaurantRef = restaurantService.getRef(restId);
 		dish.setRestaurant(restaurantRef);
@@ -34,9 +31,14 @@ public class DishService {
 	}
 
 	@Transactional(readOnly = true)
-	public DishResponse findById(UUID id) {
+	public DishDto findById(UUID id) {
 		var dish = dishRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException(id.toString()));
-		return dishMapper.toResponse(dish);
+		return dishMapper.toDto(dish);
+	}
+
+	@Transactional
+	public void delete(UUID id) {
+		dishRepository.deleteById(id);
 	}
 }
