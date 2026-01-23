@@ -1,5 +1,6 @@
 package my.project.restaurantservice.dto;
 
+import java.util.List;
 import java.util.UUID;
 
 public record DishDto(
@@ -9,5 +10,6 @@ public record DishDto(
 		String description,
 		Integer price,
 		Integer weight,
-		boolean isAvailable
+		boolean isAvailable,
+		List<PhotoDto> photos
 ) {}

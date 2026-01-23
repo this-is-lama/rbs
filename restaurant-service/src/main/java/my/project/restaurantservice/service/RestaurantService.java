@@ -20,8 +20,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RestaurantService {
 
-	private static final String RESTAURANT_BUCKET = "restaurant-media";
-
 	private final RestaurantMapper restaurantMapper;
 	private final ContactMapper contactMapper;
 	private final WorkingHoursMapper workingHoursMapper;
@@ -35,7 +33,7 @@ public class RestaurantService {
 		restaurant.setActive(dto.isActive() != null && dto.isActive());
 
 		if (dto.contacts() != null) {
-			contactMapper.toEntities(dto.contacts())
+			contactMapper.toEntity(dto.contacts())
 					.forEach(restaurant::addContact);
 		}
 

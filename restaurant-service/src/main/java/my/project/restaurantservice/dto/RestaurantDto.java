@@ -14,5 +14,6 @@ public record RestaurantDto(
 		List<WorkingHoursDto> workingHours,
 		List<ContactDto> contacts,
 		List<DishDto> dishes,
-		List<TableDto> tables
+		List<TableDto> tables,
+		List<PhotoDto> photos
 ) {}

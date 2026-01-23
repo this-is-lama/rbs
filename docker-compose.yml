@@ -29,7 +29,6 @@ services:
       - minio-data:/data
     networks: [ rbs-net ]
 
-  # init: creates bucket and makes it public-read
   minio-init:
     image: minio/mc:latest
     container_name: minio-init
@@ -41,10 +40,15 @@ services:
       until mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin}; do
         echo 'waiting for minio...'; sleep 2;
       done &&
-      mc mb -p local/${MINIO_BUCKET:-rbs-media} || true &&
-      mc anonymous set download local/${MINIO_BUCKET:-rbs-media} &&
-      echo 'MinIO bucket is ready: ${MINIO_BUCKET:-rbs-media} (public read)'
+
+      for bucket in restaurant-media dish-media; do
+        echo \"Creating bucket: $$bucket\" &&
+        mc mb -p local/$$bucket || true &&
+        mc anonymous set download local/$$bucket &&
+        echo \"Bucket ready: $$bucket (public read)\";
+      done
       "
+  
 
   redis:
     image: redis:7

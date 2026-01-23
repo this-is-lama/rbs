@@ -11,6 +11,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Profile("dev")
 @Slf4j
 @Component
@@ -50,6 +52,7 @@ public class MinioInitializer implements ApplicationRunner {
 			minioClient.makeBucket(
 					MakeBucketArgs.builder()
 							.bucket(bucketName)
+							.extraQueryParams(Map.of())
 							.build()
 			);
 			log.info("бакет {} успешно создан", bucketName);

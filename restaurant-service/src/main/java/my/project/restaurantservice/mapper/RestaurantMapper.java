@@ -16,7 +16,9 @@ import java.util.List;
 				WorkingHoursMapper.class,
 				ContactMapper.class,
 				DishMapper.class,
-				TableMapper.class
+				TableMapper.class,
+				RestaurantPhotoMapper.class,
+				DishPhotoMapper.class,
 		}
 )
 public interface RestaurantMapper {

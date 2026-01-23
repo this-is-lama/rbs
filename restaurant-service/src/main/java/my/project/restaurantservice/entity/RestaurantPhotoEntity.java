@@ -2,57 +2,33 @@ package my.project.restaurantservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-import java.time.Instant;
-import java.util.UUID;
 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Table(
-    name = "restaurant_photos",
-    uniqueConstraints = @UniqueConstraint(
-            name = "uk_restaurant_photos_object_key",
-            columnNames = "object_key"
-    ),
-    indexes = @Index(
-            name = "idx_restaurant_photos_restaurant_id",
-            columnList = "restaurant_id"
-    )
+        name = "restaurant_photos",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_restaurant_photos_object_key",
+                columnNames = "object_key"
+        ),
+        indexes = @Index(
+                name = "idx_restaurant_photos_restaurant_id",
+                columnList = "restaurant_id"
+        )
 )
-public class RestaurantPhotoEntity {
-
-    @Id
-    @GeneratedValue
-    @Column(columnDefinition = "uuid")
-    private UUID id;
+public class RestaurantPhotoEntity extends PhotoEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "restaurant_id", nullable = false)
     private RestaurantEntity restaurant;
 
-    @Column(name = "object_key", nullable = false, length = 512, unique = true)
-    private String objectKey;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private PhotoCategory category;
 
-
-    @Column(name = "is_main", nullable = false)
-    private boolean isMain;
-
-    @Column(name = "sort_order", nullable = false)
-    private int sortOrder;
-
-    @Column(name = "content_type", nullable = false, length = 100)
-    private String contentType;
-
-    @Column(name = "size_bytes", nullable = false)
-    private long sizeBytes;
-
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = Instant.now();
-    }
 }
+

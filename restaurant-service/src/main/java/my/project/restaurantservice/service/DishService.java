@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DishService {
 
-	private final DishRepository dishRepository;
+	private final DishRepository repository;
 	private final DishMapper dishMapper;
 	private final RestaurantService restaurantService;
 
@@ -27,18 +27,23 @@ public class DishService {
 		RestaurantEntity restaurantRef = restaurantService.getRef(restId);
 		dish.setRestaurant(restaurantRef);
 
-		return dishRepository.save(dish).getId();
+		return repository.save(dish).getId();
 	}
 
 	@Transactional(readOnly = true)
 	public DishDto findById(UUID id) {
-		var dish = dishRepository.findById(id)
+		var dish = repository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException(id.toString()));
 		return dishMapper.toDto(dish);
 	}
 
+	@Transactional(readOnly = true)
+	public DishEntity getRef(UUID id) {
+		return repository.getReferenceById(id);
+	}
+
 	@Transactional
 	public void delete(UUID id) {
-		dishRepository.deleteById(id);
+		repository.deleteById(id);
 	}
 }

@@ -22,5 +22,5 @@ public interface WorkingHoursMapper {
 
 	WorkingHoursDto toDto(WorkingHoursEntity entity);
 
-	List<WorkingHoursDto> toDtos(List<WorkingHoursEntity> entities);
+	List<WorkingHoursDto> toDto(List<WorkingHoursEntity> entities);
 }

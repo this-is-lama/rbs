@@ -4,8 +4,12 @@ import my.project.restaurantservice.dto.TableDto;
 import my.project.restaurantservice.entity.TableEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+		componentModel = "spring",
+		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface TableMapper {
 
 	@Mapping(target = "id", ignore = true)

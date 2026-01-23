@@ -28,7 +28,7 @@ public class TableController {
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<DishDto> delete(@PathVariable UUID id) {
+	public ResponseEntity<Void> delete(@PathVariable UUID id) {
 		tableService.delete(id);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}

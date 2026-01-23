@@ -19,9 +19,9 @@ public interface ContactMapper {
 	@Mapping(target = "createdAt", ignore = true)
 	ContactEntity toEntity(ContactDto contactDto);
 
-	List<ContactEntity> toEntities(List<ContactDto> contactDtoList);
+	List<ContactEntity> toEntity(List<ContactDto> contactDtoList);
 
 	ContactDto toDto(ContactEntity contactEntity);
 
-	List<ContactDto> toDtos(List<ContactEntity> contactEntityList);
+	List<ContactDto> toDto(List<ContactEntity> contactEntityList);
 }
