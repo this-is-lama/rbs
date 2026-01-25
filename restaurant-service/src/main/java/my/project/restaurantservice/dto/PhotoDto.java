@@ -15,9 +15,9 @@ public class PhotoDto {
 
 	String objectKey;
 
-	String presignedURL; // не сохраняется в базе
+	String presignedURL;
 
-	String publicUrl; // не сохраняется в базе
+	String publicUrl;
 
 	String contentType;
 

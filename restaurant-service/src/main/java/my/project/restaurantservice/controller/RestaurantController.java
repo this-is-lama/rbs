@@ -1,5 +1,6 @@
 package my.project.restaurantservice.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.dto.DishDto;
 import my.project.restaurantservice.dto.RestaurantDto;
@@ -25,7 +26,7 @@ public class RestaurantController {
 	private final TableService tableService;
 
 	@PostMapping()
-	public ResponseEntity<UUID> create(@RequestBody RestaurantDto dto) {
+	public ResponseEntity<UUID> create(@Valid @RequestBody RestaurantDto dto) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(restaurantService.save(dto));
 	}
 
@@ -48,12 +49,12 @@ public class RestaurantController {
 
 
 	@PostMapping("/{restId}/dishes")
-	public ResponseEntity<UUID> create(@RequestBody DishDto dto, @PathVariable UUID restId) {
+	public ResponseEntity<UUID> create(@PathVariable UUID restId, @Valid @RequestBody DishDto dto) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(dishService.save(dto, restId));
 	}
 
 	@PostMapping("/{restId}/tables")
-	public ResponseEntity<UUID> create(@RequestBody TableDto dto, @PathVariable UUID restId) {
+	public ResponseEntity<UUID> create(@PathVariable UUID restId, @Valid @RequestBody TableDto dto) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(tableService.save(dto, restId));
 	}
 

@@ -17,6 +17,11 @@ public interface PhotoMapper {
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "bucket", ignore = true)
 	@Mapping(target = "objectKey", ignore = true)
+	@Mapping(target = "status", ignore = true)
+	@Mapping(target = "uploadedAt", ignore = true)
+	@Mapping(target = "confirmedAt", ignore = true)
+	@Mapping(target = "restaurant", ignore = true)
+	@Mapping(target = "dish", ignore = true)
 	PhotoEntity toEntity(PhotoDto dto);
 
 	PhotoDto toDto(PhotoEntity entity);

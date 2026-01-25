@@ -20,7 +20,7 @@ import java.util.UUID;
             columnList = "restaurant_id"
     )
 )
-public class DishEntity implements PhotoContainer{
+public class DishEntity implements PhotoContainer {
 
     @Id
     @GeneratedValue
@@ -40,7 +40,7 @@ public class DishEntity implements PhotoContainer{
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
-    @Column(name = "price", nullable = false)
+    @Column(name = "price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
     @Column(name = "weight", nullable = false)

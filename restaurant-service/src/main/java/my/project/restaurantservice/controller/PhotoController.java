@@ -1,5 +1,7 @@
 package my.project.restaurantservice.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.dto.PhotoDto;
 import my.project.restaurantservice.service.photo.OwnerType;
@@ -20,8 +22,8 @@ public class PhotoController {
 
 	@PostMapping("/{container:restaurants|dishes}/{id}/photos/uploads")
 	public ResponseEntity<List<PhotoDto>> pendingUpload(@PathVariable String container,
-													   @PathVariable UUID id,
-													   @RequestBody List<PhotoDto> request) {
+														@PathVariable UUID id,
+														@RequestBody @NotEmpty List<@Valid PhotoDto> request) {
 		OwnerType type = OwnerType.fromPath(container);
 		var dto = uploadService.pendingUpload(type, id, request);
 		return ResponseEntity.ok(dto);
@@ -29,7 +31,7 @@ public class PhotoController {
 
 	@PostMapping("/{container:restaurants|dishes}/photos/confirm")
 	public ResponseEntity<List<UUID>> confirmUpload(@PathVariable String container,
-									@RequestBody List<PhotoDto> uploaded) {
+													@RequestBody @NotEmpty List<@Valid PhotoDto> uploaded) {
 		OwnerType type = OwnerType.fromPath(container);
 		var id = uploadService.confirmUpload(type, uploaded);
 		return ResponseEntity.ok(id);

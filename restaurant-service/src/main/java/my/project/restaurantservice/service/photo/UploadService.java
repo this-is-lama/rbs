@@ -66,7 +66,7 @@ public class UploadService {
             }
 
             PhotoEntity photo = photoService.findByIdAndObjectKey(dto.getId(), dto.getObjectKey());
-            photo.confirm(); // ставит ACTIVE + confirmedAt
+            photo.confirm();
             ids.add(photo.getId());
         }
         return ids;
@@ -94,7 +94,6 @@ public class UploadService {
     }
 
     private static String stripTrailingSlash(String s) {
-        if (s == null || s.isBlank()) throw new StorageException("minio.publicBaseUrl is not configured");
         return s.endsWith("/") ? s.substring(0, s.length() - 1) : s;
     }
 }
