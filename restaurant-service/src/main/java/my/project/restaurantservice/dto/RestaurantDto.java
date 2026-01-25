@@ -3,6 +3,7 @@ package my.project.restaurantservice.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import my.project.restaurantservice.dto.photo.PhotoResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,5 +35,5 @@ public record RestaurantDto(
 		List<@Valid ContactDto> contacts,
 		List<@Valid DishDto> dishes,
 		List<@Valid TableDto> tables,
-		List<PhotoDto> photos
+		List<PhotoResponse> photos
 ) {}

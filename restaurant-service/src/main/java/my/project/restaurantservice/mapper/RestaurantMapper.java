@@ -17,6 +17,7 @@ import java.util.List;
 				ContactMapper.class,
 				DishMapper.class,
 				TableMapper.class,
+				PhotoMapper.class,
 		}
 )
 public interface RestaurantMapper {
@@ -28,6 +29,7 @@ public interface RestaurantMapper {
 	@Mapping(target = "contacts", ignore = true)
 	@Mapping(target = "dishes", ignore = true)
 	@Mapping(target = "tables", ignore = true)
+	@Mapping(target = "photos", ignore = true)
 	RestaurantEntity toEntity(RestaurantDto dto);
 
 	RestaurantDto toDto(RestaurantEntity entity);

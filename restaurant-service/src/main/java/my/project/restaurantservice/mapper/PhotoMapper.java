@@ -1,10 +1,11 @@
 package my.project.restaurantservice.mapper;
 
-import my.project.restaurantservice.dto.PhotoDto;
+import my.project.restaurantservice.dto.photo.PhotoResponse;
+import my.project.restaurantservice.dto.photo.PhotoUploadRequest;
 import my.project.restaurantservice.entity.PhotoEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import my.project.restaurantservice.util.PhotoUrlService;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -12,7 +13,10 @@ import java.util.List;
 		componentModel = "spring",
 		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
-public interface PhotoMapper {
+public abstract class PhotoMapper {
+
+	@Autowired
+	protected PhotoUrlService urlService;
 
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "bucket", ignore = true)
@@ -22,13 +26,19 @@ public interface PhotoMapper {
 	@Mapping(target = "confirmedAt", ignore = true)
 	@Mapping(target = "restaurant", ignore = true)
 	@Mapping(target = "dish", ignore = true)
-	PhotoEntity toEntity(PhotoDto dto);
+	public abstract PhotoEntity toEntity(PhotoUploadRequest dto);
 
-	PhotoDto toDto(PhotoEntity entity);
+	@Mapping(target = "presignedUrl", ignore = true)
+	public abstract PhotoResponse toDto(PhotoEntity entity);
 
+	@AfterMapping
+	protected void fillPublicUrl(PhotoEntity entity, @MappingTarget PhotoResponse dto) {
+		if (entity.getBucket() != null && entity.getObjectKey() != null) {
+			dto.setPublicUrl(urlService.buildPublicUrl(entity.getBucket(), entity.getObjectKey()));
+		}
+	}
 
-	List<PhotoEntity> toEntity(List<PhotoDto> dto);
+	public abstract List<PhotoEntity> toEntity(List<PhotoUploadRequest> dto);
 
-	List<PhotoDto> toDto(List<PhotoEntity> entity);
-
+	public abstract List<PhotoResponse> toDto(List<PhotoEntity> entity);
 }

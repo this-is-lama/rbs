@@ -1,4 +1,4 @@
-package my.project.restaurantservice.dto;
+package my.project.restaurantservice.dto.photo;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -9,20 +9,19 @@ import java.util.UUID;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PhotoDto {
+public class PhotoResponse {
 
-	UUID id;
+    UUID id;
 
-	String objectKey;
+    String objectKey;
 
-	String presignedURL;
+    String presignedUrl;
 
-	String publicUrl;
+    String publicUrl;
 
-	String contentType;
+    String contentType;
 
-	PhotoCategory category;
+    PhotoCategory category;
 
-	int sortOrder;
+    int sortOrder;
 }
-
