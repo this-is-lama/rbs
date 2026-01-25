@@ -38,7 +38,7 @@ public class RestaurantService {
 		}
 
 		if (dto.workingHours() != null) {
-			workingHoursMapper.toEntities(dto.workingHours())
+			workingHoursMapper.toEntity(dto.workingHours())
 					.forEach(restaurant::addWorkingHours);
 		}
 

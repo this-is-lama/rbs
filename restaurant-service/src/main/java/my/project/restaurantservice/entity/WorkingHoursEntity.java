@@ -2,6 +2,7 @@ package my.project.restaurantservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import my.project.restaurantservice.entity.enums.WeekDay;
 
 import java.time.LocalTime;
 import java.util.UUID;

@@ -24,8 +24,8 @@ public class DishService {
 	public UUID save(DishDto dto, UUID restId) {
 		DishEntity dish = dishMapper.toEntity(dto);
 
-		RestaurantEntity restaurantRef = restaurantService.getRef(restId);
-		dish.setRestaurant(restaurantRef);
+		RestaurantEntity restaurant = restaurantService.getRef(restId);
+		restaurant.addDish(dish);
 
 		return repository.save(dish).getId();
 	}

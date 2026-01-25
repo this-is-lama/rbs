@@ -2,6 +2,7 @@ package my.project.restaurantservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import my.project.restaurantservice.entity.enums.ContactType;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -32,7 +33,7 @@ public class ContactEntity {
     @Column(name = "type", nullable = false, length = 50)
     private ContactType type;
 
-    @Column(name = "value", nullable = false, length = 255)
+    @Column(name = "value", nullable = false)
     private String value;
 
     @Column(name = "created_at", nullable = false)

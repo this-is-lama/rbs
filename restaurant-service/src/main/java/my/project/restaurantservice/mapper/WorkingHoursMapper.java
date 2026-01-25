@@ -18,9 +18,10 @@ public interface WorkingHoursMapper {
 	@Mapping(target = "restaurant", ignore = true)
 	WorkingHoursEntity toEntity(WorkingHoursDto req);
 
-	List<WorkingHoursEntity> toEntities(List<WorkingHoursDto> req);
-
 	WorkingHoursDto toDto(WorkingHoursEntity entity);
+
+
+	List<WorkingHoursEntity> toEntity(List<WorkingHoursDto> req);
 
 	List<WorkingHoursDto> toDto(List<WorkingHoursEntity> entities);
 }

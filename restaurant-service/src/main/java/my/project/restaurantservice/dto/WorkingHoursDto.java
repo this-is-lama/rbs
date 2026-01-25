@@ -1,6 +1,6 @@
 package my.project.restaurantservice.dto;
 
-import my.project.restaurantservice.entity.WeekDay;
+import my.project.restaurantservice.entity.enums.WeekDay;
 
 import java.time.LocalTime;
 

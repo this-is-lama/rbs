@@ -17,8 +17,6 @@ import java.util.List;
 				ContactMapper.class,
 				DishMapper.class,
 				TableMapper.class,
-				RestaurantPhotoMapper.class,
-				DishPhotoMapper.class,
 		}
 )
 public interface RestaurantMapper {

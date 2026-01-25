@@ -1,28 +1,28 @@
 package my.project.restaurantservice.controller;
 
 import lombok.RequiredArgsConstructor;
-import my.project.restaurantservice.dto.PhotoDto;
-import my.project.restaurantservice.dto.PhotoMetaDto;
+import my.project.restaurantservice.dto.DishDto;
 import my.project.restaurantservice.dto.RestaurantDto;
 import my.project.restaurantservice.dto.RestaurantInfoDto;
-import my.project.restaurantservice.service.RestaurantPhotoService;
+import my.project.restaurantservice.dto.TableDto;
+import my.project.restaurantservice.service.DishService;
 import my.project.restaurantservice.service.RestaurantService;
+import my.project.restaurantservice.service.TableService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/restaurants")
+@RequestMapping("api/v1/restaurants")
 @RequiredArgsConstructor
 public class RestaurantController {
 
 	private final RestaurantService restaurantService;
-	private final RestaurantPhotoService restaurantPhotoService;
+	private final DishService dishService;
+	private final TableService tableService;
 
 	@PostMapping()
 	public ResponseEntity<UUID> create(@RequestBody RestaurantDto dto) {
@@ -45,14 +45,16 @@ public class RestaurantController {
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
-	@PostMapping(
-			value = "/{id}/photos",
-			consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-	)
-	public ResponseEntity<List<UUID>> upload(@PathVariable UUID id,
-											 @RequestPart("files") List<MultipartFile> files,
-											 @RequestPart("meta") List<PhotoMetaDto> metaList) {
-		var list = restaurantPhotoService.saveAll(id, files, metaList);
-		return ResponseEntity.status(HttpStatus.CREATED).body(list);
+
+
+	@PostMapping("/{restId}/dishes")
+	public ResponseEntity<UUID> create(@RequestBody DishDto dto, @PathVariable UUID restId) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(dishService.save(dto, restId));
 	}
+
+	@PostMapping("/{restId}/tables")
+	public ResponseEntity<UUID> create(@RequestBody TableDto dto, @PathVariable UUID restId) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(tableService.save(dto, restId));
+	}
+
 }

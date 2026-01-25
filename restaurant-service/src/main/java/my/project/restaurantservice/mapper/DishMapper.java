@@ -10,10 +10,7 @@ import java.util.List;
 
 @Mapper(
 		componentModel = "spring",
-		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-		uses = {
-				DishPhotoMapper.class,
-		}
+		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface DishMapper {
 

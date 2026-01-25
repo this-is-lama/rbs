@@ -1,6 +1,6 @@
 package my.project.restaurantservice.dto;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public record DishDto(
@@ -8,8 +8,7 @@ public record DishDto(
 		String name,
 		String category,
 		String description,
-		Integer price,
+		BigDecimal price,
 		Integer weight,
-		boolean isAvailable,
-		List<PhotoDto> photos
+		boolean isAvailable
 ) {}

@@ -1,21 +1,29 @@
 package my.project.restaurantservice.mapper;
 
 import my.project.restaurantservice.dto.PhotoDto;
-import my.project.restaurantservice.dto.PhotoMetaDto;
-import my.project.restaurantservice.entity.DishPhotoEntity;
+import my.project.restaurantservice.entity.PhotoEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+
+import java.util.List;
 
 @Mapper(
 		componentModel = "spring",
 		nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
-public interface DishPhotoMapper {
+public interface PhotoMapper {
 
+	@Mapping(target = "id", ignore = true)
+	@Mapping(target = "bucket", ignore = true)
 	@Mapping(target = "objectKey", ignore = true)
-	DishPhotoEntity toEntity(PhotoMetaDto dto);
+	PhotoEntity toEntity(PhotoDto dto);
 
-	@Mapping(target = "category", ignore = true)
-	PhotoDto toDto(DishPhotoEntity entity);
+	PhotoDto toDto(PhotoEntity entity);
+
+
+	List<PhotoEntity> toEntity(List<PhotoDto> dto);
+
+	List<PhotoDto> toDto(List<PhotoEntity> entity);
+
 }

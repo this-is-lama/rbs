@@ -25,8 +25,8 @@ public class TableService {
 	public UUID save(TableDto dto, UUID restId) {
 		TableEntity table = tableMapper.toEntity(dto);
 
-		RestaurantEntity restaurantRef = restaurantService.getRef(restId);
-		table.setRestaurant(restaurantRef);
+		RestaurantEntity restaurant = restaurantService.getRef(restId);
+		restaurant.addTable(table);
 
 		return tableRepository.save(table).getId();
 	}

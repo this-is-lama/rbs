@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-@Builder
 @Entity
 @Table(
         name = "restaurants",
@@ -24,7 +23,7 @@ import java.util.UUID;
                 }
         )
 )
-public class RestaurantEntity {
+public class RestaurantEntity implements PhotoContainer{
 
     @Id
     @GeneratedValue
@@ -54,28 +53,28 @@ public class RestaurantEntity {
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    @Builder.Default
     private List<WorkingHoursEntity> workingHours = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    @Builder.Default
     private List<ContactEntity> contacts = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<RestaurantPhotoEntity> photos = new ArrayList<>();
-
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    @Builder.Default
     private List<TableEntity> tables = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    @Builder.Default
     private List<DishEntity> dishes = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "restaurant",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("sortOrder ASC")
+    @Fetch(FetchMode.SUBSELECT)
+    private List<PhotoEntity> photos = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
@@ -87,6 +86,18 @@ public class RestaurantEntity {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = Instant.now();
+    }
+
+    @Override
+    public void addPhoto(PhotoEntity photo) {
+        photos.add(photo);
+        photo.assignRestaurant(this);
+    }
+
+    @Override
+    public void removePhoto(PhotoEntity photo) {
+        photos.remove(photo);
+        photo.assignRestaurant(null);
     }
 
     public void addWorkingHours(WorkingHoursEntity wh) {
@@ -108,15 +119,6 @@ public class RestaurantEntity {
         contact.setRestaurant(null);
     }
 
-    public void addPhoto(RestaurantPhotoEntity photo) {
-        photos.add(photo);
-        photo.setRestaurant(this);
-    }
-
-    public void removePhoto(RestaurantPhotoEntity photo) {
-        photos.remove(photo);
-        photo.setRestaurant(null);
-    }
 
     public void addTable(TableEntity table) {
         tables.add(table);

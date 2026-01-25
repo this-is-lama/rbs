@@ -3,6 +3,7 @@ package my.project.restaurantservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.UUID;
             columnList = "restaurant_id"
     )
 )
-public class DishEntity {
+public class DishEntity implements PhotoContainer{
 
     @Id
     @GeneratedValue
@@ -30,7 +31,7 @@ public class DishEntity {
     @JoinColumn(name = "restaurant_id", nullable = false)
     private RestaurantEntity restaurant;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "category", nullable = false, length = 100)
@@ -40,7 +41,7 @@ public class DishEntity {
     private String description;
 
     @Column(name = "price", nullable = false)
-    private Integer price;
+    private BigDecimal price;
 
     @Column(name = "weight", nullable = false)
     private Integer weight;
@@ -54,9 +55,14 @@ public class DishEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "dish", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<DishPhotoEntity> photos = new ArrayList<>();
+    @OneToMany(
+            mappedBy = "dish",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("sortOrder ASC")
+    private List<PhotoEntity> photos = new ArrayList<>();
+
 
     @PrePersist
     public void prePersist() {
@@ -70,13 +76,16 @@ public class DishEntity {
         this.updatedAt = Instant.now();
     }
 
-    public void addPhoto(DishPhotoEntity photo) {
+    @Override
+    public void addPhoto(PhotoEntity photo) {
         photos.add(photo);
-        photo.setDish(this);
+        photo.assignDish(this);
     }
 
-    public void removePhoto(DishPhotoEntity photo) {
+    @Override
+    public void removePhoto(PhotoEntity photo) {
         photos.remove(photo);
-        photo.setDish(null);
+        photo.assignDish(null);
     }
+
 }

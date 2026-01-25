@@ -34,11 +34,7 @@ minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   accessKey: ${MINIO_ROOT_USER:minioadmin}
   secretKey: ${MINIO_ROOT_PASSWORD:minioadmin}
-  bucket: ${MINIO_BUCKET:rbs-media}
   publicBaseUrl: ${MINIO_PUBLIC_BASE_URL:http://localhost:9000}
-  buckets:
-    - restaurant-media
-    - dish-media
 
 eureka:
   client:
