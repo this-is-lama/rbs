@@ -1,6 +1,6 @@
 package my.project.restaurantservice.mapper;
 
-import my.project.restaurantservice.dto.ContactDto;
+import my.project.restaurantservice.dto.contact.ContactDto;
 import my.project.restaurantservice.entity.ContactEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

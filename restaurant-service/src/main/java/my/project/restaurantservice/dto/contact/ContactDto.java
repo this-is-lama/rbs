@@ -1,4 +1,4 @@
-package my.project.restaurantservice.dto;
+package my.project.restaurantservice.dto.contact;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

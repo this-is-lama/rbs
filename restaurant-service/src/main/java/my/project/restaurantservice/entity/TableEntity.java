@@ -45,7 +45,7 @@ public class TableEntity {
     private int capacity;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean active;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

@@ -1,4 +1,4 @@
-package my.project.restaurantservice.service.photo;
+package my.project.restaurantservice.service.photo.provider;
 
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.entity.PhotoContainer;

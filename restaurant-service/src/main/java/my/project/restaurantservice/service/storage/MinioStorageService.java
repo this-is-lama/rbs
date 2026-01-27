@@ -4,7 +4,9 @@ import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
+import io.minio.errors.ErrorResponseException;
 import io.minio.http.Method;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.restaurantservice.exception.StorageException;
@@ -55,8 +57,16 @@ public class MinioStorageService implements StorageService {
 							.object(objectKey)
 							.build()
 			);
+		} catch (ErrorResponseException e) {
+			if ("NoSuchKey".equals(e.errorResponse().code())) {
+				log.debug("Object not found (already deleted). bucket={}, objectKey={}", bucket, objectKey);
+				throw new EntityNotFoundException();
+			}
+			log.error("Remove object failed (MinIO error). bucket={}, objectKey={}, code={}",
+					bucket, objectKey, e.errorResponse().code(), e);
+			throw new StorageException("Remove object failed. bucket=" + bucket + ", objectKey=" + objectKey);
 		} catch (Exception e) {
-			log.error("Remove object failed. bucket={}, objectKey={}", bucket, objectKey);
+			log.error("Remove object failed. bucket={}, objectKey={}", bucket, objectKey, e);
 			throw new StorageException("Remove object failed. bucket=" + bucket + ", objectKey=" + objectKey);
 		}
 	}

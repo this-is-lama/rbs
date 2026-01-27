@@ -2,10 +2,11 @@ package my.project.restaurantservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import my.project.restaurantservice.dto.DishDto;
-import my.project.restaurantservice.dto.RestaurantDto;
-import my.project.restaurantservice.dto.RestaurantInfoDto;
-import my.project.restaurantservice.dto.TableDto;
+import my.project.restaurantservice.dto.dish.DishDto;
+import my.project.restaurantservice.dto.restaurant.RestaurantDto;
+import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
+import my.project.restaurantservice.dto.restaurant.RestaurantPutDto;
+import my.project.restaurantservice.dto.table.TableDto;
 import my.project.restaurantservice.service.DishService;
 import my.project.restaurantservice.service.RestaurantService;
 import my.project.restaurantservice.service.TableService;
@@ -28,6 +29,12 @@ public class RestaurantController {
 	@PostMapping()
 	public ResponseEntity<UUID> create(@Valid @RequestBody RestaurantDto dto) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(restaurantService.save(dto));
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity<RestaurantDto> update(@PathVariable UUID id,
+												@RequestBody @Valid RestaurantPutDto dto) {
+		return ResponseEntity.ok(restaurantService.update(id, dto));
 	}
 
 	@GetMapping("/{id}")

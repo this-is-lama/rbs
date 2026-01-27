@@ -1,6 +1,6 @@
 package my.project.restaurantservice.mapper;
 
-import my.project.restaurantservice.dto.WorkingHoursDto;
+import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 import my.project.restaurantservice.entity.WorkingHoursEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

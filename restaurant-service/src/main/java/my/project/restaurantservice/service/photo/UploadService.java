@@ -7,6 +7,8 @@ import my.project.restaurantservice.dto.photo.PhotoUploadRequest;
 import my.project.restaurantservice.entity.PhotoEntity;
 import my.project.restaurantservice.entity.PhotoContainer;
 import my.project.restaurantservice.mapper.PhotoMapper;
+import my.project.restaurantservice.service.photo.provider.OwnerType;
+import my.project.restaurantservice.service.photo.provider.PhotoContainerProvider;
 import my.project.restaurantservice.service.storage.StorageService;
 import my.project.restaurantservice.util.KeyGenerator;
 import my.project.restaurantservice.util.PhotoUrlService;

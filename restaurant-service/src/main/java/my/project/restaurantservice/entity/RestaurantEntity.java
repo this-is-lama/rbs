@@ -43,7 +43,7 @@ public class RestaurantEntity implements PhotoContainer{
     private String address;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean active;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

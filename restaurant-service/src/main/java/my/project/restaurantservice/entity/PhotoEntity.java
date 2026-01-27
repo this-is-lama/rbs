@@ -90,4 +90,12 @@ public class PhotoEntity {
         this.status = PhotoStatus.ACTIVE;
         this.confirmedAt = Instant.now();
     }
+
+    public void expired() {
+        this.status = PhotoStatus.EXPIRED;
+    }
+
+    public void deleting() {
+        this.status = PhotoStatus.DELETING;
+    }
 }

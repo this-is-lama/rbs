@@ -47,7 +47,7 @@ public class DishEntity implements PhotoContainer {
     private Integer weight;
 
     @Column(name = "is_available", nullable = false)
-    private boolean isAvailable;
+    private boolean available;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

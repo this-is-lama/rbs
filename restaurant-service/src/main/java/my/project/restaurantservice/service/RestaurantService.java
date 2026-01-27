@@ -1,9 +1,11 @@
 package my.project.restaurantservice.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import my.project.restaurantservice.dto.RestaurantDto;
-import my.project.restaurantservice.dto.RestaurantInfoDto;
+import my.project.restaurantservice.dto.restaurant.RestaurantDto;
+import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
+import my.project.restaurantservice.dto.restaurant.RestaurantPutDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.mapper.ContactMapper;
 import my.project.restaurantservice.mapper.RestaurantMapper;
@@ -12,6 +14,7 @@ import my.project.restaurantservice.repository.RestaurantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,8 +33,6 @@ public class RestaurantService {
 	public UUID save(RestaurantDto dto) {
 		RestaurantEntity restaurant = restaurantMapper.toEntity(dto);
 
-		restaurant.setActive(dto.isActive() != null && dto.isActive());
-
 		if (dto.contacts() != null) {
 			contactMapper.toEntity(dto.contacts())
 					.forEach(restaurant::addContact);
@@ -43,6 +44,28 @@ public class RestaurantService {
 		}
 
 		return repository.save(restaurant).getId();
+	}
+
+	@Transactional
+	public RestaurantDto update(UUID id, RestaurantPutDto dto) {
+		RestaurantEntity restaurant = repository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException(id.toString()));
+
+		restaurantMapper.updateEntity(restaurant, dto);
+
+		for (var c : new ArrayList<>(restaurant.getContacts())) {
+			restaurant.removeContact(c);
+		}
+		for (var wh : new ArrayList<>(restaurant.getWorkingHours())) {
+			restaurant.removeWorkingHours(wh);
+		}
+
+		repository.flush();
+
+		contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
+		workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
+
+		return restaurantMapper.toDto(restaurant);
 	}
 
 	@Transactional(readOnly = true)

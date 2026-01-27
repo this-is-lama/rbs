@@ -1,4 +1,4 @@
-package my.project.restaurantservice.service.photo;
+package my.project.restaurantservice.service.photo.provider;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

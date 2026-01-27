@@ -1,18 +1,12 @@
-package my.project.restaurantservice.service.photo;
+package my.project.restaurantservice.service.photo.provider;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public enum OwnerType {
-    RESTAURANT("restaurants"),
-    DISH("dishes");
 
-    private final String path;
-
-    OwnerType(String path) {
-        this.path = path;
-    }
-
-    public String path() {
-        return path;
-    }
+    RESTAURANT,
+    DISH;
 
     public static OwnerType fromPath(String container) {
         if (container == null) throw new IllegalArgumentException("container is null");
@@ -22,5 +16,6 @@ public enum OwnerType {
             default -> throw new IllegalArgumentException("Unsupported container: " + container);
         };
     }
+
 }
 
