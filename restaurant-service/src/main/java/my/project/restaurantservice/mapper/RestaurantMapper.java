@@ -2,7 +2,6 @@ package my.project.restaurantservice.mapper;
 
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
-import my.project.restaurantservice.dto.restaurant.RestaurantPutDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import org.mapstruct.*;
 
@@ -44,7 +43,7 @@ public interface RestaurantMapper {
 	@Mapping(target = "dishes", ignore = true)
 	@Mapping(target = "tables", ignore = true)
 	@Mapping(target = "photos", ignore = true)
-	void updateEntity(@MappingTarget RestaurantEntity entity, RestaurantPutDto dto);
+	void updateEntity(@MappingTarget RestaurantEntity entity, RestaurantDto dto);
 
 }
 

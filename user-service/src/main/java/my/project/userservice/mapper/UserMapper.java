@@ -1,7 +1,7 @@
 package my.project.userservice.mapper;
 
-import my.project.userservice.dto.RegistrationRequest;
-import my.project.userservice.dto.UserProfileResponse;
+import my.project.userservice.dto.register.RegistrationRequest;
+import my.project.userservice.dto.user.UserProfileResponse;
 import my.project.userservice.entity.UserEntity;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;

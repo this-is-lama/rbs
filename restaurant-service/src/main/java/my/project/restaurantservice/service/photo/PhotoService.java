@@ -1,7 +1,7 @@
 package my.project.restaurantservice.service.photo;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.entity.PhotoEntity;
 import my.project.restaurantservice.entity.enums.PhotoStatus;
 import my.project.restaurantservice.repository.PhotoRepository;
@@ -22,17 +22,12 @@ public class PhotoService {
 	@Transactional(readOnly = true)
 	public PhotoEntity findByIdAndObjectKey(UUID id, String objectKey) {
 		return repository.findByIdAndObjectKey(id, objectKey)
-				.orElseThrow(() -> new EntityNotFoundException(id.toString()));
+				.orElseThrow(() -> new NotFoundException("restaurant.photo.not-found", id));
 	}
 
 	@Transactional(readOnly = true)
 	public List<PhotoEntity> findTop500ByStatus(PhotoStatus status) {
 		return repository.findTop500ByStatus(status);
-	}
-
-	@Transactional(readOnly = true)
-	public List<PhotoEntity> findAllByIds(List<UUID> ids) {
-		return repository.findAllById(ids);
 	}
 
 	@Transactional
@@ -56,7 +51,7 @@ public class PhotoService {
 	public void markDeleting(List<UUID> ids) {
 		List<PhotoEntity> photos = repository.findAllById(ids);
 		if (photos.size() != ids.size()) {
-			throw new EntityNotFoundException("Some photos not found for ids=" + ids);
+			throw new NotFoundException("restaurant.photos.not-found", ids);
 		}
 		photos.forEach(PhotoEntity::deleting);
 	}

@@ -1,4 +1,4 @@
-package my.project.userservice.dto;
+package my.project.userservice.dto.register;
 
 import java.time.LocalDate;
 

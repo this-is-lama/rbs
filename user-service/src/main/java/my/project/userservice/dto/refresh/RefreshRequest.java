@@ -1,3 +1,3 @@
-package my.project.userservice.dto;
+package my.project.userservice.dto.refresh;
 
 public record RefreshRequest(String refreshToken) {}

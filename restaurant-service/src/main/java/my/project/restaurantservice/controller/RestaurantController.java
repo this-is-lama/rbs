@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.dto.dish.DishDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
-import my.project.restaurantservice.dto.restaurant.RestaurantPutDto;
 import my.project.restaurantservice.dto.table.TableDto;
 import my.project.restaurantservice.service.DishService;
 import my.project.restaurantservice.service.RestaurantService;
@@ -33,7 +32,7 @@ public class RestaurantController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<RestaurantDto> update(@PathVariable UUID id,
-												@RequestBody @Valid RestaurantPutDto dto) {
+												@RequestBody @Valid RestaurantDto dto) {
 		return ResponseEntity.ok(restaurantService.update(id, dto));
 	}
 

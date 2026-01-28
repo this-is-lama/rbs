@@ -20,12 +20,12 @@ public record RestaurantDto(
 		@Size(max = 255)
 		String name,
 
-		@Size(max = 2000)
-		String description,
-
 		@NotBlank
 		@Size(max = 100)
 		String category,
+
+		@Size(max = 2000)
+		String description,
 
 		@NotBlank
 		@Size(max = 255)

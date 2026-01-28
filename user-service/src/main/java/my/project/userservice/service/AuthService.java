@@ -1,12 +1,17 @@
 package my.project.userservice.service;
 
 import lombok.RequiredArgsConstructor;
-import my.project.userservice.dto.*;
+import my.project.common.exception.ConflictException;
+import my.project.common.exception.ForbiddenException;
+import my.project.userservice.dto.auth.AuthRequest;
+import my.project.userservice.dto.auth.AuthResponse;
+import my.project.userservice.dto.refresh.RefreshRequest;
+import my.project.userservice.dto.refresh.RefreshResponse;
+import my.project.userservice.dto.register.RegistrationRequest;
+import my.project.userservice.dto.register.RegistrationResponse;
 import my.project.userservice.entity.UserEntity;
 import my.project.userservice.exception.InvalidCredentialsException;
 import my.project.userservice.exception.InvalidTokenException;
-import my.project.userservice.exception.UserEmailAlreadyUseException;
-import my.project.userservice.exception.UserNotEnabledException;
 import my.project.userservice.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,7 +33,7 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(req.email(), req.password())
             );
         } catch (BadCredentialsException e) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException("user.invalid-credentials");
         }
         var user = userService.findByEmail(req.email());
         String token = jwtService.generateToken(user);
@@ -38,7 +43,7 @@ public class AuthService {
 
     public RegistrationResponse register(RegistrationRequest req) {
         if (userService.existsByEmail(req.email())) {
-            throw new UserEmailAlreadyUseException();
+            throw new ConflictException("user.email-already-use");
         }
         UserEntity user = userService.save(req);
         return new RegistrationResponse(user.getId(), user.getEmail());
@@ -49,12 +54,12 @@ public class AuthService {
         if (refreshToken != null && jwtService.validateRefreshToken(refreshToken)) {
             UserEntity user = userService.findById(jwtService.getUserIdFromRefreshToken(refreshToken));
             if (!user.isEnabled()) {
-                throw new UserNotEnabledException(user.getId());
+                throw new ForbiddenException("user.not-enabled");
             }
             String token = jwtService.generateToken(user);
             String refreshedToken = jwtService.generateRefreshToken(user);
             return new RefreshResponse(token, refreshedToken);
         }
-        throw new InvalidTokenException();
+        throw new InvalidTokenException("user.invalid-token");
     }
 }

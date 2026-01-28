@@ -1,11 +1,10 @@
 package my.project.restaurantservice.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
-import my.project.restaurantservice.dto.restaurant.RestaurantPutDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.mapper.ContactMapper;
 import my.project.restaurantservice.mapper.RestaurantMapper;
@@ -34,22 +33,20 @@ public class RestaurantService {
 		RestaurantEntity restaurant = restaurantMapper.toEntity(dto);
 
 		if (dto.contacts() != null) {
-			contactMapper.toEntity(dto.contacts())
-					.forEach(restaurant::addContact);
+			contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
 		}
 
 		if (dto.workingHours() != null) {
-			workingHoursMapper.toEntity(dto.workingHours())
-					.forEach(restaurant::addWorkingHours);
+			workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
 		}
 
 		return repository.save(restaurant).getId();
 	}
 
 	@Transactional
-	public RestaurantDto update(UUID id, RestaurantPutDto dto) {
+	public RestaurantDto update(UUID id, RestaurantDto dto) {
 		RestaurantEntity restaurant = repository.findById(id)
-				.orElseThrow(() -> new EntityNotFoundException(id.toString()));
+				.orElseThrow(() -> new NotFoundException("restaurant.not-found", id));
 
 		restaurantMapper.updateEntity(restaurant, dto);
 
@@ -71,7 +68,7 @@ public class RestaurantService {
 	@Transactional(readOnly = true)
 	public RestaurantDto findById(UUID id) {
 		RestaurantEntity restaurant = repository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Restaurant not found: " + id));
+				.orElseThrow(() -> new NotFoundException("restaurant.not-found", id));
 
 		return restaurantMapper.toDto(restaurant);
 	}

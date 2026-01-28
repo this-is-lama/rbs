@@ -9,6 +9,7 @@ import io.minio.http.Method;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.common.exception.CommonErrorCode;
 import my.project.restaurantservice.exception.StorageException;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +31,8 @@ public class MinioStorageService implements StorageService {
 						.build()
 			);
 		} catch (Exception e) {
-			log.error("Presign Post URL failed. bucket={}, key={}", bucket, objectKey, e);
-			throw new StorageException("Ошибка генерации ссылки загрузки");
+			log.error("Presign Put URL failed. bucket={}, key={}", bucket, objectKey, e);
+			throw new StorageException("restaurant.storage.presignedurl-generation-error");
 		}
 	}
 
@@ -59,15 +60,15 @@ public class MinioStorageService implements StorageService {
 			);
 		} catch (ErrorResponseException e) {
 			if ("NoSuchKey".equals(e.errorResponse().code())) {
-				log.debug("Object not found (already deleted). bucket={}, objectKey={}", bucket, objectKey);
-				throw new EntityNotFoundException();
+				log.debug("Object not found. bucket={}, objectKey={}", bucket, objectKey);
+				throw new StorageException(CommonErrorCode.NOT_FOUND, "restaurant.storage.not-found", objectKey, bucket);
 			}
 			log.error("Remove object failed (MinIO error). bucket={}, objectKey={}, code={}",
 					bucket, objectKey, e.errorResponse().code(), e);
-			throw new StorageException("Remove object failed. bucket=" + bucket + ", objectKey=" + objectKey);
+			throw new StorageException("restaurant.storage.delete-error", objectKey);
 		} catch (Exception e) {
 			log.error("Remove object failed. bucket={}, objectKey={}", bucket, objectKey, e);
-			throw new StorageException("Remove object failed. bucket=" + bucket + ", objectKey=" + objectKey);
+			throw new StorageException("restaurant.storage.delete-error", objectKey);
 		}
 	}
 

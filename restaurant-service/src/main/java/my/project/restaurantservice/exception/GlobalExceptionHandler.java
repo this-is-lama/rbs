@@ -1,10 +1,10 @@
-package my.project.userservice.exception;
+package my.project.restaurantservice.exception;
 
+import my.project.common.dto.ApiError;
 import my.project.common.exception.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import my.project.common.dto.ApiError;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
 	private final MessageSource messageSource;
-
 
 	@ExceptionHandler(ApiException.class)
 	public ResponseEntity<ApiError> handleApiException(ApiException ex, HttpServletRequest request) {

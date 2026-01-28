@@ -1,8 +1,8 @@
 package my.project.restaurantservice.service.photo;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.entity.enums.PhotoStatus;
 import my.project.restaurantservice.service.storage.StorageService;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -52,6 +52,6 @@ public class PhotoCleaner {
 
 
 	private boolean isNotFound(Exception ex) {
-		return ex instanceof EntityNotFoundException;
+		return ex instanceof NotFoundException;
 	}
 }

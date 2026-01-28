@@ -1,7 +1,12 @@
 package my.project.userservice.controller;
 
 import lombok.RequiredArgsConstructor;
-import my.project.userservice.dto.*;
+import my.project.userservice.dto.auth.AuthRequest;
+import my.project.userservice.dto.auth.AuthResponse;
+import my.project.userservice.dto.refresh.RefreshRequest;
+import my.project.userservice.dto.refresh.RefreshResponse;
+import my.project.userservice.dto.register.RegistrationRequest;
+import my.project.userservice.dto.register.RegistrationResponse;
 import my.project.userservice.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

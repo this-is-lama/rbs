@@ -1,7 +1,7 @@
 package my.project.restaurantservice.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.dto.dish.DishDto;
 import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.RestaurantEntity;
@@ -33,7 +33,7 @@ public class DishService {
 	@Transactional
 	public DishDto update(UUID id, DishDto dto) {
 		DishEntity dish = repository.findById(id)
-				.orElseThrow(() -> new EntityNotFoundException(id.toString()));
+				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 		dishMapper.updateEntity(dish, dto);
 		return dishMapper.toDto(dish);
 	}
@@ -42,7 +42,7 @@ public class DishService {
 	@Transactional(readOnly = true)
 	public DishDto findById(UUID id) {
 		var dish = repository.findById(id)
-				.orElseThrow(() -> new EntityNotFoundException(id.toString()));
+				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 		return dishMapper.toDto(dish);
 	}
 

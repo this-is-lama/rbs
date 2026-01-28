@@ -1,7 +1,7 @@
 package my.project.userservice.controller;
 
 import lombok.RequiredArgsConstructor;
-import my.project.userservice.dto.UserProfileResponse;
+import my.project.userservice.dto.user.UserProfileResponse;
 import my.project.userservice.entity.UserEntity;
 import my.project.userservice.service.UserService;
 import my.project.userservice.mapper.UserMapper;
