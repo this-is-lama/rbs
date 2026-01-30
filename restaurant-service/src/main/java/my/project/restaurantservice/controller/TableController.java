@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/tables")
+@RequestMapping("/api/v1/tables")
 @RequiredArgsConstructor
 public class TableController {
 

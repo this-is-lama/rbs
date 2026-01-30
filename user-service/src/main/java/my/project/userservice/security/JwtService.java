@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import my.project.userservice.entity.UserEntity;
+import my.project.userservice.exception.InvalidTokenException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ public class JwtService {
 	private static final String ROLES_CLAIM = "roles";
 	private static final String EMAIL_CLAIM = "email";
 	private static final String TOKEN_TYPE = "token_type";
+	private static final String JTI_CLAIM = "jti";
 
 	private static final String ACCESS_TOKEN = "access_token";
 	private static final String REFRESH_TOKEN = "refresh_token";
@@ -61,7 +63,7 @@ public class JwtService {
 				.compact();
 	}
 
-	public String generateRefreshToken(UserEntity user) {
+	public String generateRefreshToken(UserEntity user, String jti) {
 		Instant now = Instant.now();
 		Instant exp = now.plus(refreshLifetime);
 
@@ -71,6 +73,7 @@ public class JwtService {
 				.issuedAt(Date.from(now))
 				.expiration(Date.from(exp))
 				.claim(TOKEN_TYPE, REFRESH_TOKEN)
+				.claim(JTI_CLAIM, jti)
 				.signWith(refreshSecretKey, SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -85,12 +88,11 @@ public class JwtService {
 		}
 	}
 
-	public boolean validateRefreshToken(String token) {
+	public void validateRefreshToken(String token) {
 		try {
 			parseRefreshToken(token);
-			return true;
 		} catch (JwtException | IllegalArgumentException e) {
-			return false;
+			throw new InvalidTokenException("user.invalid-token");
 		}
 	}
 
@@ -100,6 +102,10 @@ public class JwtService {
 
 	public UUID getUserIdFromRefreshToken(String token) {
 		return UUID.fromString(parseRefreshToken(token).getPayload().getSubject());
+	}
+
+	public String getJtiClaimFromRefreshToken(String token) {
+		return parseRefreshToken(token).getPayload().get(JTI_CLAIM).toString();
 	}
 
 	public List<String> getRoles(String token) {

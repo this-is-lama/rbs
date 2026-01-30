@@ -2,8 +2,10 @@ package my.project.restaurantservice.service.photo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.common.exception.CommonErrorCode;
 import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.entity.enums.PhotoStatus;
+import my.project.restaurantservice.exception.StorageException;
 import my.project.restaurantservice.service.storage.StorageService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -52,6 +54,6 @@ public class PhotoCleaner {
 
 
 	private boolean isNotFound(Exception ex) {
-		return ex instanceof NotFoundException;
+		return ex instanceof StorageException se && se.getCode() == CommonErrorCode.NOT_FOUND;
 	}
 }

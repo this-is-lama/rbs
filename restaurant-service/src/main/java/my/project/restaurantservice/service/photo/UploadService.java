@@ -1,6 +1,8 @@
 package my.project.restaurantservice.service.photo;
 
 import lombok.RequiredArgsConstructor;
+import my.project.common.exception.CommonErrorCode;
+import my.project.common.exception.ValidationException;
 import my.project.restaurantservice.dto.photo.PhotoConfirmRequest;
 import my.project.restaurantservice.dto.photo.PhotoResponse;
 import my.project.restaurantservice.dto.photo.PhotoUploadRequest;
@@ -12,6 +14,7 @@ import my.project.restaurantservice.service.photo.provider.PhotoContainerProvide
 import my.project.restaurantservice.service.storage.StorageService;
 import my.project.restaurantservice.util.KeyGenerator;
 import my.project.restaurantservice.util.PhotoUrlService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +68,7 @@ public class UploadService {
                 continue;
             }
 
-            PhotoEntity photo = photoService.findByIdAndObjectKey(dto.id(), dto.objectKey());
+            PhotoEntity photo = photoService.findPending(dto.id(), dto.objectKey());
             photo.confirm();
             ids.add(photo.getId());
         }
@@ -74,15 +77,17 @@ public class UploadService {
 
     private PhotoContainerProvider provider(OwnerType type) {
         PhotoContainerProvider p = providers.get(type);
-        if (p == null) throw new IllegalArgumentException("Unsupported owner type: " + type);
+        if (p == null) {
+            throw new ValidationException(CommonErrorCode.BAD_REQUEST, "restaurant.photo.unsupported-owner-type", type);
+        }
         return p;
     }
+
 
     private List<PhotoResponse> createPresignedUpload(String bucket, List<PhotoEntity> photos) {
         List<PhotoResponse> dto = photoMapper.toDto(photos);
         for (PhotoResponse p : dto) {
             String key = p.getObjectKey();
-            p.setPublicUrl(photoUrlService.buildPublicUrl(bucket, key));
             p.setPresignedUrl(storageService.presignedUrl(bucket, key, io.minio.http.Method.PUT, SECONDS_DURATION));
         }
         return dto;

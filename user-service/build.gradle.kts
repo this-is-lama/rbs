@@ -24,6 +24,9 @@ dependencies {
 
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 
+    implementation ("org.springframework.boot:spring-boot-starter-validation")
+
+
     //jwt
     implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:$jwtVersion")

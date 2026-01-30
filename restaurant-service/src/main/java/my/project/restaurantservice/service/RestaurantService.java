@@ -59,9 +59,13 @@ public class RestaurantService {
 
 		repository.flush();
 
-		contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
-		workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
+		if (dto.contacts() != null) {
+			contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
+		}
 
+		if (dto.workingHours() != null) {
+			workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
+		}
 		return restaurantMapper.toDto(restaurant);
 	}
 

@@ -6,7 +6,6 @@ import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.http.Method;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.CommonErrorCode;
@@ -45,10 +44,22 @@ public class MinioStorageService implements StorageService {
 							.build()
 			);
 			return true;
+		} catch (ErrorResponseException e) {
+			String code = e.errorResponse().code();
+
+			if ("NoSuchKey".equals(code) || "NoSuchObject".equals(code)) {
+				return false;
+			}
+
+			log.warn("Stat object failed (MinIO error). bucket={}, key={}, code={}",
+					bucket, objectKey, code, e);
+			throw new StorageException("restaurant.storage.stat-error", objectKey, bucket);
 		} catch (Exception e) {
-			return false;
+			log.warn("Stat object failed. bucket={}, key={}", bucket, objectKey, e);
+			throw new StorageException("restaurant.storage.stat-error", objectKey, bucket);
 		}
 	}
+
 
 	public void removeObject(String bucket, String objectKey) {
 		try {

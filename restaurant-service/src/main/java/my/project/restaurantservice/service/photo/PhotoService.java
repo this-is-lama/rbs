@@ -20,8 +20,8 @@ public class PhotoService {
 	private final PhotoRepository repository;
 
 	@Transactional(readOnly = true)
-	public PhotoEntity findByIdAndObjectKey(UUID id, String objectKey) {
-		return repository.findByIdAndObjectKey(id, objectKey)
+	public PhotoEntity findPending(UUID id, String objectKey) {
+		return repository.findByIdAndObjectKeyAndStatus(id, objectKey, PhotoStatus.PENDING)
 				.orElseThrow(() -> new NotFoundException("restaurant.photo.not-found", id));
 	}
 

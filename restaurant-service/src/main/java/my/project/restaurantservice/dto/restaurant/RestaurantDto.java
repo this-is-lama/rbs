@@ -33,8 +33,8 @@ public record RestaurantDto(
 
 		Boolean active,
 
-		List<@Valid WorkingHoursDto> workingHours,
-		List<@Valid ContactDto> contacts,
+		@NotBlank List<@Valid WorkingHoursDto> workingHours,
+		@NotBlank List<@Valid ContactDto> contacts,
 		List<@Valid DishDto> dishes,
 		List<@Valid TableDto> tables,
 		List<PhotoResponse> photos

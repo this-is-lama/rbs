@@ -42,7 +42,7 @@ public class PhotoController {
 	}
 
 	@DeleteMapping("/photos/delete")
-	public ResponseEntity<List<UUID>> delete(@RequestBody @NotEmpty List<UUID> ids) {
+	public ResponseEntity<Void> delete(@RequestBody @NotEmpty List<UUID> ids) {
 		photoService.markDeleting(ids);
 		return ResponseEntity.accepted().build();
 	}

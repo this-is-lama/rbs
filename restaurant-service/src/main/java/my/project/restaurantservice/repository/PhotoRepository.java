@@ -15,5 +15,6 @@ public interface PhotoRepository extends JpaRepository<PhotoEntity, UUID> {
 
 	List<PhotoEntity> findTop500ByStatus(PhotoStatus status);
 
-	Optional<PhotoEntity> findByIdAndObjectKey(UUID id, String objectKey);
+	Optional<PhotoEntity> findByIdAndObjectKeyAndStatus(UUID id, String objectKey, PhotoStatus status);
+
 }

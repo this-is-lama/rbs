@@ -1,8 +1,8 @@
-package my.project.userservice.dto.refresh;
+package my.project.userservice.dto.logout;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record RefreshRequest(
+public record LogoutRequest(
 
 		@NotBlank
 		String refreshToken

@@ -35,6 +35,7 @@ public class DishService {
 		DishEntity dish = repository.findById(id)
 				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 		dishMapper.updateEntity(dish, dto);
+		repository.save(dish);
 		return dishMapper.toDto(dish);
 	}
 
