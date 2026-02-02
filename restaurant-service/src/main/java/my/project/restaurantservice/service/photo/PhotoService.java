@@ -36,6 +36,15 @@ public class PhotoService {
 	}
 
 	@Transactional
+	public List<PhotoEntity> findAllById(List<UUID> ids) {
+		var photos = repository.findAllByIdIn(ids);
+		if (photos.size() != ids.size()) {
+			throw new NotFoundException("restaurant.photo.not-found", ids);
+		}
+		return photos;
+	}
+
+	@Transactional
 	public void deleteAllById(List<UUID> ids) {
 		repository.deleteAllById(ids);
 	}
@@ -48,11 +57,7 @@ public class PhotoService {
 	}
 
 	@Transactional
-	public void markDeleting(List<UUID> ids) {
-		List<PhotoEntity> photos = repository.findAllById(ids);
-		if (photos.size() != ids.size()) {
-			throw new NotFoundException("restaurant.photos.not-found", ids);
-		}
+	public void markDeleting(List<PhotoEntity> photos) {
 		photos.forEach(PhotoEntity::deleting);
 	}
 }

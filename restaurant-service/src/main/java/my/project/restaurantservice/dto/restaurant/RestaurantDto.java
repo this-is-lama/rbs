@@ -2,6 +2,8 @@ package my.project.restaurantservice.dto.restaurant;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 import my.project.restaurantservice.dto.contact.ContactDto;
@@ -33,9 +35,15 @@ public record RestaurantDto(
 
 		Boolean active,
 
-		@NotBlank List<@Valid WorkingHoursDto> workingHours,
-		@NotBlank List<@Valid ContactDto> contacts,
+		@NotEmpty @NotNull
+		List<@Valid WorkingHoursDto> workingHours,
+
+		@NotEmpty @NotNull
+		List<@Valid ContactDto> contacts,
+
 		List<@Valid DishDto> dishes,
+
 		List<@Valid TableDto> tables,
+
 		List<PhotoResponse> photos
 ) {}

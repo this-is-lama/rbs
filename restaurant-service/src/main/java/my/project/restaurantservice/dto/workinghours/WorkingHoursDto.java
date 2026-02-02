@@ -18,7 +18,7 @@ public record WorkingHoursDto(
 		boolean closed
 ) {
 	@JsonIgnore
-	@AssertTrue(message = "Если closed=true, openTime/closeTime должны быть null. Если closed=false, openTime/closeTime обязательны и openTime < closeTime.")
+	@AssertTrue(message = "restaurant.workinghours.invalid")
 	public boolean isConsistent() {
 		if (closed) {
 			return openTime == null && closeTime == null;

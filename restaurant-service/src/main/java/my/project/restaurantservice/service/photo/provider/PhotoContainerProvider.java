@@ -6,9 +6,12 @@ import java.util.UUID;
 
 public interface PhotoContainerProvider {
 
-    OwnerType type();
+    ContainerType type();
 
     String bucket();
 
-    PhotoContainer getRef(UUID ownerId);
+    PhotoContainer getRef(UUID containerId);
+
+    ProviderContext context(UUID containerId);
+
 }

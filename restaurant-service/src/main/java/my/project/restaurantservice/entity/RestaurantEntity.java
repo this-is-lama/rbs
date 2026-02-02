@@ -119,7 +119,6 @@ public class RestaurantEntity implements PhotoContainer{
         contact.setRestaurant(null);
     }
 
-
     public void addTable(TableEntity table) {
         tables.add(table);
         table.setRestaurant(this);

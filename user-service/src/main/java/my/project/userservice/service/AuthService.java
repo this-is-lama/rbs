@@ -3,16 +3,13 @@ package my.project.userservice.service;
 import lombok.RequiredArgsConstructor;
 import my.project.common.exception.ConflictException;
 import my.project.common.exception.ForbiddenException;
-import my.project.userservice.dto.auth.AuthRequest;
-import my.project.userservice.dto.auth.AuthTokens;
-import my.project.userservice.dto.logout.LogoutRequest;
-import my.project.userservice.dto.refresh.RefreshRequest;
-import my.project.userservice.dto.register.RegistrationRequest;
-import my.project.userservice.dto.register.RegistrationResponse;
+import my.project.userservice.dto.AuthRequest;
+import my.project.userservice.dto.AuthTokens;
+import my.project.userservice.dto.RefreshTokenDto;
+import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.entity.UserEntity;
 import my.project.userservice.exception.InvalidCredentialsException;
 import my.project.userservice.exception.InvalidTokenException;
-import my.project.userservice.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,14 +24,13 @@ public class AuthService {
 
     private final UserService userService;
     private final JwtService jwtService;
-    private final RefreshTokenService refreshTokenService;
-    private final AuthenticationManager authenticationManager;
+    private final RefreshJtiService refreshJtiService;
+    private final AuthenticationManager authManager;
 
     public AuthTokens login(AuthRequest req) {
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(req.email(), req.password())
-            );
+            authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(req.email(), req.password()));
         } catch (BadCredentialsException e) {
             throw new InvalidCredentialsException("user.invalid-credentials");
         }
@@ -44,22 +40,22 @@ public class AuthService {
         return generateTokens(user);
     }
 
-    public RegistrationResponse register(RegistrationRequest req) {
+    public UUID register(RegistrationRequest req) {
         if (userService.existsByEmail(req.email())) {
             throw new ConflictException("user.email-already-use");
         }
         UserEntity user = userService.save(req);
-        return new RegistrationResponse(user.getId(), user.getEmail());
+        return user.getId();
     }
 
-    public AuthTokens refresh(RefreshRequest req) {
+    public AuthTokens refresh(RefreshTokenDto req) {
         String refreshToken = req.refreshToken();
         jwtService.validateRefreshToken(refreshToken);
 
         UUID userId = jwtService.getUserIdFromRefreshToken(refreshToken);
         String jti = jwtService.getJtiClaimFromRefreshToken(refreshToken);
 
-        refreshTokenService.deactivateRefreshTokenForRefresh(jti, userId);
+        refreshJtiService.deactivateForRefresh(jti, userId);
 
         UserEntity user = userService.findById(userId);
         if (!user.isEnabled()) {
@@ -69,15 +65,15 @@ public class AuthService {
         return generateTokens(user);
     }
 
-    public void logout(LogoutRequest req) {
-        String refreshToken = req.refreshToken();
+    public void logout(RefreshTokenDto dto) {
+        String refreshToken = dto.refreshToken();
         try {
             jwtService.validateRefreshToken(refreshToken);
 
             UUID userId = jwtService.getUserIdFromRefreshToken(refreshToken);
             String jti = jwtService.getJtiClaimFromRefreshToken(refreshToken);
 
-            refreshTokenService.deactivateRefreshTokenForLogout(jti, userId);
+            refreshJtiService.deactivateForLogout(jti, userId);
         } catch (InvalidTokenException ignored) {
             //ignored
         }
@@ -85,8 +81,8 @@ public class AuthService {
 
 
     private AuthTokens generateTokens(UserEntity user) {
-        String accessToken = jwtService.generateToken(user);
-        String jti = refreshTokenService.createRefreshJti(user.getId());
+        String accessToken = jwtService.generateAccessToken(user);
+        String jti = refreshJtiService.save(user.getId());
         String refreshToken = jwtService.generateRefreshToken(user, jti);
         return new AuthTokens(accessToken, refreshToken);
     }

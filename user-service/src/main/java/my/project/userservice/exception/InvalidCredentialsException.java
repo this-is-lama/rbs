@@ -1,6 +1,7 @@
 package my.project.userservice.exception;
 
 import my.project.common.exception.ApiException;
+import my.project.common.exception.CommonErrorCode;
 import my.project.common.exception.ErrorCode;
 
 public class InvalidCredentialsException extends ApiException {
@@ -10,6 +11,6 @@ public class InvalidCredentialsException extends ApiException {
 	}
 
 	public InvalidCredentialsException(String message, Object... args) {
-		super(UserErrorCode.INVALID_CREDENTIALS, message, args);
+		super(CommonErrorCode.INVALID_CREDENTIALS, message, args);
 	}
 }

@@ -7,6 +7,7 @@ import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.entity.TableEntity;
 import my.project.restaurantservice.mapper.TableMapper;
 import my.project.restaurantservice.repository.TableRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,43 +17,45 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TableService {
 
-	private final TableRepository tableRepository;
+	private final TableRepository repository;
 	private final TableMapper tableMapper;
 	private final RestaurantService restaurantService;
+	private final ManagerService managerService;
 
 	@Transactional
-	public UUID save(TableDto dto, UUID restId) {
+	public UUID save(TableDto dto, UUID restId, Authentication auth) {
+		managerService.checkAccess(restId, auth);
 		TableEntity table = tableMapper.toEntity(dto);
 
 		RestaurantEntity restaurant = restaurantService.getRef(restId);
 		restaurant.addTable(table);
 
-		return tableRepository.save(table).getId();
+		return repository.save(table).getId();
 	}
 
 	@Transactional(readOnly = true)
-	public TableDto findById(UUID id) {
-		TableEntity table = tableRepository.findById(id)
+	public TableDto findById(UUID restId, UUID id) {
+		TableEntity table = repository.findByIdAndRestaurantId(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
 
 		return tableMapper.toDto(table);
 	}
 
 	@Transactional
-	public TableDto update(UUID id, TableDto dto) {
-		TableEntity entity = tableRepository.findById(id)
+	public TableDto update(UUID restId, UUID id, TableDto dto, Authentication auth) {
+		managerService.checkAccess(restId, auth);
+		TableEntity entity = repository.findByIdAndRestaurantId(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
 
 		tableMapper.updateEntity(entity, dto);
-
-		tableRepository.save(entity);
 
 		return tableMapper.toDto(entity);
 	}
 
 	@Transactional
-	public void delete(UUID id) {
-		tableRepository.deleteById(id);
+	public void delete(UUID restId, UUID id, Authentication auth) {
+		managerService.checkAccess(restId, auth);
+		repository.deleteByIdAndRestaurantId(id, restId);
 	}
 
 }

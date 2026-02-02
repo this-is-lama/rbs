@@ -7,6 +7,8 @@ plugins {
 val mapstructVersion = "1.6.3"
 val minioVersion = "8.6.0"
 val lombokMapstruct = "0.2.0"
+val jwtVersion = "0.13.0"
+
 
 dependencies {
 
@@ -21,6 +23,8 @@ dependencies {
     implementation("io.minio:minio:$minioVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-security")
+
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
@@ -45,6 +49,10 @@ dependencies {
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
     annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
     annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstruct")
+
+    implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")

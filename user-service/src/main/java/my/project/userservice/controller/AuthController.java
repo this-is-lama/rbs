@@ -2,12 +2,10 @@ package my.project.userservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import my.project.userservice.dto.auth.AuthRequest;
-import my.project.userservice.dto.auth.AuthTokens;
-import my.project.userservice.dto.logout.LogoutRequest;
-import my.project.userservice.dto.refresh.RefreshRequest;
-import my.project.userservice.dto.register.RegistrationRequest;
-import my.project.userservice.dto.register.RegistrationResponse;
+import my.project.userservice.dto.AuthRequest;
+import my.project.userservice.dto.AuthTokens;
+import my.project.userservice.dto.RefreshTokenDto;
+import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
 	private final AuthService authService;
@@ -29,18 +29,18 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<RegistrationResponse> register(@RequestBody @Valid RegistrationRequest req) {
+	public ResponseEntity<UUID> register(@RequestBody @Valid RegistrationRequest req) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(req));
 	}
 
 	@PostMapping("/refresh")
-	public ResponseEntity<AuthTokens> refresh(@RequestBody @Valid RefreshRequest req) {
-		return ResponseEntity.ok(authService.refresh(req));
+	public ResponseEntity<AuthTokens> refresh(@RequestBody @Valid RefreshTokenDto dto) {
+		return ResponseEntity.ok(authService.refresh(dto));
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<Void> logout(@RequestBody @Valid LogoutRequest req) {
-		authService.logout(req);
+	public ResponseEntity<Void> logout(@RequestBody @Valid RefreshTokenDto dto) {
+		authService.logout(dto);
 		return ResponseEntity.ok().build();
 	}
 

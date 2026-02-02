@@ -2,6 +2,7 @@ package my.project.restaurantservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.common.security.AuthUtil;
 import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
@@ -10,6 +11,7 @@ import my.project.restaurantservice.mapper.ContactMapper;
 import my.project.restaurantservice.mapper.RestaurantMapper;
 import my.project.restaurantservice.mapper.WorkingHoursMapper;
 import my.project.restaurantservice.repository.RestaurantRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,26 +29,33 @@ public class RestaurantService {
 	private final WorkingHoursMapper workingHoursMapper;
 
 	private final RestaurantRepository repository;
+	private final ManagerService managerService;
 
 	@Transactional
-	public UUID save(RestaurantDto dto) {
+	public UUID save(RestaurantDto dto, Authentication auth) {
 		RestaurantEntity restaurant = restaurantMapper.toEntity(dto);
+		var managerId = AuthUtil.id(auth);
 
 		if (dto.contacts() != null) {
 			contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
 		}
-
 		if (dto.workingHours() != null) {
 			workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
 		}
+		var restId = repository.save(restaurant).getId();
 
-		return repository.save(restaurant).getId();
+		if (AuthUtil.isManager(auth)) {
+			managerService.save(restId, managerId);
+		}
+
+		return restId;
 	}
 
 	@Transactional
-	public RestaurantDto update(UUID id, RestaurantDto dto) {
-		RestaurantEntity restaurant = repository.findById(id)
-				.orElseThrow(() -> new NotFoundException("restaurant.not-found", id));
+	public RestaurantDto update(UUID restId, RestaurantDto dto, Authentication auth) {
+		RestaurantEntity restaurant = repository.findById(restId)
+				.orElseThrow(() -> new NotFoundException("restaurant.not-found", restId));
+		managerService.checkAccess(restId, auth);
 
 		restaurantMapper.updateEntity(restaurant, dto);
 
@@ -62,7 +71,6 @@ public class RestaurantService {
 		if (dto.contacts() != null) {
 			contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
 		}
-
 		if (dto.workingHours() != null) {
 			workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
 		}
@@ -84,7 +92,8 @@ public class RestaurantService {
 	}
 
 	@Transactional
-	public void delete(UUID id) {
+	public void delete(UUID id, Authentication auth) {
+		managerService.checkAccess(id, auth);
 		repository.deleteById(id);
 	}
 

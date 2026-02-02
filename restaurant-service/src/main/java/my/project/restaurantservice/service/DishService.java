@@ -7,6 +7,7 @@ import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.mapper.DishMapper;
 import my.project.restaurantservice.repository.DishRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +20,11 @@ public class DishService {
 	private final DishRepository repository;
 	private final DishMapper dishMapper;
 	private final RestaurantService restaurantService;
+	private final ManagerService managerService;
 
 	@Transactional
-	public UUID save(DishDto dto, UUID restId) {
+	public UUID save(DishDto dto, UUID restId, Authentication auth) {
+		managerService.checkAccess(restId, auth);
 		DishEntity dish = dishMapper.toEntity(dto);
 
 		RestaurantEntity restaurant = restaurantService.getRef(restId);
@@ -31,29 +34,31 @@ public class DishService {
 	}
 
 	@Transactional
-	public DishDto update(UUID id, DishDto dto) {
-		DishEntity dish = repository.findById(id)
+	public DishDto update(UUID restId, UUID id, DishDto dto, Authentication auth) {
+		managerService.checkAccess(restId, auth);
+		DishEntity dish = repository.findByIdAndRestaurantId(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 		dishMapper.updateEntity(dish, dto);
-		repository.save(dish);
 		return dishMapper.toDto(dish);
 	}
 
 
 	@Transactional(readOnly = true)
-	public DishDto findById(UUID id) {
-		var dish = repository.findById(id)
+	public DishDto findById(UUID restId, UUID id) {
+		var dish = repository.findByIdAndRestaurantId(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 		return dishMapper.toDto(dish);
 	}
 
 	@Transactional(readOnly = true)
 	public DishEntity getRef(UUID id) {
-		return repository.getReferenceById(id);
+		return repository.findWithRestaurantById(id)
+				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 	}
 
 	@Transactional
-	public void delete(UUID id) {
-		repository.deleteById(id);
+	public void delete(UUID restId, UUID id, Authentication auth) {
+		managerService.checkAccess(restId, auth);
+		repository.deleteByIdAndRestaurantId(id, restId);
 	}
 }

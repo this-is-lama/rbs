@@ -2,6 +2,7 @@ package my.project.userservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import my.project.common.security.UserRole;
 
 import java.time.Instant;
 import java.time.LocalDate;

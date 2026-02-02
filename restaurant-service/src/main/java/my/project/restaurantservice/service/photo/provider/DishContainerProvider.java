@@ -11,20 +11,29 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DishContainerProvider implements PhotoContainerProvider {
 
+    private static final ContainerType CONTAINER_TYPE = ContainerType.DISH;
+    private static final String BUCKET_NAME = "dish-media";
+
     private final DishService dishService;
 
     @Override
-    public OwnerType type() {
-        return OwnerType.DISH;
+    public ContainerType type() {
+        return CONTAINER_TYPE;
     }
 
     @Override
     public String bucket() {
-        return "dish-media";
+        return BUCKET_NAME;
     }
 
     @Override
-    public PhotoContainer getRef(UUID ownerId) {
-        return dishService.getRef(ownerId);
+    public PhotoContainer getRef(UUID containerId) {
+        return dishService.getRef(containerId);
+    }
+
+    @Override
+    public ProviderContext context(UUID containerId) {
+        var dish = dishService.getRef(containerId);
+        return new ProviderContext(CONTAINER_TYPE, bucket(), dish, dish.getRestaurant().getId());
     }
 }

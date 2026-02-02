@@ -1,6 +1,10 @@
 server:
   port: 8081
 
+jwt:
+  access-secret: ${JWT_SECRET:SSBkb24ndCB0YWtlIG1vbmV5IGZvciBteSBmbHlpbmcgYWJpbGl0eSwgYW5kIGV2ZW4gbW9yZSBzbyBmb3IgbXkgYmVhdXR5}
+  issuer: user-service
+
 spring:
   application:
     name: restaurant-service

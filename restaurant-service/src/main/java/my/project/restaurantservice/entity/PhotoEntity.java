@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import my.project.restaurantservice.entity.enums.PhotoCategory;
 import my.project.restaurantservice.entity.enums.PhotoStatus;
+import my.project.restaurantservice.service.photo.provider.ContainerType;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -98,4 +100,15 @@ public class PhotoEntity {
     public void deleting() {
         this.status = PhotoStatus.DELETING;
     }
+
+    public boolean isOwnContainerAndBucket(ContainerType type, UUID containerId, String expectedBucket) {
+        if (!Objects.equals(bucket, expectedBucket)) {
+            return false;
+        }
+        return switch (type) {
+            case RESTAURANT -> restaurant != null && Objects.equals(restaurant.getId(), containerId);
+            case DISH -> dish != null && Objects.equals(dish.getId(), containerId);
+        };
+    }
+
 }

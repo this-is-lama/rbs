@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public class ProviderConfig {
 
     @Bean
-    public Map<OwnerType, PhotoContainerProvider> photoProviders(List<PhotoContainerProvider> list) {
+    public Map<ContainerType, PhotoContainerProvider> photoProviders(List<PhotoContainerProvider> list) {
         return list.stream()
                 .collect(
                         Collectors.toUnmodifiableMap(PhotoContainerProvider::type, p -> p)

@@ -1,7 +1,7 @@
 package my.project.restaurantservice.util;
 
+import my.project.common.exception.CommonErrorCode;
 import my.project.common.exception.ValidationException;
-import my.project.restaurantservice.exception.RestaurantErrorCode;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -21,7 +21,7 @@ public class KeyGenerator {
 	public String generateKey(UUID entityId, String contentType) {
 		String ext = EXT_BY_CONTENT_TYPE.get(contentType);
 		if (ext == null) {
-			throw new ValidationException(RestaurantErrorCode.UNSUPPORTED_MEDIA_TYPE,
+			throw new ValidationException(CommonErrorCode.UNSUPPORTED_MEDIA_TYPE,
 					"restaurant.storage.unsupported-content-type", contentType);
 		}
 		var id = UUID.randomUUID();
