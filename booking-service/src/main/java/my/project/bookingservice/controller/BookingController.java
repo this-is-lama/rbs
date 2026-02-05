@@ -6,9 +6,11 @@ import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.service.BookingService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,24 +27,25 @@ public class BookingController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<?> findById(@PathVariable UUID id) {
-		return ResponseEntity.ok().build();
+	public ResponseEntity<BookingResponse> findById(@PathVariable UUID id) {
+		return ResponseEntity.ok(bookingService.findById(id));
 	}
 
 	@GetMapping("/me")
-	public ResponseEntity<?> findMyBookings() {
-		return ResponseEntity.ok().build();
+	public ResponseEntity<List<BookingResponse>> findUserBookings(Authentication auth) {
+		return ResponseEntity.ok(bookingService.findUserBookings(auth));
 	}
 
-	@PostMapping("/{id}/cancel")
-	public ResponseEntity<?> cancel(@PathVariable UUID id) {
-		return ResponseEntity.ok().build();
+	@DeleteMapping("/{id}/cancel")
+	public ResponseEntity<Void> cancel(@PathVariable UUID id, Authentication auth) {
+		bookingService.cancel(id, auth);
+		return ResponseEntity.noContent().build();
 	}
 
-
+	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')")
 	@GetMapping("/manager/restaurants/{restId}")
-	public ResponseEntity<?> restaurantBookings(@PathVariable UUID restId) {
-		return ResponseEntity.ok().build();
+	public ResponseEntity<List<BookingResponse>> restaurantBookings(@PathVariable UUID restId, Authentication auth) {
+		return ResponseEntity.ok(bookingService.findAllByRestaurantId(restId, auth));
 	}
 
 }

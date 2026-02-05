@@ -4,7 +4,7 @@ server:
 jwt:
   access-secret: ${JWT_SECRET:SSBkb24ndCB0YWtlIG1vbmV5IGZvciBteSBmbHlpbmcgYWJpbGl0eSwgYW5kIGV2ZW4gbW9yZSBzbyBmb3IgbXkgYmVhdXR5}
   refresh-secret: ${JWT_REFRESH_SECRET:VGhlcmUgaXMgbm8gc2VjcmV0IGluZ3JlZGllbnQuIDwuLi4+IFRvIG1ha2Ugc29tZXRoaW5nIHNwZWNpYWwsIHlvdSBqdXN0IGhhdmUgdG8gYmVsaWV2ZSB0aGF0IGl0IGlzIHNvbWV0aGluZyBzcGVjaWFsLg==}
-  access-lifetime: 15m
+  access-lifetime: 1h
   refresh-lifetime: 1d
   issuer: user-service
 

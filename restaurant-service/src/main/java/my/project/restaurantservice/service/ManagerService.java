@@ -40,10 +40,11 @@ public class ManagerService {
 	}
 
 	@Transactional(readOnly = true)
-	public void checkAccess(UUID restId, Authentication auth) {
+	public boolean checkAccess(UUID restId, Authentication auth) {
 		var managerId = AuthUtil.id(auth);
 		if (AuthUtil.isManager(auth) && !repository.existsByIdRestaurantIdAndIdManagerId(restId, managerId)) {
 			throw new ForbiddenException("common.forbidden");
 		}
+		return true;
 	}
 }

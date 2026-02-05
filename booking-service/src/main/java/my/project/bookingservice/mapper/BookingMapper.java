@@ -6,6 +6,7 @@ import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.entity.BookingEntity;
 import org.mapstruct.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 		uses = { BookingDishMapper.class }
 )
 public interface BookingMapper {
+
 
 	BookingResponse toResponse(BookingEntity entity);
 
@@ -25,14 +27,15 @@ public interface BookingMapper {
 	@Mapping(target = "dishes", ignore = true)
 	BookingEntity toEntity(CreateBookingRequest req,
 						   UUID userId,
-						   @Context Map<UUID, DishDto> dishesSnapshot,
-						   @Context BookingDishMapper dishMapper);
+						   @Context Map<UUID, DishDto> dishesSnapshot);
+
+	List<BookingResponse> toResponse(List<BookingEntity> entities);
 
 	@AfterMapping
 	default void fillDishes(CreateBookingRequest req,
 							@MappingTarget BookingEntity booking,
 							@Context Map<UUID, DishDto> dishesSnapshot,
-							@Context BookingDishMapper dishMapper) {
+							BookingDishMapper dishMapper) {
 		if (req.dishes() == null || req.dishes().isEmpty()) {
 			return;
 		}

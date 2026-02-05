@@ -90,4 +90,9 @@ public class RestaurantController {
 		return ResponseEntity.ok(managerService.addManager(restId, req, auth));
 	}
 
+	@GetMapping("/{restId}/manager-access")
+	public ResponseEntity<Boolean> getManagerAccess(@PathVariable UUID restId, Authentication auth) {
+		return ResponseEntity.ok(managerService.checkAccess(restId, auth));
+	}
+
 }

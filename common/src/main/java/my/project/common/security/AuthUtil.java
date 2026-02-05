@@ -34,5 +34,9 @@ public final class AuthUtil {
 	public static boolean isManager(Authentication auth) {
 		return has(auth, "ROLE_MANAGER");
 	}
+
+	public static boolean isUser(Authentication auth) {
+		return has(auth, "ROLE_USER");
+	}
 }
 

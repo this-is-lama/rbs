@@ -34,4 +34,6 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
 
 	Optional<BookingEntity> findByIdAndUserId(UUID id, UUID userId);
 
+	List<BookingEntity> findAllByRestaurantId(UUID restId);
+
 }

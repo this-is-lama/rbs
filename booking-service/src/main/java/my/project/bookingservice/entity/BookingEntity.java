@@ -64,10 +64,10 @@ public class BookingEntity {
 	private Instant cancelledAt;
 
 	@OneToMany(
+			mappedBy = "booking",
 			cascade = CascadeType.ALL,
 			orphanRemoval = true
 	)
-	@JoinColumn(name = "booking_id")
 	private List<BookingDishEntity> dishes = new ArrayList<>();
 
 
