@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,6 +14,8 @@ import java.util.UUID;
 public interface DishRepository extends JpaRepository<DishEntity, UUID> {
 
 	Optional<DishEntity> findByIdAndRestaurantId(UUID id, UUID restId);
+
+	Optional<List<DishEntity>> findAllByRestaurantIdAndAvailableTrueAndIdIn(UUID restId, Collection<UUID> ids);
 
 	@EntityGraph(attributePaths = {"restaurant"})
 	Optional<DishEntity> findWithRestaurantById(UUID id);

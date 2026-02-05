@@ -10,30 +10,37 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/restaurants/{restId}")
+@RequestMapping("/api/v1/restaurants/{restId}/dishes")
 @RequiredArgsConstructor
 public class DishController {
 
 	private final DishService dishService;
 
-	@GetMapping("dishes/{id}")
+	@GetMapping("/{id}")
 	public ResponseEntity<DishDto> findById(@PathVariable UUID restId,
 											@PathVariable UUID id) {
 		return ResponseEntity.ok(dishService.findById(restId, id));
 	}
 
+	@PostMapping("/ids")
+	public ResponseEntity<List<DishDto>> findAllByIds(@PathVariable UUID restId,
+													  @RequestBody List<UUID> ids) {
+		return ResponseEntity.ok(dishService.findAllByIds(restId, ids));
+	}
+
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PutMapping("/dishes/{id}")
+	@PutMapping("/{id}")
 	public ResponseEntity<DishDto> update(@PathVariable UUID restId, @PathVariable UUID id,
 										  @RequestBody @Valid DishDto dto, Authentication auth) {
 		return ResponseEntity.ok(dishService.update(restId, id, dto, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@DeleteMapping("/dishes/{id}")
+	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable UUID restId, @PathVariable UUID id,
 									   Authentication auth) {
 		dishService.delete(restId, id, auth);

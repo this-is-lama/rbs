@@ -36,12 +36,9 @@ public class RestaurantService {
 		RestaurantEntity restaurant = restaurantMapper.toEntity(dto);
 		var managerId = AuthUtil.id(auth);
 
-		if (dto.contacts() != null) {
-			contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
-		}
-		if (dto.workingHours() != null) {
-			workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
-		}
+		contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
+		workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
+
 		var restId = repository.save(restaurant).getId();
 
 		if (AuthUtil.isManager(auth)) {
@@ -68,12 +65,9 @@ public class RestaurantService {
 
 		repository.flush();
 
-		if (dto.contacts() != null) {
-			contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
-		}
-		if (dto.workingHours() != null) {
-			workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
-		}
+		contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
+		workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
+
 		return restaurantMapper.toDto(restaurant);
 	}
 

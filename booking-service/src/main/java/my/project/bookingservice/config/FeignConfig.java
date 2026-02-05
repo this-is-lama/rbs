@@ -1,6 +1,9 @@
-package my.project.restaurantservice.config;
+package my.project.bookingservice.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.RequestInterceptor;
+import feign.codec.ErrorDecoder;
+import my.project.bookingservice.client.FeignErrorDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -8,7 +11,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Configuration
-public class FeignAuthConfig {
+public class FeignConfig {
 
     @Bean
     public RequestInterceptor forwardAuthorization() {
@@ -21,5 +24,10 @@ public class FeignAuthConfig {
                 template.header(HttpHeaders.AUTHORIZATION, auth);
             }
         };
+    }
+
+    @Bean
+    public ErrorDecoder errorDecoder(ObjectMapper objectMapper) {
+        return new FeignErrorDecoder(objectMapper);
     }
 }

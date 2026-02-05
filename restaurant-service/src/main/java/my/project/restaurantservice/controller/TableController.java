@@ -13,26 +13,26 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/restaurants/{restId}")
+@RequestMapping("/api/v1/restaurants/{restId}/tables")
 @RequiredArgsConstructor
 public class TableController {
 
 	private final TableService tableService;
 
-	@GetMapping("/tables/{id}")
+	@GetMapping("/{id}")
 	public ResponseEntity<TableDto> findById(@PathVariable UUID restId, @PathVariable UUID id) {
 		return ResponseEntity.ok(tableService.findById(restId, id));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PutMapping("/tables/{id}")
+	@PutMapping("/{id}")
 	public ResponseEntity<TableDto> update(@PathVariable UUID restId, @PathVariable UUID id,
 										   @RequestBody @Valid TableDto dto, Authentication auth) {
 		return ResponseEntity.ok(tableService.update(restId, id, dto, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@DeleteMapping("/tables/{id}")
+	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable UUID restId, @PathVariable UUID id,
 									   Authentication auth) {
 		tableService.delete(restId, id, auth);

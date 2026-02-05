@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -48,6 +49,16 @@ public class DishService {
 		var dish = repository.findByIdAndRestaurantId(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 		return dishMapper.toDto(dish);
+	}
+
+	@Transactional(readOnly = true)
+	public List<DishDto> findAllByIds(UUID restId, List<UUID> ids) {
+		var dishes = repository.findAllByRestaurantIdAndAvailableTrueAndIdIn(restId, ids)
+				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", ids));
+		if (dishes.size() != ids.size()) {
+			throw new NotFoundException("restaurant.dish.not-found", ids);
+		}
+		return dishMapper.toDto(dishes);
 	}
 
 	@Transactional(readOnly = true)

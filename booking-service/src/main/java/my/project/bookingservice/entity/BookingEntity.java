@@ -1,0 +1,103 @@
+package my.project.bookingservice.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(
+		name = "bookings",
+		indexes = {
+				@Index(name = "idx_bookings_restaurant_id", columnList = "restaurant_id"),
+				@Index(name = "idx_bookings_user_id", columnList = "user_id"),
+				@Index(name = "idx_bookings_table_id", columnList = "table_id"),
+				@Index(name = "idx_bookings_status", columnList = "status"),
+				@Index(name = "idx_bookings_start_at", columnList = "start_at"),
+				@Index(name = "idx_bookings_end_at", columnList = "end_at")
+		}
+)
+public class BookingEntity {
+
+	@Id
+	@GeneratedValue
+	@UuidGenerator
+	@Column(columnDefinition = "uuid")
+	private UUID id;
+
+	@Column(name = "restaurant_id", nullable = false, columnDefinition = "uuid")
+	private UUID restaurantId;
+
+	@Column(name = "user_id", nullable = false, columnDefinition = "uuid")
+	private UUID userId;
+
+	@Column(name = "table_id", nullable = false, columnDefinition = "uuid")
+	private UUID tableId;
+
+	@Column(name = "start_at", nullable = false)
+	private Instant startAt;
+
+	@Column(name = "end_at", nullable = false)
+	private Instant endAt;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status", nullable = false, length = 20)
+	private BookingStatus status;
+
+	@Column(name = "guests", nullable = false)
+	private Integer guests;
+
+	@Column(name = "comment", length = 500)
+	private String comment;
+
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private Instant createdAt;
+
+	@Column(name = "cancelled_at")
+	private Instant cancelledAt;
+
+	@OneToMany(
+			cascade = CascadeType.ALL,
+			orphanRemoval = true
+	)
+	@JoinColumn(name = "booking_id")
+	private List<BookingDishEntity> dishes = new ArrayList<>();
+
+
+	@Version
+	@Column(name = "version", nullable = false)
+	private long version;
+
+	@PrePersist
+	void prePersist() {
+		Instant now = Instant.now();
+		if (createdAt == null) createdAt = now;
+		if (status == null) status = BookingStatus.RESERVED;
+	}
+
+	public void addDish(BookingDishEntity dish) {
+		dishes.add(dish);
+		dish.setBooking(this);
+	}
+
+	public void removeDish(BookingDishEntity dish) {
+		dishes.remove(dish);
+		dish.setBooking(null);
+	}
+
+	public boolean isCancelled() {
+		return status == BookingStatus.CANCELLED;
+	}
+
+	public void cancel(Instant now) {
+		this.status = BookingStatus.CANCELLED;
+		this.cancelledAt = now;
+	}
+}

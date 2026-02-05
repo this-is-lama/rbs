@@ -2,8 +2,8 @@ package my.project.restaurantservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import my.project.restaurantservice.dto.restaurant.AddManagerRequest;
 import my.project.restaurantservice.dto.dish.DishDto;
+import my.project.restaurantservice.dto.restaurant.AddManagerRequest;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
 import my.project.restaurantservice.dto.table.TableDto;
@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
