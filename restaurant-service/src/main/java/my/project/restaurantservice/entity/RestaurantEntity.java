@@ -23,7 +23,7 @@ import java.util.UUID;
                 }
         )
 )
-public class RestaurantEntity implements PhotoContainer{
+public class RestaurantEntity implements PhotoContainer {
 
     @Id
     @GeneratedValue

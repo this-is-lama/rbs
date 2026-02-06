@@ -40,6 +40,8 @@ public record CreateBookingRequest(
 	@JsonIgnore
 	@AssertTrue(message = "Некорректное время бронирования: должно быть минимум за 1 час до начала и длительность не меньше 1 часа")
 	public boolean isConsistent() {
+		if (startAt == null || endAt == null) return true;
+
 		Instant start = startAt();
 		Instant end = endAt();
 		Instant now = Instant.now();
@@ -59,7 +61,10 @@ public record CreateBookingRequest(
 		if (dishes == null || dishes.isEmpty()) {
 			return List.of();
 		}
-		return dishes.stream().map(BookingDishCreateRequest::dishId).toList();
+		return dishes.stream()
+				.map(BookingDishCreateRequest::dishId)
+				.distinct()
+				.toList();
 	}
 
 

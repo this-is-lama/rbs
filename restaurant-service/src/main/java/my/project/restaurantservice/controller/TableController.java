@@ -39,5 +39,10 @@ public class TableController {
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
+	@GetMapping("/{id}/check-table")
+	public ResponseEntity<TableDto> checkTable(@PathVariable UUID restId, @PathVariable UUID id) {
+		return ResponseEntity.ok(tableService.checkTable(restId, id));
+	}
+
 }
 

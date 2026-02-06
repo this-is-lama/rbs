@@ -17,7 +17,13 @@ public class ApiException extends RuntimeException {
 
     public ApiException(ApiError error) {
         super(error.message());
-        this.code = CommonErrorCode.valueOf(error.code());
+        ErrorCode errorCode;
+        try {
+            errorCode = CommonErrorCode.valueOf(error.code());
+        } catch (IllegalArgumentException e) {
+            errorCode = CommonErrorCode.INTERNAL_ERROR;
+        }
+        this.code = errorCode;
         this.args = null;
     }
 

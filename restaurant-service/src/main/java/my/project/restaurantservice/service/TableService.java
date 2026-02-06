@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -33,14 +34,6 @@ public class TableService {
 		return repository.save(table).getId();
 	}
 
-	@Transactional(readOnly = true)
-	public TableDto findById(UUID restId, UUID id) {
-		TableEntity table = repository.findByIdAndRestaurantId(id, restId)
-				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
-
-		return tableMapper.toDto(table);
-	}
-
 	@Transactional
 	public TableDto update(UUID restId, UUID id, TableDto dto, Authentication auth) {
 		managerService.checkAccess(restId, auth);
@@ -56,6 +49,26 @@ public class TableService {
 	public void delete(UUID restId, UUID id, Authentication auth) {
 		managerService.checkAccess(restId, auth);
 		repository.deleteByIdAndRestaurantId(id, restId);
+	}
+
+	@Transactional(readOnly = true)
+	public TableDto findById(UUID restId, UUID id) {
+		TableEntity table = repository.findByIdAndRestaurantId(id, restId)
+				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
+
+		return tableMapper.toDto(table);
+	}
+
+	@Transactional(readOnly = true)
+	public List<TableEntity> findAllByRestaurantId(UUID restId) {
+		return repository.findAllByRestaurantIdAndActiveTrueOrderByTableNumberAsc(restId);
+	}
+
+	@Transactional(readOnly = true)
+	public TableDto checkTable(UUID restId, UUID id) {
+		var table = repository.findByIdAndRestaurantIdAndActiveTrueOrderByTableNumberAsc(id, restId)
+				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
+		return tableMapper.toDto(table);
 	}
 
 }

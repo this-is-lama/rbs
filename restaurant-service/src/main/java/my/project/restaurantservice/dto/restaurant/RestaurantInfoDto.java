@@ -1,21 +1,31 @@
 package my.project.restaurantservice.dto.restaurant;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
+import my.project.restaurantservice.dto.photo.PhotoResponse;
 import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 
 import java.util.List;
 import java.util.UUID;
 
-public record RestaurantInfoDto(
-		UUID id,
+@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class RestaurantInfoDto {
 
-		String name,
+		UUID id;
 
-		String category,
+		String name;
 
-		String address,
+		String category;
 
-		Boolean active,
+		String address;
 
-		List<WorkingHoursDto> workingHours
-) {}
+		Boolean active;
+
+		List<WorkingHoursDto> workingHours;
+
+		PhotoResponse bannerPhoto;
+
+}
 

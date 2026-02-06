@@ -15,6 +15,10 @@ public interface DishRepository extends JpaRepository<DishEntity, UUID> {
 
 	Optional<DishEntity> findByIdAndRestaurantId(UUID id, UUID restId);
 
+	Optional<DishEntity> findByIdAndRestaurantIdAndAvailableTrueOrderByNameAsc(UUID id, UUID restId);
+
+	List<DishEntity> findAllByRestaurantIdAndAvailableTrueOrderByNameAsc(UUID restId);
+
 	Optional<List<DishEntity>> findAllByRestaurantIdAndAvailableTrueAndIdIn(UUID restId, Collection<UUID> ids);
 
 	@EntityGraph(attributePaths = {"restaurant"})

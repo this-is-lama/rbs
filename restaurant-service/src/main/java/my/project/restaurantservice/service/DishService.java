@@ -2,6 +2,7 @@ package my.project.restaurantservice.service;
 
 import lombok.RequiredArgsConstructor;
 import my.project.common.exception.NotFoundException;
+import my.project.common.security.AuthUtil;
 import my.project.restaurantservice.dto.dish.DishDto;
 import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.RestaurantEntity;
@@ -43,12 +44,28 @@ public class DishService {
 		return dishMapper.toDto(dish);
 	}
 
+	@Transactional
+	public void delete(UUID restId, UUID id, Authentication auth) {
+		managerService.checkAccess(restId, auth);
+		repository.deleteByIdAndRestaurantId(id, restId);
+	}
 
 	@Transactional(readOnly = true)
-	public DishDto findById(UUID restId, UUID id) {
-		var dish = repository.findByIdAndRestaurantId(id, restId)
-				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
+	public DishDto findById(UUID restId, UUID id, Authentication auth) {
+		DishEntity dish;
+		if (AuthUtil.isUser(auth)) {
+			dish = repository.findByIdAndRestaurantIdAndAvailableTrueOrderByNameAsc(id, restId)
+					.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
+		} else {
+			dish = repository.findByIdAndRestaurantId(id, restId)
+					.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
+		}
 		return dishMapper.toDto(dish);
+	}
+
+	@Transactional(readOnly = true)
+	public List<DishEntity> findAllByRestaurantId(UUID restId) {
+		return repository.findAllByRestaurantIdAndAvailableTrueOrderByNameAsc(restId);
 	}
 
 	@Transactional(readOnly = true)
@@ -67,9 +84,5 @@ public class DishService {
 				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 	}
 
-	@Transactional
-	public void delete(UUID restId, UUID id, Authentication auth) {
-		managerService.checkAccess(restId, auth);
-		repository.deleteByIdAndRestaurantId(id, restId);
-	}
+
 }

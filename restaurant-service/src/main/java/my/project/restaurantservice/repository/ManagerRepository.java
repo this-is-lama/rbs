@@ -9,9 +9,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface RestaurantManagerRepository extends JpaRepository<ManagerEntity, ManagerId> {
+public interface ManagerRepository extends JpaRepository<ManagerEntity, ManagerId> {
 
     boolean existsByIdRestaurantIdAndIdManagerId(UUID restaurantId, UUID managerId);
 
-    List<ManagerEntity> findAllByIdRestaurantId(UUID restaurantId);
 }

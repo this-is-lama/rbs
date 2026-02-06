@@ -3,6 +3,7 @@ package my.project.restaurantservice.service.photo;
 import lombok.RequiredArgsConstructor;
 import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.entity.PhotoEntity;
+import my.project.restaurantservice.entity.enums.PhotoCategory;
 import my.project.restaurantservice.entity.enums.PhotoStatus;
 import my.project.restaurantservice.repository.PhotoRepository;
 import org.springframework.stereotype.Service;
@@ -59,5 +60,10 @@ public class PhotoService {
 	@Transactional
 	public void markDeleting(List<PhotoEntity> photos) {
 		photos.forEach(PhotoEntity::deleting);
+	}
+
+	@Transactional(readOnly = true)
+	public PhotoEntity findBannerPhoto(UUID restId) {
+		return repository.findFirstByRestaurantIdAndCategoryOrderBySortOrderAsc(restId, PhotoCategory.BANNER);
 	}
 }

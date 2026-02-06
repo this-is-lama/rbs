@@ -22,8 +22,9 @@ public class DishController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<DishDto> findById(@PathVariable UUID restId,
-											@PathVariable UUID id) {
-		return ResponseEntity.ok(dishService.findById(restId, id));
+											@PathVariable UUID id,
+											Authentication auth) {
+		return ResponseEntity.ok(dishService.findById(restId, id, auth));
 	}
 
 	@PostMapping("/ids")

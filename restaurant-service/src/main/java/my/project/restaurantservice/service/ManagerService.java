@@ -9,7 +9,7 @@ import my.project.restaurantservice.client.UserServiceClient;
 import my.project.restaurantservice.dto.restaurant.AddManagerRequest;
 import my.project.restaurantservice.entity.ManagerEntity;
 import my.project.restaurantservice.entity.ManagerId;
-import my.project.restaurantservice.repository.RestaurantManagerRepository;
+import my.project.restaurantservice.repository.ManagerRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ManagerService {
 
-	private final RestaurantManagerRepository repository;
+	private final ManagerRepository repository;
 	private final UserServiceClient userServiceClient;
 
 	@Transactional

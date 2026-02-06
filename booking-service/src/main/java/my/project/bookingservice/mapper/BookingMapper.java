@@ -19,6 +19,16 @@ public interface BookingMapper {
 
 	BookingResponse toResponse(BookingEntity entity);
 
+
+	@Mapping(target = "id", ignore = true)
+	@Mapping(target = "createdAt", ignore = true)
+	@Mapping(target = "cancelledAt", ignore = true)
+	@Mapping(target = "status", ignore = true)
+	@Mapping(target = "version", ignore = true)
+	@Mapping(target = "dishes", ignore = true)
+	BookingEntity toEntity(CreateBookingRequest req,
+						   UUID userId);
+
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "createdAt", ignore = true)
 	@Mapping(target = "cancelledAt", ignore = true)
@@ -36,9 +46,7 @@ public interface BookingMapper {
 							@MappingTarget BookingEntity booking,
 							@Context Map<UUID, DishDto> dishesSnapshot,
 							BookingDishMapper dishMapper) {
-		if (req.dishes() == null || req.dishes().isEmpty()) {
-			return;
-		}
+		if (req.dishes() == null || req.dishes().isEmpty()) return;
 		req.dishes().forEach(d -> booking.addDish(dishMapper.toEntity(d, dishesSnapshot)));
 	}
 }

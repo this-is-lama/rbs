@@ -97,7 +97,9 @@ public class BookingEntity {
 	}
 
 	public void cancel(Instant now) {
-		this.status = BookingStatus.CANCELLED;
-		this.cancelledAt = now;
+		if (!isCancelled()) {
+			this.status = BookingStatus.CANCELLED;
+			this.cancelledAt = now;
+		}
 	}
 }

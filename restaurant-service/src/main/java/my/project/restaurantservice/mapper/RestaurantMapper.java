@@ -2,7 +2,9 @@ package my.project.restaurantservice.mapper;
 
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
+import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.RestaurantEntity;
+import my.project.restaurantservice.entity.TableEntity;
 import org.mapstruct.*;
 
 import java.util.List;
@@ -31,6 +33,8 @@ public interface RestaurantMapper {
 	RestaurantEntity toEntity(RestaurantDto dto);
 
 	RestaurantDto toDto(RestaurantEntity entity);
+
+	RestaurantDto toDto(RestaurantEntity entity, List<DishEntity> dishes, List<TableEntity> tables);
 
 	List<RestaurantInfoDto> toInfoDto(List<RestaurantEntity> entities);
 

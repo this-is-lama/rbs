@@ -1,6 +1,7 @@
 package my.project.restaurantservice.repository;
 
 import my.project.restaurantservice.entity.PhotoEntity;
+import my.project.restaurantservice.entity.enums.PhotoCategory;
 import my.project.restaurantservice.entity.enums.PhotoStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +21,8 @@ public interface PhotoRepository extends JpaRepository<PhotoEntity, UUID> {
 
 	@EntityGraph(attributePaths = {"restaurant", "dish"})
 	List<PhotoEntity> findAllByIdIn(List<UUID> ids);
+
+	PhotoEntity findFirstByRestaurantIdAndCategoryOrderBySortOrderAsc(UUID restId, PhotoCategory category);
 
 	@EntityGraph(attributePaths = {"restaurant", "dish"})
 	Optional<PhotoEntity> findByIdAndObjectKeyAndStatus(UUID id, String objectKey, PhotoStatus status);

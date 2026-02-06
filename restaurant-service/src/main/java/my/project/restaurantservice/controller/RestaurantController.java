@@ -47,8 +47,8 @@ public class RestaurantController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<RestaurantDto> findById(@PathVariable UUID id) {
-		return ResponseEntity.ok(restaurantService.findById(id));
+	public ResponseEntity<RestaurantDto> findById(@PathVariable UUID id, Authentication auth) {
+		return ResponseEntity.ok(restaurantService.findById(id, auth));
 	}
 
 	@GetMapping()
