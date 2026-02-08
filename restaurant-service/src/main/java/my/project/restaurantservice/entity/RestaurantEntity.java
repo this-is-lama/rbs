@@ -52,19 +52,16 @@ public class RestaurantEntity implements PhotoContainer {
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
     private List<WorkingHoursEntity> workingHours = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
     private List<ContactEntity> contacts = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
+    @OrderBy("tableNumber ASC")
     private List<TableEntity> tables = new ArrayList<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
     private List<DishEntity> dishes = new ArrayList<>();
 
     @OneToMany(
@@ -73,8 +70,11 @@ public class RestaurantEntity implements PhotoContainer {
             orphanRemoval = true
     )
     @OrderBy("sortOrder ASC")
-    @Fetch(FetchMode.SUBSELECT)
     private List<PhotoEntity> photos = new ArrayList<>();
+
+    @OneToMany
+    @JoinColumn(name = "restaurant_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private List<ManagerEntity> managers;
 
     @PrePersist
     public void prePersist() {

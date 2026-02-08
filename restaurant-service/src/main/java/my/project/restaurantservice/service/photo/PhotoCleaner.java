@@ -32,23 +32,23 @@ public class PhotoCleaner {
 
 	private void cleanByStatus(PhotoStatus status) {
 		var photos = photoService.findTop500ByStatus(status);
-		List<UUID> toDeleteFromDb = new ArrayList<>(photos.size());
+		List<UUID> toDelete = new ArrayList<>(photos.size());
 
 		for (var p : photos) {
 			try {
 				storageService.removeObject(p.getBucket(), p.getObjectKey());
-				toDeleteFromDb.add(p.getId());
+				toDelete.add(p.getId());
 			} catch (Exception ex) {
 				if (isNotFound(ex)) {
-					toDeleteFromDb.add(p.getId());
+					toDelete.add(p.getId());
 					continue;
 				}
 				log.warn("Failed to remove object: bucket={}, key={}, id={}",
 						p.getBucket(), p.getObjectKey(), p.getId(), ex);
 			}
 		}
-		if (!toDeleteFromDb.isEmpty()) {
-			photoService.deleteAllById(toDeleteFromDb);
+		if (!toDelete.isEmpty()) {
+			photoService.deleteAllById(toDelete);
 		}
 	}
 

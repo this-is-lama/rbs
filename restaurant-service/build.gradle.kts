@@ -4,8 +4,8 @@ plugins {
     id("io.spring.dependency-management")
 }
 
-val mapstructVersion = "1.6.3"
 val minioVersion = "8.6.0"
+val mapstructVersion = "1.6.3"
 val lombokMapstruct = "0.2.0"
 val jwtVersion = "0.13.0"
 

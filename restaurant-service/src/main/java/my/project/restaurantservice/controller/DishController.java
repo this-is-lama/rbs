@@ -20,17 +20,13 @@ public class DishController {
 
 	private final DishService dishService;
 
-	@GetMapping("/{id}")
-	public ResponseEntity<DishDto> findById(@PathVariable UUID restId,
-											@PathVariable UUID id,
-											Authentication auth) {
-		return ResponseEntity.ok(dishService.findById(restId, id, auth));
-	}
-
-	@PostMapping("/ids")
-	public ResponseEntity<List<DishDto>> findAllByIds(@PathVariable UUID restId,
-													  @RequestBody List<UUID> ids) {
-		return ResponseEntity.ok(dishService.findAllByIds(restId, ids));
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@PostMapping
+	public ResponseEntity<UUID> create(@PathVariable UUID restId,
+										@Valid @RequestBody DishDto dto,
+										Authentication auth) {
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(dishService.save(dto, restId, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
@@ -47,5 +43,15 @@ public class DishController {
 		dishService.delete(restId, id, auth);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
+
+
+	@GetMapping("/{id}")
+	public ResponseEntity<DishDto> findById(@PathVariable UUID restId,
+											@PathVariable UUID id,
+											Authentication auth) {
+		return ResponseEntity.ok(dishService.findById(restId, id, auth));
+	}
+
+
 
 }

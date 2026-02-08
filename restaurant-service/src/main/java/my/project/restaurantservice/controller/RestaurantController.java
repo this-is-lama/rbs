@@ -2,22 +2,16 @@ package my.project.restaurantservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import my.project.restaurantservice.dto.dish.DishDto;
-import my.project.restaurantservice.dto.restaurant.AddManagerRequest;
+import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
-import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
-import my.project.restaurantservice.dto.table.TableDto;
-import my.project.restaurantservice.service.DishService;
-import my.project.restaurantservice.service.ManagerService;
 import my.project.restaurantservice.service.RestaurantService;
-import my.project.restaurantservice.service.TableService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,9 +20,7 @@ import java.util.UUID;
 public class RestaurantController {
 
 	private final RestaurantService restaurantService;
-	private final DishService dishService;
-	private final TableService tableService;
-	private final ManagerService managerService;
+
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@PostMapping()
@@ -52,8 +44,13 @@ public class RestaurantController {
 	}
 
 	@GetMapping()
-	public ResponseEntity<List<RestaurantInfoDto>> findAll() {
-		return ResponseEntity.ok(restaurantService.findAll());
+	public ResponseEntity<Page<RestaurantCardDto>> findAll(@RequestParam(required = false) String category,
+														   @RequestParam(required = false) String name,
+														   @RequestParam(required = false) Boolean active,
+														   @RequestParam(required = false) String address,
+														   @RequestParam(defaultValue = "0") int page,
+														   @RequestParam(defaultValue = "10") int size) {
+		return ResponseEntity.ok(restaurantService.findAll(category, name, active, address, page, size));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
@@ -61,38 +58,6 @@ public class RestaurantController {
 	public ResponseEntity<Void> delete(@PathVariable UUID id, Authentication auth) {
 		restaurantService.delete(id, auth);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-	}
-
-
-	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PostMapping("/{restId}/dishes")
-	public ResponseEntity<UUID> addDish(@PathVariable UUID restId,
-										@Valid @RequestBody DishDto dto,
-										Authentication auth) {
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(dishService.save(dto, restId, auth));
-	}
-
-	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PostMapping("/{restId}/tables")
-	public ResponseEntity<UUID> addTable(@PathVariable UUID restId,
-										 @Valid @RequestBody TableDto dto,
-										 Authentication auth) {
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(tableService.save(dto, restId, auth));
-	}
-
-	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PostMapping("/{restId}/managers")
-	public ResponseEntity<UUID> addManager(@PathVariable UUID restId,
-										   @RequestBody AddManagerRequest req,
-										   Authentication auth) {
-		return ResponseEntity.ok(managerService.addManager(restId, req, auth));
-	}
-
-	@GetMapping("/{restId}/manager-access")
-	public ResponseEntity<Boolean> getManagerAccess(@PathVariable UUID restId, Authentication auth) {
-		return ResponseEntity.ok(managerService.checkAccess(restId, auth));
 	}
 
 }

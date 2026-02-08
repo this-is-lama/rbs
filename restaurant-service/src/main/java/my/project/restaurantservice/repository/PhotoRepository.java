@@ -5,13 +5,22 @@ import my.project.restaurantservice.entity.enums.PhotoCategory;
 import my.project.restaurantservice.entity.enums.PhotoStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface PhotoRepository extends JpaRepository<PhotoEntity, UUID> {
+
+	Optional<PhotoEntity> findByIdAndStatus(UUID id, PhotoStatus status);
+
+	List<PhotoEntity> findAllByRestaurantIdAndStatus(UUID restId, PhotoStatus status);
+
+	List<PhotoEntity> findAllByDishIdAndStatus(UUID dishId, PhotoStatus status);
 
 	@EntityGraph(attributePaths = {"restaurant", "dish"})
 	List<PhotoEntity> findTop500ByStatusAndUploadedAtBefore(PhotoStatus status, Instant threshold);
@@ -20,11 +29,23 @@ public interface PhotoRepository extends JpaRepository<PhotoEntity, UUID> {
 	List<PhotoEntity> findTop500ByStatus(PhotoStatus status);
 
 	@EntityGraph(attributePaths = {"restaurant", "dish"})
-	List<PhotoEntity> findAllByIdIn(List<UUID> ids);
+	List<PhotoEntity> findAllByIdIn(Set<UUID> ids);
 
-	PhotoEntity findFirstByRestaurantIdAndCategoryOrderBySortOrderAsc(UUID restId, PhotoCategory category);
+	@Query("""
+        select p
+        from PhotoEntity p
+        where p.category = :category
+          and p.sortOrder = (
+              select min(p2.sortOrder)
+              from PhotoEntity p2
+              where p2.restaurant.id = p.restaurant.id
+                and p2.category = :category
+          )
+          and p.restaurant.id in :restIds
+    """)
+	List<PhotoEntity> findFirstPhotosForRestaurants(@Param("restIds") Set<UUID> restIds,
+													@Param("category") PhotoCategory category);
 
-	@EntityGraph(attributePaths = {"restaurant", "dish"})
 	Optional<PhotoEntity> findByIdAndObjectKeyAndStatus(UUID id, String objectKey, PhotoStatus status);
 
 }

@@ -2,6 +2,7 @@ package my.project.restaurantservice.service;
 
 import lombok.RequiredArgsConstructor;
 import my.project.common.exception.NotFoundException;
+import my.project.common.security.AuthUtil;
 import my.project.restaurantservice.dto.table.TableDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.entity.TableEntity;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -52,23 +54,32 @@ public class TableService {
 	}
 
 	@Transactional(readOnly = true)
-	public TableDto findById(UUID restId, UUID id) {
-		TableEntity table = repository.findByIdAndRestaurantId(id, restId)
-				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
-
+	public TableDto findById(UUID restId, UUID id, Authentication auth) {
+		var table = getById(restId, id, auth);
 		return tableMapper.toDto(table);
 	}
 
 	@Transactional(readOnly = true)
-	public List<TableEntity> findAllByRestaurantId(UUID restId) {
-		return repository.findAllByRestaurantIdAndActiveTrueOrderByTableNumberAsc(restId);
+	public TableEntity getById(UUID restId, UUID id, Authentication auth) {
+		var userId = AuthUtil.id(auth);
+
+		Optional<TableEntity> table;
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, userId))) {
+			table = repository.findByIdAndRestaurantIdAndActiveTrue(id, restId);
+		} else {
+			table = repository.findByIdAndRestaurantId(id, restId);
+		}
+		return table.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
 	}
 
+
 	@Transactional(readOnly = true)
-	public TableDto checkTable(UUID restId, UUID id) {
-		var table = repository.findByIdAndRestaurantIdAndActiveTrueOrderByTableNumberAsc(id, restId)
-				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
-		return tableMapper.toDto(table);
+	public List<TableEntity> findAllByRestaurantId(UUID restId, Authentication auth) {
+		var userId = AuthUtil.id(auth);
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, userId))) {
+			return repository.findAllByRestaurantIdAndActiveTrueOrderByTableNumberAsc(restId);
+		}
+		return repository.findAllByRestaurantIdOrderByTableNumberAsc(restId);
 	}
 
 }

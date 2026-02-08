@@ -3,6 +3,7 @@ package my.project.restaurantservice.dto.restaurant;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import my.project.restaurantservice.dto.photo.PhotoDto;
 import my.project.restaurantservice.dto.photo.PhotoResponse;
 import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 
@@ -11,7 +12,7 @@ import java.util.UUID;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RestaurantInfoDto {
+public class RestaurantCardDto {
 
 		UUID id;
 
@@ -23,9 +24,9 @@ public class RestaurantInfoDto {
 
 		Boolean active;
 
-		List<WorkingHoursDto> workingHours;
+		WorkingHoursDto workingHours;
 
-		PhotoResponse bannerPhoto;
+		PhotoDto bannerPhoto;
 
 }
 

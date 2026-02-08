@@ -1,6 +1,9 @@
 package my.project.restaurantservice.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.RequestInterceptor;
+import feign.codec.ErrorDecoder;
+import my.project.restaurantservice.client.FeignErrorDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -22,4 +25,10 @@ public class FeignConfig {
             }
         };
     }
+
+    @Bean
+    public ErrorDecoder errorDecoder(ObjectMapper objectMapper) {
+        return new FeignErrorDecoder(objectMapper);
+    }
+
 }

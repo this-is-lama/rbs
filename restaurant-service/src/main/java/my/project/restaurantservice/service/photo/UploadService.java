@@ -75,11 +75,11 @@ public class UploadService {
 
     @Transactional
     public void delete(ContainerType type, UUID containerId,
-                       List<UUID> ids, Authentication auth) {
+                       Set<UUID> ids, Authentication auth) {
         ProviderContext context = checkAccessAndGetContext(type, containerId, auth);
         var bucket = context.bucket();
 
-        var photos = photoService.findAllById(ids);
+        var photos = photoService.findAllByIdIn(ids);
         photos.forEach(p -> assertBelongsToContainer(p, type, containerId, bucket));
         photoService.markDeleting(photos);
     }

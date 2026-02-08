@@ -1,4 +1,4 @@
-package my.project.restaurantservice.dto.restaurant;
+package my.project.restaurantservice.dto.manager;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

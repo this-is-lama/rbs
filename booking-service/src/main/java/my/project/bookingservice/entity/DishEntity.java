@@ -44,4 +44,5 @@ public class BookingDishEntity {
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
+
 }

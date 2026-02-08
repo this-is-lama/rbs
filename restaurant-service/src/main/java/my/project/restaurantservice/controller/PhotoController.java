@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -53,7 +54,7 @@ public class PhotoController {
 	@DeleteMapping("/photos/delete")
 	public ResponseEntity<Void> delete(@PathVariable String container,
 									   @PathVariable UUID containerId,
-									   @RequestBody @NotEmpty @Size(max = 200) List<UUID> ids,
+									   @RequestBody @NotEmpty @Size(max = 200) Set<UUID> ids,
 									   Authentication auth) {
 		ContainerType type = ContainerType.fromPath(container);
 		uploadService.delete(type, containerId, ids, auth);

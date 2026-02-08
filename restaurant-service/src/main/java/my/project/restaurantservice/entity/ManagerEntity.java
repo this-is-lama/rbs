@@ -38,11 +38,4 @@ public class ManagerEntity {
         createdAt = Instant.now();
     }
 
-    public UUID getRestaurantId() {
-        return id.getRestaurantId();
-    }
-
-    public UUID getManagerId() {
-        return id.getManagerId();
-    }
 }

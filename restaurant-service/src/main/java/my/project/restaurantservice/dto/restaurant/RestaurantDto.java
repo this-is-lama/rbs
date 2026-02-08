@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 import my.project.restaurantservice.dto.contact.ContactDto;
 import my.project.restaurantservice.dto.dish.DishDto;
-import my.project.restaurantservice.dto.photo.PhotoResponse;
+import my.project.restaurantservice.dto.photo.PhotoDto;
 import my.project.restaurantservice.dto.table.TableDto;
+import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 
 import java.util.List;
 import java.util.UUID;
@@ -45,5 +45,5 @@ public record RestaurantDto(
 
 		List<@Valid TableDto> tables,
 
-		List<PhotoResponse> photos
+		List<PhotoDto> photos
 ) {}

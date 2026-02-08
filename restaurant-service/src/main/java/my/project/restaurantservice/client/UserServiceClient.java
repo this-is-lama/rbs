@@ -1,6 +1,6 @@
 package my.project.restaurantservice.client;
 
-import my.project.common.dto.ChangeRoleRequest;
+import my.project.restaurantservice.dto.manager.ChangeRoleRequest;
 import my.project.restaurantservice.config.FeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PatchMapping;

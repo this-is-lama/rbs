@@ -12,10 +12,12 @@ import java.util.UUID;
 public interface TableRepository extends JpaRepository<TableEntity, UUID> {
 
 	Optional<TableEntity> findByIdAndRestaurantId(UUID id, UUID restId);
+	Optional<TableEntity> findByIdAndRestaurantIdAndActiveTrue(UUID id, UUID restId);
 
-	Optional<TableEntity> findByIdAndRestaurantIdAndActiveTrueOrderByTableNumberAsc(UUID id, UUID restId);
 
+	List<TableEntity> findAllByRestaurantIdOrderByTableNumberAsc(UUID restId);
 	List<TableEntity> findAllByRestaurantIdAndActiveTrueOrderByTableNumberAsc(UUID restId);
+
 
 	void deleteByIdAndRestaurantId(UUID id, UUID restId);
 

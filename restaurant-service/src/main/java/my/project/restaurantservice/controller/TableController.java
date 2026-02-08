@@ -19,9 +19,13 @@ public class TableController {
 
 	private final TableService tableService;
 
-	@GetMapping("/{id}")
-	public ResponseEntity<TableDto> findById(@PathVariable UUID restId, @PathVariable UUID id) {
-		return ResponseEntity.ok(tableService.findById(restId, id));
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@PostMapping
+	public ResponseEntity<UUID> create(@PathVariable UUID restId,
+									   @Valid @RequestBody TableDto dto,
+									   Authentication auth) {
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(tableService.save(dto, restId, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
@@ -39,9 +43,10 @@ public class TableController {
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 
-	@GetMapping("/{id}/check-table")
-	public ResponseEntity<TableDto> checkTable(@PathVariable UUID restId, @PathVariable UUID id) {
-		return ResponseEntity.ok(tableService.checkTable(restId, id));
+	@GetMapping("/{id}")
+	public ResponseEntity<TableDto> findById(@PathVariable UUID restId, @PathVariable UUID id,
+											 Authentication auth) {
+		return ResponseEntity.ok(tableService.findById(restId, id, auth));
 	}
 
 }

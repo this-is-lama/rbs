@@ -11,14 +11,36 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PhotoService {
 
 	private final PhotoRepository repository;
+
+	@Transactional
+	public List<PhotoEntity> saveAll(List<PhotoEntity> photos) {
+		return repository.saveAll(photos);
+	}
+
+	@Transactional
+	public void deleteAllById(List<UUID> ids) {
+		repository.deleteAllById(ids);
+	}
+
+
+	@Transactional(readOnly = true)
+	public List<PhotoEntity> getAllByRestaurantId(UUID restId) {
+		return repository.findAllByRestaurantIdAndStatus(restId, PhotoStatus.ACTIVE);
+	}
+
+	@Transactional
+	public List<PhotoEntity> getAllByDishesId(UUID dishesId) {
+		return repository.findAllByDishIdAndStatus(dishesId, PhotoStatus.ACTIVE);
+	}
+
 
 	@Transactional(readOnly = true)
 	public PhotoEntity findPending(UUID id, String objectKey) {
@@ -32,22 +54,12 @@ public class PhotoService {
 	}
 
 	@Transactional
-	public List<PhotoEntity> saveAll(List<PhotoEntity> photos) {
-		return repository.saveAll(photos);
-	}
-
-	@Transactional
-	public List<PhotoEntity> findAllById(List<UUID> ids) {
+	public List<PhotoEntity> findAllByIdIn(Set<UUID> ids) {
 		var photos = repository.findAllByIdIn(ids);
 		if (photos.size() != ids.size()) {
 			throw new NotFoundException("restaurant.photo.not-found", ids);
 		}
 		return photos;
-	}
-
-	@Transactional
-	public void deleteAllById(List<UUID> ids) {
-		repository.deleteAllById(ids);
 	}
 
 	@Transactional
@@ -62,8 +74,8 @@ public class PhotoService {
 		photos.forEach(PhotoEntity::deleting);
 	}
 
-	@Transactional(readOnly = true)
-	public PhotoEntity findBannerPhoto(UUID restId) {
-		return repository.findFirstByRestaurantIdAndCategoryOrderBySortOrderAsc(restId, PhotoCategory.BANNER);
+	public Map<UUID, PhotoEntity> findBannersForRestaurants(Set<UUID> restIds) {
+		var photos = repository.findFirstPhotosForRestaurants(restIds, PhotoCategory.BANNER);
+		return photos.stream().collect(Collectors.toMap(p -> p.getRestaurant().getId(), p -> p));
 	}
 }

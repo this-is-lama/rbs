@@ -1,10 +1,8 @@
 package my.project.restaurantservice.mapper;
 
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
-import my.project.restaurantservice.dto.restaurant.RestaurantInfoDto;
-import my.project.restaurantservice.entity.DishEntity;
-import my.project.restaurantservice.entity.RestaurantEntity;
-import my.project.restaurantservice.entity.TableEntity;
+import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
+import my.project.restaurantservice.entity.*;
 import org.mapstruct.*;
 
 import java.util.List;
@@ -34,9 +32,15 @@ public interface RestaurantMapper {
 
 	RestaurantDto toDto(RestaurantEntity entity);
 
-	RestaurantDto toDto(RestaurantEntity entity, List<DishEntity> dishes, List<TableEntity> tables);
+	RestaurantDto toDto(RestaurantEntity entity,
+						List<WorkingHoursEntity> wh,
+						List<ContactEntity> contacts,
+						List<DishEntity> dishes,
+						List<TableEntity> tables,
+						List<PhotoEntity> photos);
 
-	List<RestaurantInfoDto> toInfoDto(List<RestaurantEntity> entities);
+
+	RestaurantCardDto toCardDto(RestaurantEntity restaurant, PhotoEntity bannerPhoto, WorkingHoursEntity workingHours);
 
 	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
 	@Mapping(target = "id", ignore = true)
