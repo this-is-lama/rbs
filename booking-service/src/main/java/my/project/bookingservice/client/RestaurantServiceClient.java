@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @FeignClient(
@@ -20,12 +21,12 @@ import java.util.UUID;
 public interface RestaurantServiceClient {
 
 	@PostMapping("/api/v1/restaurants/{restId}/dishes/ids")
-	List<DishDto> findAllByIds(@PathVariable UUID restId, @RequestBody @NotEmpty List<UUID> ids);
+	List<DishDto> findRestaurantBookingDishes(@PathVariable UUID restId, @RequestBody @NotEmpty Set<UUID> ids);
 
 	@GetMapping("/api/v1/restaurants/{restId}/manager-access")
-	boolean managerAccess(@PathVariable UUID restId);
+	boolean hasManagerAccess(@PathVariable UUID restId);
 
-	@GetMapping("/api/v1/restaurants/{restId}/tables/{id}/check-table")
-	TableDto checkTable(@PathVariable UUID restId, @PathVariable UUID id);
+	@GetMapping("/api/v1/restaurants/{restId}/tables/{id}")
+	TableDto getTableById(@PathVariable UUID restId, @PathVariable UUID id);
 
 }

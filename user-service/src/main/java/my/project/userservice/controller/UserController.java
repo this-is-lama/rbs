@@ -1,8 +1,8 @@
 package my.project.userservice.controller;
 
 import lombok.RequiredArgsConstructor;
-import my.project.common.dto.ChangeRoleRequest;
 import my.project.common.security.AuthUtil;
+import my.project.userservice.dto.ChangeRoleRequest;
 import my.project.userservice.dto.UserDto;
 import my.project.userservice.mapper.UserMapper;
 import my.project.userservice.service.UserService;

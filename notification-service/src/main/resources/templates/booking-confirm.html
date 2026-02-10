@@ -1,10 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Booking confirmation</title>
 </head>
-<body>
-$END$
+<body style="font-family: Arial, sans-serif">
+
+<h2>Здравствуйте, <span th:text="${userName}">User</span> 👋</h2>
+
+<p>
+    Ваше бронирование в ресторане
+    <b th:text="${restaurantName}">Restaurant</b>
+    подтверждено.
+</p>
+
+<p>
+    📅 Дата: <b th:text="${date}">2026-02-12</b><br>
+    ⏰ Время: <b th:text="${time}">18:00</b>
+</p>
+
+<hr>
+
+<p style="color: gray">
+    Спасибо, что пользуетесь нашим сервисом ❤️
+</p>
+
 </body>
 </html>

@@ -7,7 +7,9 @@ import jakarta.validation.constraints.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public record CreateBookingRequest(
 
@@ -57,15 +59,15 @@ public record CreateBookingRequest(
 	}
 
 	@JsonIgnore
-	public List<UUID> getDishesIds() {
+	public Map<UUID, Integer> dishesQuantities() {
 		if (dishes == null || dishes.isEmpty()) {
-			return List.of();
+			return Map.of();
 		}
-		return dishes.stream()
-				.map(BookingDishCreateRequest::dishId)
-				.distinct()
-				.toList();
+		return dishes.stream().collect(Collectors.toMap(
+				BookingDishCreateRequest::dishId,
+				BookingDishCreateRequest::quantity,
+				Integer::sum
+		));
 	}
-
 
 }

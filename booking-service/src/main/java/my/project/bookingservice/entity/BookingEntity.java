@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,6 @@ import java.util.UUID;
 		indexes = {
 				@Index(name = "idx_bookings_restaurant_id", columnList = "restaurant_id"),
 				@Index(name = "idx_bookings_user_id", columnList = "user_id"),
-				@Index(name = "idx_bookings_table_id", columnList = "table_id"),
 				@Index(name = "idx_bookings_status", columnList = "status"),
 				@Index(name = "idx_bookings_start_at", columnList = "start_at"),
 				@Index(name = "idx_bookings_end_at", columnList = "end_at")
@@ -38,9 +38,6 @@ public class BookingEntity {
 	@Column(name = "user_id", nullable = false, columnDefinition = "uuid")
 	private UUID userId;
 
-	@Column(name = "table_id", nullable = false, columnDefinition = "uuid")
-	private UUID tableId;
-
 	@Column(name = "start_at", nullable = false)
 	private Instant startAt;
 
@@ -57,6 +54,9 @@ public class BookingEntity {
 	@Column(name = "comment", length = 500)
 	private String comment;
 
+	@Column(name = "total_amount", precision = 12, scale = 2, nullable = false)
+	private BigDecimal totalAmount;
+
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
@@ -68,7 +68,18 @@ public class BookingEntity {
 			cascade = CascadeType.ALL,
 			orphanRemoval = true
 	)
-	private List<BookingDishEntity> dishes = new ArrayList<>();
+	private List<DishEntity> dishes = new ArrayList<>();
+
+	@OneToOne(mappedBy = "booking",
+			cascade = CascadeType.ALL,
+			orphanRemoval = true
+	)
+	private TableEntity table;
+
+	public void setTable(TableEntity table) {
+		this.table = table;
+		table.setBooking(this);
+	}
 
 
 	@Version
@@ -80,14 +91,17 @@ public class BookingEntity {
 		Instant now = Instant.now();
 		if (createdAt == null) createdAt = now;
 		if (status == null) status = BookingStatus.RESERVED;
+		this.totalAmount = dishes.stream()
+				.map(d -> d.getPrice().multiply(BigDecimal.valueOf(d.getQuantity())))
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
-	public void addDish(BookingDishEntity dish) {
+	public void addDish(DishEntity dish) {
 		dishes.add(dish);
 		dish.setBooking(this);
 	}
 
-	public void removeDish(BookingDishEntity dish) {
+	public void removeDish(DishEntity dish) {
 		dishes.remove(dish);
 		dish.setBooking(null);
 	}

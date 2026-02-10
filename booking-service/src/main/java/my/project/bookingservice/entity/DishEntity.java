@@ -21,7 +21,7 @@ import java.util.UUID;
                 @Index(name = "idx_booking_dishes_dish_id", columnList = "dish_id")
         }
 )
-public class BookingDishEntity {
+public class DishEntity {
 
     @Id
     @GeneratedValue
@@ -36,8 +36,8 @@ public class BookingDishEntity {
     @Column(name = "dish_id", nullable = false, columnDefinition = "uuid")
     private UUID dishId;
 
-    @Column(name = "dish_name", nullable = false)
-    private String dishName;
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Column(name = "price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;

@@ -11,7 +11,6 @@ public record BookingResponse(
         UUID id,
         UUID restaurantId,
         UUID userId,
-        UUID tableId,
         Instant startAt,
         Instant endAt,
         BookingStatus status,
@@ -19,6 +18,7 @@ public record BookingResponse(
         String comment,
         Instant createdAt,
         Instant cancelledAt,
+		BookingTableResponse table,
         List<BookingDishResponse> dishes
 
 ) {}

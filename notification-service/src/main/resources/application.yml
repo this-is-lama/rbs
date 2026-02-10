@@ -5,6 +5,20 @@ spring:
   application:
     name: notification-service
 
+  mail:
+    #https://support.google.com/accounts/answer/185833?hl=ru
+    username: islam@gmail.com
+    password: password
+    host: smtp.gmail.com
+    port: 587
+    properties:
+      mail:
+        smth:
+          auth: true
+          starttls:
+            enable: true
+
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
 

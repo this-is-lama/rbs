@@ -36,7 +36,7 @@ public final class AuthUtil {
 	}
 
 	public static boolean isUser(Authentication auth) {
-		return has(auth, "ROLE_USER");
+		return auth == null || has(auth, "ROLE_USER");
 	}
 }
 

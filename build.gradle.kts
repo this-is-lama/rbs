@@ -8,7 +8,7 @@ plugins {
 }
 
 allprojects {
-    group = "com.example"
+    group = "my.project"
     version = "1.0.0"
 
     repositories {

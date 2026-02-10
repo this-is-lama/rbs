@@ -17,13 +17,14 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
 
 
 	@Query("""
-        select (count(b) > 0)
-        from BookingEntity b
-        where b.tableId = :tableId
-          and b.status = :status
-          and b.startAt < :endAt
-          and b.endAt > :startAt
-        """)
+    select (count(b) > 0)
+    from BookingEntity b
+    join b.table t
+    where t.tableId = :tableId
+      and b.status = :status
+      and b.startAt < :endAt
+      and b.endAt > :startAt
+    """)
 	boolean existsOverlapping(@Param("tableId") UUID tableId,
 							  @Param("status") BookingStatus status,
 							  @Param("startAt") Instant startAt,

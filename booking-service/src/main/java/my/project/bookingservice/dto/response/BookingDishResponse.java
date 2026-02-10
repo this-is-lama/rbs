@@ -9,7 +9,7 @@ public record BookingDishResponse(
 
         UUID dishId,
 
-        String dishName,
+        String name,
 
         BigDecimal price,
 

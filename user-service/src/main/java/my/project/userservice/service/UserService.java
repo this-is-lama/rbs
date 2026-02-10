@@ -5,7 +5,7 @@ import my.project.common.security.AuthUtil;
 import my.project.common.exception.BadRequestException;
 import my.project.common.exception.ForbiddenException;
 import my.project.common.exception.NotFoundException;
-import my.project.common.dto.ChangeRoleRequest;
+import my.project.userservice.dto.ChangeRoleRequest;
 import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.entity.UserEntity;
 import my.project.common.security.UserRole;
