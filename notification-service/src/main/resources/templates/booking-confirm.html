@@ -2,28 +2,135 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Booking confirmation</title>
+    <title>Booking Confirmation</title>
 </head>
-<body style="font-family: Arial, sans-serif">
 
-<h2>Здравствуйте, <span th:text="${userName}">User</span> 👋</h2>
+<body style="margin:0; padding:0; background-color:#f4f6f9; font-family: Arial, sans-serif;">
 
-<p>
-    Ваше бронирование в ресторане
-    <b th:text="${restaurantName}">Restaurant</b>
-    подтверждено.
-</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+        <td align="center">
 
-<p>
-    📅 Дата: <b th:text="${date}">2026-02-12</b><br>
-    ⏰ Время: <b th:text="${time}">18:00</b>
-</p>
+            <!-- Card -->
+            <table width="600" cellpadding="0" cellspacing="0"
+                   style="background:#ffffff; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.08); padding:40px;">
 
-<hr>
+                <!-- Header -->
+                <tr>
+                    <td align="center" style="padding-bottom:20px;">
+                        <h1 style="
+                            margin:0;
+                            font-size:32px;
+                            font-weight:800;
+                            letter-spacing:3px;
+                            color:#111;
+                            font-family: 'Trebuchet MS', sans-serif;
+                        ">
+                            RBS
+                        </h1>
+                        <p style="margin:5px 0 0 0; color:#888; font-size:13px;">
+                            Restaurant Booking Service
+                        </p>
+                    </td>
+                </tr>
 
-<p style="color: gray">
-    Спасибо, что пользуетесь нашим сервисом ❤️
-</p>
+                <tr>
+                    <td>
+                        <hr style="border:none; border-top:1px solid #eee;">
+                    </td>
+                </tr>
+
+                <!-- Greeting -->
+                <tr>
+                    <td style="padding-top:25px;">
+                        <h2 style="margin:0; font-size:20px; color:#333;">
+                            Здравствуйте,
+                            <span style="color:#4f46e5; font-weight:600;"
+                                  th:text="${userName}">User</span> 👋
+                        </h2>
+                    </td>
+                </tr>
+
+                <!-- Booking Info -->
+                <tr>
+                    <td style="padding-top:20px; color:#444; font-size:15px; line-height:1.6;">
+
+                        Ваше бронирование в ресторане
+                        <b style="color:#111;" th:text="${restaurantName}">Restaurant</b>
+                        успешно подтверждено.
+
+                        <br><br>
+
+                        <table width="100%" cellpadding="8" cellspacing="0"
+                               style="background:#f9fafc; border-radius:8px;">
+
+                            <tr>
+                                <td style="color:#777;">📅 Дата:</td>
+                                <td align="right">
+                                    <b th:text="${#temporals.format(startAt, 'dd.MM.yyyy')}">12.02.2026</b>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="color:#777;">⏰ Время:</td>
+                                <td align="right">
+                                    <b th:text="${#temporals.format(startAt, 'HH:mm')}">18:00</b>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="color:#777;">👥 Гостей:</td>
+                                <td align="right">
+                                    <b th:text="${guests}">2</b>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="color:#777;">🍽 Стол:</td>
+                                <td align="right">
+                                    <b th:text="${tableNumber}">5</b>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="color:#777;">💰 Сумма:</td>
+                                <td align="right">
+                                    <b th:text="${totalAmount}">1500</b> ₽
+                                </td>
+                            </tr>
+
+                        </table>
+
+                        <br>
+
+                        <div style="color:#666; font-size:14px;">
+                            📍 Адрес:
+                            <span th:text="${restaurantAddress}">Restaurant address</span>
+                        </div>
+
+                        <div th:if="${comment != null}" style="margin-top:15px; font-size:14px; color:#555;">
+                            💬 Комментарий:
+                            <i th:text="${comment}">Комментарий</i>
+                        </div>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="padding-top:35px; text-align:center; color:#999; font-size:13px;">
+                        <hr style="border:none; border-top:1px solid #eee; margin-bottom:15px;">
+                        Спасибо, что пользуетесь нашим сервисом ❤️
+                        <br><br>
+                        © 2026 RBS
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
 
 </body>
 </html>

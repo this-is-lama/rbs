@@ -20,6 +20,7 @@ public class BookingController {
 
 	private final BookingService bookingService;
 
+
 	@PostMapping
 	public ResponseEntity<BookingResponse> create(@RequestBody @Valid CreateBookingRequest req,
 												  Authentication auth) {

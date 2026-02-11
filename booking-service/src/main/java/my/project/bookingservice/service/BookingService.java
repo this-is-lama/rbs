@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.bookingservice.client.RestaurantServiceClient;
 import my.project.bookingservice.dto.client.BookingSnapshotRequest;
-import my.project.bookingservice.dto.client.BookingSnapshotResponse;
 import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.entity.BookingEntity;
+import my.project.bookingservice.kafka.KafkaProducer;
 import my.project.bookingservice.mapper.BookingMapper;
 import my.project.bookingservice.repository.BookingRepository;
 import my.project.common.exception.ConflictException;
@@ -34,18 +34,25 @@ public class BookingService {
 	private final RestaurantServiceClient restaurantClient;
 	private final BookingMapper bookingMapper;
 
+	private final KafkaProducer kafkaProducer;
+
 	public BookingResponse create(CreateBookingRequest req, Authentication auth) {
 		var userId = AuthUtil.id(auth);
+		var email = AuthUtil.email(auth);
 		Map<UUID, Integer> quantities = req.dishesQuantities();
-		BookingSnapshotResponse bookingSnapshot = restaurantClient.bookingSnapshot(req.restaurantId(),
+		var bookingSnapshot = restaurantClient.bookingSnapshot(req.restaurantId(),
 				new BookingSnapshotRequest(req.tableId(), quantities.keySet()));
-		var table = bookingSnapshot.table();
-		var dishes = bookingSnapshot.dishes();
 
-		if (table.capacity() < req.guests()) throw new ConflictException("booking.table.guest-more-capacity");
+		if (bookingSnapshot.table().capacity() < req.guests()) {
+			throw new ConflictException("booking.table.guest-more-capacity");
+		}
 
-		BookingEntity entity = bookingMapper.toEntity(req, userId, table, dishes, quantities);
-		return bookingMapper.toResponse(save(entity));
+		BookingEntity entity = bookingMapper.toEntity(req, userId, bookingSnapshot, quantities);
+		entity = save(entity);
+
+		kafkaProducer.sendBookingCreated(bookingMapper.toEvent(entity, email));
+
+		return bookingMapper.toResponse(entity);
 	}
 
 	@Transactional

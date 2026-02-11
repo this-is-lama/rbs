@@ -13,21 +13,30 @@ spring:
     port: 587
     properties:
       mail:
-        smth:
+        smtp:
           auth: true
           starttls:
             enable: true
 
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
-
+    bootstrap-servers: localhost:9092
     consumer:
-      group-id: notification-service
+      group-id: my-consumer
       auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      spring.json.trusted.packages: "*"     # либо строго пакет common events
+      spring.json.use.type.headers: false
 
-    producer:
-      acks: all
+app:
+  kafka:
+    topics:
+      booking-created: booking-topic
+  notification:
+    max-attempts: 5
+
 
 eureka:
   client:

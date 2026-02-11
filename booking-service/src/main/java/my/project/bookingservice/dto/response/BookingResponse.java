@@ -2,30 +2,33 @@ package my.project.bookingservice.dto.response;
 
 import my.project.bookingservice.entity.BookingStatus;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 public record BookingResponse(
 
-        UUID id,
-        UUID restaurantId,
-        UUID userId,
+		UUID id,
+		UUID restaurantId,
+		UUID userId,
 
-        Instant startAt,
-        Instant endAt,
+		Instant startAt,
+		Instant endAt,
 
-        BookingStatus status,
+		BookingStatus status,
 
-        Integer guests,
+		Integer guests,
 
-        String comment,
+		String comment,
+
+		BigDecimal totalAmount,
 
         Instant createdAt,
-        Instant cancelledAt,
+		Instant cancelledAt,
 
 		RestaurantResponse restaurant,
 		TableResponse table,
-        List<DishResponse> dishes
+		List<DishResponse> dishes
 
 ) {}

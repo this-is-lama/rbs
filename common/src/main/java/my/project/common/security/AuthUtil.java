@@ -2,8 +2,10 @@ package my.project.common.security;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import my.project.common.exception.UnauthorizedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.util.Set;
 import java.util.UUID;
@@ -13,6 +15,13 @@ public final class AuthUtil {
 
 	public static UUID id(Authentication auth) {
 		return UUID.fromString(auth.getName());
+	}
+
+	public static String email(Authentication auth) {
+		if (auth instanceof JwtAuthenticationToken jwtAuth) {
+			return jwtAuth.getToken().getClaim(JwtClaims.EMAIL_CLAIM);
+		}
+		throw new UnauthorizedException("common.unauthorized");
 	}
 
 	public static boolean has(Authentication auth, String role) {
