@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.NotFoundException;
 import my.project.common.security.AuthUtil;
+import my.project.restaurantservice.dto.client.BookingSnapshotRequest;
+import my.project.restaurantservice.dto.client.BookingSnapshotResponse;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
@@ -156,4 +158,14 @@ public class RestaurantService {
 		return new PageImpl<>(cards, pageable, restaurantsPage.getTotalElements());
 	}
 
+
+	@Transactional(readOnly = true)
+	public BookingSnapshotResponse bookingSnapshot(UUID restId, BookingSnapshotRequest req) {
+		var dishes = dishService.findRestaurantBookingDishes(restId, req.dishes());
+		var table = tableService.findRestaurantBookingTable(restId, req.tableId());
+		var entity = repository.findByIdAndActiveTrue(restId)
+				.orElseThrow(() -> new NotFoundException("restaurant.not-found", restId));
+		var restaurant = restaurantMapper.toBookingDto(entity);
+		return new BookingSnapshotResponse(restaurant, table, dishes);
+	}
 }

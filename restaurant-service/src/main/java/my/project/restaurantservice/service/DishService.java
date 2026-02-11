@@ -3,6 +3,7 @@ package my.project.restaurantservice.service;
 import lombok.RequiredArgsConstructor;
 import my.project.common.exception.NotFoundException;
 import my.project.common.security.AuthUtil;
+import my.project.restaurantservice.dto.client.BookingDishDto;
 import my.project.restaurantservice.dto.dish.DishDto;
 import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.RestaurantEntity;
@@ -93,12 +94,13 @@ public class DishService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<DishDto> findRestaurantBookingDishes(UUID restId, Set<UUID> ids) {
+	public List<BookingDishDto> findRestaurantBookingDishes(UUID restId, Set<UUID> ids) {
+		if (ids == null || ids.isEmpty()) return List.of();
+
 		var dishes = repository.findAllByRestaurantIdAndAvailableTrueAndIdIn(restId, ids);
-		if (dishes.size() != ids.size()) {
-			throw new NotFoundException("restaurant.dish.not-found", ids);
-		}
-		return dishMapper.toDto(dishes);
+		if (dishes.size() != ids.size()) throw new NotFoundException("restaurant.dish.not-found", ids);
+
+		return dishMapper.toBookingDto(dishes);
 	}
 
 }

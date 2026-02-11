@@ -2,7 +2,7 @@ package my.project.bookingservice.dto.response;
 
 import java.util.UUID;
 
-public record BookingTableResponse(
+public record TableResponse(
 
 		UUID id,
 

@@ -1,5 +1,6 @@
 package my.project.restaurantservice.mapper;
 
+import my.project.restaurantservice.dto.client.BookingTableDto;
 import my.project.restaurantservice.dto.table.TableDto;
 import my.project.restaurantservice.entity.TableEntity;
 import org.mapstruct.Mapper;
@@ -22,4 +23,6 @@ public interface TableMapper {
 	@Mapping(target = "createdAt", ignore = true)
 	@Mapping(target = "updatedAt", ignore = true)
 	void updateEntity(@MappingTarget TableEntity entity, TableDto dto);
+
+	BookingTableDto toBookingDto(TableEntity entity);
 }

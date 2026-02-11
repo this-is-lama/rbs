@@ -3,22 +3,20 @@ package my.project.bookingservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.bookingservice.client.RestaurantServiceClient;
-import my.project.bookingservice.dto.DishDto;
-import my.project.bookingservice.dto.TableDto;
-import my.project.bookingservice.dto.request.BookingDishCreateRequest;
+import my.project.bookingservice.dto.client.BookingSnapshotRequest;
+import my.project.bookingservice.dto.client.BookingSnapshotResponse;
 import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.entity.BookingEntity;
-import my.project.bookingservice.entity.BookingStatus;
 import my.project.bookingservice.mapper.BookingMapper;
 import my.project.bookingservice.repository.BookingRepository;
 import my.project.common.exception.ConflictException;
 import my.project.common.exception.ForbiddenException;
 import my.project.common.exception.NotFoundException;
 import my.project.common.security.AuthUtil;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -26,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,28 +36,25 @@ public class BookingService {
 
 	public BookingResponse create(CreateBookingRequest req, Authentication auth) {
 		var userId = AuthUtil.id(auth);
-		TableDto table = restaurantClient.getTableById(req.restaurantId(), req.tableId());
+		Map<UUID, Integer> quantities = req.dishesQuantities();
+		BookingSnapshotResponse bookingSnapshot = restaurantClient.bookingSnapshot(req.restaurantId(),
+				new BookingSnapshotRequest(req.tableId(), quantities.keySet()));
+		var table = bookingSnapshot.table();
+		var dishes = bookingSnapshot.dishes();
 
 		if (table.capacity() < req.guests()) throw new ConflictException("booking.table.guest-more-capacity");
-		if (!table.active()) throw new ConflictException("booking.table.inactive");
 
-		List<DishDto> dishes = List.of();
-		Map<UUID, Integer> quantities = req.dishesQuantities();
-		if (req.dishes() != null && !req.dishes().isEmpty()) {
-			dishes = restaurantClient.findRestaurantBookingDishes(req.restaurantId(), quantities.keySet());
-		}
 		BookingEntity entity = bookingMapper.toEntity(req, userId, table, dishes, quantities);
-
-		return bookingMapper.toResponse(save(req, entity));
+		return bookingMapper.toResponse(save(entity));
 	}
 
-	@Transactional(isolation = Isolation.SERIALIZABLE)
-	public BookingEntity save(CreateBookingRequest req, BookingEntity booking) {
-		// TODO позже сделать миграции и EXCLUDE USING gist для диапазонов времени (tsrange)
-		if (repository.existsOverlapping(req.tableId(), BookingStatus.RESERVED, req.startAt(), req.endAt())) {
+	@Transactional
+	public BookingEntity save(BookingEntity booking) {
+		try {
+			return repository.saveAndFlush(booking);
+		} catch (DataIntegrityViolationException e) {
 			throw new ConflictException("booking.overlap");
 		}
-		return repository.save(booking);
 	}
 
 	@Transactional(readOnly = true)
@@ -105,7 +99,7 @@ public class BookingService {
 		}
 		var booking = optional.orElseThrow(() -> new NotFoundException("booking.not-found", id));
 
-		if (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(booking.getRestaurantId())) {
+		if (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(booking.getRestaurant().getRestaurantId())) {
 			throw new ForbiddenException("booking.forbidden.booking-access");
 		}
 		return booking;

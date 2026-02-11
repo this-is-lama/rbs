@@ -3,6 +3,7 @@ package my.project.restaurantservice.service;
 import lombok.RequiredArgsConstructor;
 import my.project.common.exception.NotFoundException;
 import my.project.common.security.AuthUtil;
+import my.project.restaurantservice.dto.client.BookingTableDto;
 import my.project.restaurantservice.dto.table.TableDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.entity.TableEntity;
@@ -80,6 +81,13 @@ public class TableService {
 			return repository.findAllByRestaurantIdAndActiveTrueOrderByTableNumberAsc(restId);
 		}
 		return repository.findAllByRestaurantIdOrderByTableNumberAsc(restId);
+	}
+
+	@Transactional(readOnly = true)
+	public BookingTableDto findRestaurantBookingTable(UUID restId, UUID id) {
+		var table = repository.findByIdAndRestaurantIdAndActiveTrue(id, restId)
+				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
+		return tableMapper.toBookingDto(table);
 	}
 
 }

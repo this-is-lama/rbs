@@ -1,5 +1,6 @@
 package my.project.restaurantservice.mapper;
 
+import my.project.restaurantservice.dto.client.BookingRestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.entity.*;
@@ -52,6 +53,8 @@ public interface RestaurantMapper {
 	@Mapping(target = "tables", ignore = true)
 	@Mapping(target = "photos", ignore = true)
 	void updateEntity(@MappingTarget RestaurantEntity entity, RestaurantDto dto);
+
+	BookingRestaurantDto toBookingDto(RestaurantEntity entity);
 
 }
 

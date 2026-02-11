@@ -11,14 +11,21 @@ public record BookingResponse(
         UUID id,
         UUID restaurantId,
         UUID userId,
+
         Instant startAt,
         Instant endAt,
+
         BookingStatus status,
+
         Integer guests,
+
         String comment,
+
         Instant createdAt,
         Instant cancelledAt,
-		BookingTableResponse table,
-        List<BookingDishResponse> dishes
+
+		RestaurantResponse restaurant,
+		TableResponse table,
+        List<DishResponse> dishes
 
 ) {}

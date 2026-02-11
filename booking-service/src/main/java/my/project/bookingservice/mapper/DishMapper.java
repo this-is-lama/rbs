@@ -1,7 +1,7 @@
 package my.project.bookingservice.mapper;
 
-import my.project.bookingservice.dto.DishDto;
-import my.project.bookingservice.dto.response.BookingDishResponse;
+import my.project.bookingservice.dto.client.BookingDishDto;
+import my.project.bookingservice.dto.response.DishResponse;
 import my.project.bookingservice.entity.DishEntity;
 import org.mapstruct.*;
 
@@ -12,8 +12,8 @@ public interface DishMapper {
 	@Mapping(target = "booking", ignore = true)
 	@Mapping(target = "dishId", source = "id")
 	@Mapping(target = "quantity", ignore = true)
-	DishEntity toEntity(DishDto dto);
+	DishEntity toEntity(BookingDishDto dto);
 
-	BookingDishResponse toResponse(DishEntity entity);
+	DishResponse toResponse(DishEntity entity);
 
 }

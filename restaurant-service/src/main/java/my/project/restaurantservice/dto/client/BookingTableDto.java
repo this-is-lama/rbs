@@ -1,4 +1,4 @@
-package my.project.bookingservice.dto;
+package my.project.restaurantservice.dto.client;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
 
-public record TableDto(
+public record BookingTableDto(
 
 		UUID id,
 
@@ -19,9 +19,7 @@ public record TableDto(
 
 		@NotNull
 		@Positive
-		Integer capacity,
+		Integer capacity
 
-		@NotNull
-		Boolean active
 ) {}
 

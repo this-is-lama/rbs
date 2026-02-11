@@ -1,7 +1,7 @@
 package my.project.bookingservice.mapper;
 
-import my.project.bookingservice.dto.TableDto;
-import my.project.bookingservice.dto.response.BookingTableResponse;
+import my.project.bookingservice.dto.client.BookingTableDto;
+import my.project.bookingservice.dto.response.TableResponse;
 import my.project.bookingservice.entity.TableEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,8 +12,8 @@ public interface TableMapper {
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "booking", ignore = true)
 	@Mapping(target = "tableId", source = "id")
-	TableEntity toEntity(TableDto dto);
+	TableEntity toEntity(BookingTableDto dto);
 
-	BookingTableResponse toResponse(TableEntity entity);
+	TableResponse toResponse(TableEntity entity);
 
 }

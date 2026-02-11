@@ -1,17 +1,15 @@
 package my.project.bookingservice.client;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
 import my.project.bookingservice.config.FeignConfig;
-import my.project.bookingservice.dto.DishDto;
-import my.project.bookingservice.dto.TableDto;
+import my.project.bookingservice.dto.client.BookingSnapshotRequest;
+import my.project.bookingservice.dto.client.BookingSnapshotResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @FeignClient(
@@ -20,13 +18,11 @@ import java.util.UUID;
 )
 public interface RestaurantServiceClient {
 
-	@PostMapping("/api/v1/restaurants/{restId}/dishes/ids")
-	List<DishDto> findRestaurantBookingDishes(@PathVariable UUID restId, @RequestBody @NotEmpty Set<UUID> ids);
-
 	@GetMapping("/api/v1/restaurants/{restId}/manager-access")
 	boolean hasManagerAccess(@PathVariable UUID restId);
 
-	@GetMapping("/api/v1/restaurants/{restId}/tables/{id}")
-	TableDto getTableById(@PathVariable UUID restId, @PathVariable UUID id);
+	@PostMapping("/api/v1/restaurants/{restId}/booking-snapshot")
+	BookingSnapshotResponse bookingSnapshot(@PathVariable UUID restId,
+											@RequestBody @Valid BookingSnapshotRequest req);
 
 }

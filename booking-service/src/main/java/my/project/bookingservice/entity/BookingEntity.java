@@ -17,6 +17,7 @@ import java.util.UUID;
 @Table(
 		name = "bookings",
 		indexes = {
+				@Index(name = "idx_bookings_table_id", columnList = "table_id"),
 				@Index(name = "idx_bookings_restaurant_id", columnList = "restaurant_id"),
 				@Index(name = "idx_bookings_user_id", columnList = "user_id"),
 				@Index(name = "idx_bookings_status", columnList = "status"),
@@ -37,6 +38,9 @@ public class BookingEntity {
 
 	@Column(name = "user_id", nullable = false, columnDefinition = "uuid")
 	private UUID userId;
+
+	@Column(name = "table_id", nullable = false, columnDefinition = "uuid")
+	private UUID tableId;
 
 	@Column(name = "start_at", nullable = false)
 	private Instant startAt;
@@ -76,11 +80,27 @@ public class BookingEntity {
 	)
 	private TableEntity table;
 
-	public void setTable(TableEntity table) {
-		this.table = table;
-		table.setBooking(this);
+	@OneToOne(mappedBy = "booking",
+			cascade = CascadeType.ALL,
+			orphanRemoval = true
+	)
+	private RestaurantEntity restaurant;
+
+	public void setRestaurant(RestaurantEntity restaurant) {
+		this.restaurant = restaurant;
+		if (restaurant != null) {
+			restaurant.setBooking(this);
+			this.restaurantId = restaurant.getRestaurantId();
+		}
 	}
 
+	public void setTable(TableEntity table) {
+		this.table = table;
+		if (table != null) {
+			table.setBooking(this);
+			this.tableId = table.getTableId();
+		}
+	}
 
 	@Version
 	@Column(name = "version", nullable = false)
@@ -91,9 +111,17 @@ public class BookingEntity {
 		Instant now = Instant.now();
 		if (createdAt == null) createdAt = now;
 		if (status == null) status = BookingStatus.RESERVED;
+		syncTableId();
 		this.totalAmount = dishes.stream()
 				.map(d -> d.getPrice().multiply(BigDecimal.valueOf(d.getQuantity())))
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	@PreUpdate
+	void syncTableId() {
+		if (this.tableId == null && this.table != null) {
+			this.tableId = this.table.getTableId();
+		}
 	}
 
 	public void addDish(DishEntity dish) {

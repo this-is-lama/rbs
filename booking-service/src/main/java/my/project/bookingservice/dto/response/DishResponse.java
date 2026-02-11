@@ -3,7 +3,7 @@ package my.project.bookingservice.dto.response;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record BookingDishResponse(
+public record DishResponse(
 
         UUID id,
 
