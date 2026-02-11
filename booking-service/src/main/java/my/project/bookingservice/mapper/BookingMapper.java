@@ -64,7 +64,7 @@ public interface BookingMapper {
 	@Mapping(target = "restaurantName", source = "restaurant.name")
 	@Mapping(target = "restaurantDescription", source = "restaurant.description")
 	@Mapping(target = "restaurantAddress", source = "restaurant.address")
-	@Mapping(target = "tableNumber", source = "table.number")
+	@Mapping(target = "tableNumber", source = "table.tableNumber")
 	@Mapping(target = "tableDescription", source = "table.description")
 	BookingCreatedEvent toEvent(BookingEntity entity, String email);
 

@@ -1,497 +1,596 @@
-# RBS — Online Restaurant Booking System
+# RBS — Restaurant Booking System
 
-Микросервисная система для онлайн-бронирования ресторанов: пользователи выбирают ресторан и столик, создают бронирование, делают предзаказ блюд, получают уведомления, менеджеры ресторанов управляют своим рестораном, изменяют меню, столы и все что связано с их рестораном, а администраторы управляют справочными данными (рестораны, меню, столы).  
-Проект демонстрирует современные практики построения распределённых систем на **Java + Spring Boot**: сервис-дискавери, API Gateway, межсервисное взаимодействие, кэширование, события (Kafka), контейнеризация (Docker).
+RBS — микросервисная backend-система для бронирования столиков в ресторанах с хранением медиа (S3/MinIO), кэшированием (Redis) и асинхронными уведомлениями по email (Kafka).
 
 ---
 
 ## Содержание
-- [Цели проекта](#цели-проекта)
-- [Технологический стек](#технологический-стек)
-- [Микросервисы](#микросервисы)
-    - [Eureka Server](#1-eureka-server-discovery-service)
-    - [API Gateway](#2-api-gateway)
-    - [Restaurant Service](#3-restaurant-service)
-    - [Booking Service](#4-booking-service)
-    - [User Service](#5-user-service)
-    - [Notification Service](#6-notification-service)
-    - [Common Module](#7-common-module)
-- [Контракты API (пример)](#контракты-api-пример)
-- [Безопасность](#безопасность)
-- [Кэширование](#кэширование)
-- [Событийная модель (Kafka)](#событийная-модель-kafka)
-- [Конфигурация и окружение](#конфигурация-и-окружение)
-- [Docker / Docker Compose](#docker--docker-compose)
-- [Наблюдаемость (Actuator)](#наблюдаемость-actuator)
-- [Тестирование](#тестирование)
+
+* [Цели проекта](#цели-проекта)
+* [Технологический стек](#технологический-стек)
+* [Микросервисы](#микросервисы)
+  * [Eureka Server](#1-eureka-server-discovery-service)
+  * [API Gateway](#2-api-gateway)
+  * [Restaurant Service](#3-restaurant-service)
+  * [Booking Service](#4-booking-service)
+  * [User Service](#5-user-service)
+  * [Notification Service](#6-notification-service)
+  * [Common Module](#7-common-module)
+* [Контракты API (пример)](#контракты-api-пример)
+* [Безопасность](#безопасность)
+* [Кэширование](#кэширование)
+* [Событийная модель (Kafka)](#событийная-модель-kafka)
+* [Конфигурация и окружение](#конфигурация-и-окружение)
+* [Docker / Docker Compose](#docker--docker-compose)
 
 ---
 
 ## Цели проекта
 
-1. **Построить микросервисную архитектуру** для предметной области “онлайн-бронирование ресторанов”.
-2. Реализовать ключевые инфраструктурные паттерны:
-    - Service Discovery (Eureka)
-    - API Gateway (Spring Cloud Gateway)
-    - Cache-aside (Redis)
-    - Event-driven (Kafka)
-3. Показать **безопасность и разграничение доступа**: роли USER/ADMIN, фильтры на Gateway.
-4. Обеспечить развертывание всей системы одной командой через Docker Compose.
-5. Продемонстрировать тестирование, наблюдаемость и готовность к масштабированию.
+### Бизнес-цели
+
+* Дать пользователю возможность:
+
+  * посмотреть ресторан/столы/блюда,
+  * создать бронирование на конкретное время,
+  * получить подтверждение брони (email).
+* Дать владельцу/менеджеру ресторана возможность:
+
+  * управлять рестораном, столами, блюдами,
+  * загружать и управлять медиа-контентом (баннер/галерея/схема).
+
+### Инженерные цели
+
+* **Микросервисная архитектура** с чёткими границами доменов.
+* **Изоляция данных**: каждая БД принадлежит одному сервису.
+* **Единая точка входа** через API Gateway.
+* **Единая модель безопасности** на основе JWT.
+* **Асинхронность** для side-effects (email) через Kafka.
+* **Идемпотентность** и повторные попытки (retry) для доставки уведомлений.
+* Подготовка основы под дальнейшие фичи:
+
+  * динамическое ценообразование,
+  * рекомендации,
+  * распределённые трассировки,
+  * масштабирование.
 
 ---
 
 ## Технологический стек
 
-**Язык и платформа**
-- Java 17
-- Gradle multi-module (Kotlin DSL)
+### Язык и платформа
 
-**Backend**
-- Spring Boot (3.x)
-- Spring Data JPA (Hibernate)
-- Spring Security
-- Spring Cloud:
-    - Eureka Client/Server
-    - OpenFeign (для синхронных вызовов между сервисами)
-    - LoadBalancer
+* Java 17
+* Spring Boot 3.4.x
+* Spring Cloud 2024.x
 
-**Инфраструктура**
-- PostgreSQL (один сервер, несколько баз данных: `userdb`, `bookingdb`, `restaurantdb`, `notificationdb`)
-- Redis (кэш справочных данных)
-- Kafka (KRaft mode, без ZooKeeper)
+### Инфраструктура
 
-**Контейнеризация**
-- Docker / Docker Compose
-- Универсальный Dockerfile для сборки любого модуля
+* PostgreSQL (для бизнес-данных)
+* Redis (кэш и быстрые структуры)
+* Kafka (KRaft, event streaming)
+* MinIO (S3-совместимое хранилище)
+* Docker / Docker Compose
 
-**Наблюдаемость**
-- Spring Boot Actuator (`/actuator/health`, `/actuator/metrics`, …)
+### Интеграции и подходы
 
----
+* REST для синхронных запросов (внутренние/публичные)
+* Kafka events для асинхронных операций
+* Presigned URLs для загрузки файлов напрямую в S3/MinIO
+* Actuator для наблюдаемости
 
-
-# 🧩 Mermaid-диаграмма архитектуры (для README.md)
-
-```mermaid
-flowchart LR
-    User((User))
-
-    User -->|HTTP| Gateway[API Gateway]
-
-    Gateway -->|Auth/Login| UserService[User Service]
-    Gateway -->|JWT + Headers| RestaurantService[Restaurant Service]
-    Gateway -->|JWT + Headers| BookingService[Booking Service]
-
-    BookingService -->|booking.created| Kafka[(Kafka)]
-    Kafka --> NotificationService[Notification Service]
-
-    UserService --> UserDB[(Postgres userdb)]
-    RestaurantService --> RestaurantDB[(Postgres restaurantdb)]
-    BookingService --> BookingDB[(Postgres bookingdb)]
-    NotificationService --> NotificationDB[(Postgres notificationdb)]
-
-    RestaurantService --> Redis[(Redis Cache)]
-
-    Gateway --> Eureka[Eureka Server]
-    UserService --> Eureka
-    RestaurantService --> Eureka
-    BookingService --> Eureka
-    NotificationService --> Eureka
-```
 ---
 
 ## Микросервисы
 
-Ниже — назначение каждого сервиса и **зависимости**, которые обычно используются в каждом модуле.
+Ниже — роль каждого сервиса, его ответственность и типичные сценарии.
 
-> Примечание: зависимости перечислены как “минимально корректный набор”.  
-> Ты можешь добавлять/убирать зависимости по мере реализации функций.
+### Схема взаимодействий (высокий уровень)
+
+```mermaid
+flowchart LR
+  C[Клиент] --> G[api-gateway]
+  G --> EU[eureka-server]
+
+  G --> US[user-service]
+  G --> RS[restaurant-service]
+  G --> BS[booking-service]
+
+  BS --> K[(Kafka topic: booking-created)]
+  K --> NS[notification-service]
+
+  RS --> M[(MinIO/S3)]
+  RS --> R[(Redis)]
+  
+  US --> P1[(Postgres: userdb)]
+  RS --> P2[(Postgres: restaurantdb)]
+  BS --> P3[(Postgres: bookingdb)]
+  NS --> P4[(Postgres: notificationdb)]
+```
 
 ---
 
 ### 1) Eureka Server (Discovery Service)
 
-**Назначение:**  
-Единая точка регистрации микросервисов. Позволяет сервисам находить друг друга по имени (`lb://user-service` и т.п.) и обеспечивает основу для балансировки и отказоустойчивости.
+**Назначение:** Service Discovery (реестр сервисов).
+Все сервисы регистрируются в Eureka, а gateway использует discovery для маршрутизации (`lb://service-name`).
 
-**Порт:** `8761`  
-**UI:** `http://localhost:8761`
+**Что даёт:**
 
-**Зависимости**
-- `spring-boot-starter-web`
-- `spring-cloud-starter-netflix-eureka-server`
-- `spring-boot-starter-actuator`
-- `spring-boot-starter-test` (tests)
+* отсутствие “жёстких” адресов сервисов,
+* возможность масштабирования (несколько инстансов одного сервиса),
+* динамическое обнаружение.
+
+**Типичные операции:**
+
+* Просмотр зарегистрированных сервисов в UI Eureka.
+* Диагностика доступности сервисов.
 
 ---
 
 ### 2) API Gateway
 
-**Назначение:**  
-Единая точка входа в систему. Реализует:
-- маршрутизацию запросов к нужному микросервису,
-- security-фильтры (JWT, роли, ограничения),
-- централизованную обработку ошибок,
-- (опционально) rate limiting / CORS / трассировку.
+**Назначение:** единая точка входа во всю систему.
 
-**Стек:** reactive (WebFlux / Netty)  
-**Порт:** `8080`
+**Ключевые обязанности:**
 
-**Зависимости**
-- `spring-cloud-starter-gateway` (включает WebFlux)
-- `spring-boot-starter-security` (reactive security)
-- `spring-cloud-starter-netflix-eureka-client`
-- `spring-boot-starter-actuator`
-- Lombok (compileOnly + annotationProcessor)
-- Tests: `spring-boot-starter-test`, `reactor-test`
+* Проверка **access JWT** (HS256).
+* Проверка `issuer` (кто выпустил токен).
+* Проверка `token_type == access_token` (защита от использования refresh вместо access).
+* Маршрутизация запросов к нужному сервису:
+
+  * либо через discovery locator (`/{serviceId}/...`),
+  * либо через явные routes (если ты их включишь/добавишь).
+
+**Почему так:**
+
+* безопасность централизуется,
+* сервисы проще (не обязаны каждый раз реализовывать полноценный security-периметр).
+
+**Важно:**
+
+* Публичные endpoint’ы (например `/api/v1/auth/**`) должны быть разрешены на gateway.
+* Остальные требуют `Authorization: Bearer <access_token>`.
 
 ---
 
 ### 3) Restaurant Service
 
-**Назначение:**  
-Справочный сервис ресторанов. Управляет:
-- ресторанами,
-- столами,
-- меню и блюдами.
+**Назначение:** управление ресторанным контентом и медиа.
 
-Используется Booking Service для проверки доступности и получения информации о столах.
+**Ответственность:**
 
-**Порт:** `8081`
+* CRUD ресторана:
 
-**Хранилища**
-- PostgreSQL (`restaurantdb`)
-- Redis (кэш для read-heavy данных: рестораны/меню/столы)
+  * имя, описание, адрес, метаданные
+* CRUD столов:
 
-**Зависимости**
-- `spring-boot-starter-web`
-- `spring-boot-starter-data-jpa`
-- `postgresql` (runtimeOnly)
-- `spring-boot-starter-security` (если часть admin-endpoints защищена)
-- `spring-boot-starter-data-redis`
-- `spring-cloud-starter-netflix-eureka-client`
-- `spring-cloud-starter-openfeign`
-- `spring-cloud-starter-loadbalancer`
-- `spring-boot-starter-actuator`
-- Tests: `spring-boot-starter-test`, Testcontainers (postgres/redis по желанию)
+  * номер/описание/вместимость
+* CRUD блюд:
+
+  * название/описание/цена/медиа
+* Медиа:
+
+  * загрузка изображений через presigned URL
+  * статусы жизненного цикла фото (например: `PENDING/ACTIVE/EXPIRED/DELETING`)
+  * уборка (cleaner) неактуальных/просроченных объектов
+
+**Интеграции:**
+
+* **MinIO (S3)**:
+
+  * объектное хранилище изображений
+  * presigned upload / confirm
+* **Redis**:
+
+  * ускорение чтения “тяжёлых” объектов (например карточка ресторана / список блюд / изображения)
+
+**Границы безопасности:**
+
+* операции создания/изменения доступны владельцу/менеджеру,
+* публичное чтение может быть доступно всем (зависит от твоих правил).
 
 ---
 
 ### 4) Booking Service
 
-**Назначение:**  
-Сервис бронирований. Отвечает за:
-- создание/отмену/просмотр бронирований,
-- проверку столов (через Restaurant Service или кэшированный snapshot),
-- генерацию событий для Notification Service.
+**Назначение:** домен бронирований и публикация событий.
 
-**Порт:** `8082`
+**Ответственность:**
 
-**Хранилища**
-- PostgreSQL (`bookingdb`)
+* Создание бронирования:
 
-**Зависимости**
-- `spring-boot-starter-web`
-- `spring-boot-starter-data-jpa`
-- `postgresql` (runtimeOnly)
-- `spring-boot-starter-security` (если нужно ограничить доступ)
-- `spring-cloud-starter-netflix-eureka-client`
-- `spring-cloud-starter-openfeign`
-- `spring-cloud-starter-loadbalancer`
-- `spring-kafka` (если Booking публикует события)
-- `spring-boot-starter-actuator`
-- Tests: `spring-boot-starter-test`, Testcontainers postgres
+  * ресторан + стол + временной интервал
+  * количество гостей
+  * комментарий
+  * итоговая стоимость (если есть)
+* Получение бронирования:
+
+  * по ID
+  * список “моих броней”
+* Отмена бронирования
+* Публикация доменного события:
+
+  * `booking-created` в Kafka после успешного создания
+
+**Интеграции (синхронные):**
+
+* user-service — получить данные пользователя (минимально необходимые)
+* restaurant-service — получить “снимок” данных ресторана/стола (booking snapshot), чтобы:
+
+  * не тащить зависимость на restaurant-db,
+  * иметь нужные данные для события и ответа
+
+**Интеграции (асинхронные):**
+
+* Kafka producer → `booking-created`
 
 ---
 
 ### 5) User Service
 
-**Назначение:**  
-Управление пользователями и правами. Типично включает:
-- регистрацию/логин,
-- хранение профиля,
-- роли `USER`/`ADMIN`,
-- выдачу/проверку токенов (JWT).
+**Назначение:** identity & access.
 
-**Порт:** `8083`
+**Ответственность:**
 
-**Хранилища**
-- PostgreSQL (`userdb`)
+* Регистрация пользователя
+* Логин
+* Refresh токенов (ротация refresh)
+* Logout (инвалидация refresh)
+* Управление ролями (например USER/MANAGER/ADMIN) — если предусмотрено
 
-**Зависимости**
-- `spring-boot-starter-web`
-- `spring-boot-starter-security`
-- `spring-boot-starter-data-jpa`
-- `postgresql` (runtimeOnly)
-- `spring-cloud-starter-netflix-eureka-client`
-- `spring-boot-starter-actuator`
-- Tests: `spring-boot-starter-test`, Testcontainers postgres
+**JWT модель (важно):**
+
+* **Access token**
+
+  * короткоживущий
+  * содержит `roles`, `email`, `token_type=access_token`
+* **Refresh token**
+
+  * долгоживущий
+  * содержит `jti`, `token_type=refresh_token`
+  * JTI хранится в БД (обычно в виде хэша), чтобы:
+
+    * делать logout,
+    * блокировать старые refresh после обновления,
+    * сбрасывать refresh при смене роли
 
 ---
 
 ### 6) Notification Service
 
-**Назначение:**  
-Отправка уведомлений пользователям:
-- email / push / websocket (опционально),
-- обработка событий Kafka (booking created/updated/cancelled),
-- ведение статуса доставки уведомлений (опционально в БД).
+**Назначение:** доставка email на основе событий.
 
-**Порт:** `8084`
+**Ответственность:**
 
-**Хранилища**
-- Kafka (consumer)
-- PostgreSQL (`notificationdb`) — опционально, если хранишь историю уведомлений
+* Kafka consumer `booking-created`
+* Создание записи “сообщение” в БД (inbox/outbox-подобный подход)
+* Идемпотентность:
 
-**Зависимости**
-- `spring-boot-starter-actuator`
-- `spring-kafka` (consumer + тесты)
-- `spring-cloud-starter-netflix-eureka-client` (если сервис регистрируется)
-- `spring-boot-starter-web` (необязательно, но удобно для тестовых endpoints)
-- (опционально) JPA + postgres, если нужна история уведомлений
-- Tests: `spring-boot-starter-test`, `spring-kafka-test`
+  * если событие пришло повторно — не отправлять письмо дважды
+* Retry:
+
+  * периодически повторять отправку “застрявших/ошибочных” сообщений
+* Отправка email:
+
+  * шаблонизация (например Thymeleaf)
+  * HTML письмо подтверждения бронирования
+
+**Почему это отдельный сервис:**
+
+* email — side effect, его лучше вынести из критического пути бронирования,
+* не блокировать пользователя на сетевых/SMTP задержках,
+* проще масштабировать и ретраить.
 
 ---
 
 ### 7) Common Module
 
-**Назначение:**  
-Общая библиотека для переиспользования типов между сервисами (без Spring-контекста).
+**Назначение:** общая библиотека для всех сервисов.
 
-**Что хранить в `common`:**
-- DTO (контрактные модели)
-- event-модели Kafka (например `BookingCreatedEvent`)
-- общие enum’ы (`BookingStatus`)
-- общие ошибки/коды ошибок
-- утилиты (минимально)
+Обычно тут лежат:
 
-**Что НЕ хранить:**
-- JPA Entities
-- Spring `@Service`, `@Component`, конфиги
-- репозитории
+* единый формат ошибок (ApiError)
+* базовые исключения (ApiException)
+* глобальный обработчик ошибок (CommonExceptionHandler)
+* общие утилиты (например работа с локализацией/MessageSource)
+* единый подход к логированию ошибок (warn для 4xx, error для 5xx)
 
-**Зависимости**
-- `java-library`
-- Lombok (опционально)
-- Tests: `junit-jupiter`
+**Зачем:**
+
+* одинаковые ответы об ошибках во всех сервисах,
+* меньше копипаста,
+* проще сопровождать.
 
 ---
 
 ## Контракты API (пример)
 
-### Restaurant Service (пример публичных endpoints)
-- `GET /restaurants` — список ресторанов
-- `GET /restaurants/{id}` — ресторан
-- `GET /restaurants/{id}/menu` — меню
-- `GET /restaurants/{id}/tables` — столы
 
-### Admin endpoints
-- `POST /restaurants`
-- `PUT /restaurants/{id}`
-- `DELETE /restaurants/{id}`
-- `POST /restaurants/{id}/menu`
-- …
+### 1) Регистрация / Логин / Refresh
 
-### Booking Service (пример)
-- `POST /bookings` — создать бронирование
-- `GET /bookings/{id}`
-- `GET /bookings?userId=...`
-- `DELETE /bookings/{id}` — отменить
+**Регистрация**
 
-> В проекте полезно описать “публичные” и “admin” endpoints раздельно.
+```http
+POST /api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "StrongPassword123"
+}
+```
+
+**Логин**
+
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "StrongPassword123"
+}
+```
+
+**Ответ**
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+}
+```
+
+**Refresh**
+
+```http
+POST /api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "..."
+}
+```
+
+---
+
+### 2) Рестораны
+
+**Создать ресторан**
+
+```http
+POST /api/v1/restaurants
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "name": "My Restaurant",
+  "description": "Cozy place",
+  "address": "Amsterdam"
+}
+```
+
+**Получить ресторан**
+
+```http
+GET /api/v1/restaurants/{restaurantId}
+Authorization: Bearer <access_token>   (или публично — зависит от твоих правил)
+```
+
+---
+
+### 3) Бронирование
+
+**Создать бронь**
+
+```http
+POST /api/v1/bookings
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "restaurantId": "UUID",
+  "tableId": "UUID",
+  "startAt": "2026-03-01T18:00:00Z",
+  "endAt": "2026-03-01T20:00:00Z",
+  "guests": 2,
+  "comment": "Near window"
+}
+```
+
+**Сценарный результат:**
+
+* booking-service создаёт запись
+* публикует `booking-created`
+* notification-service отправляет письмо
 
 ---
 
 ## Безопасность
 
-### Централизованная security через API Gateway
+### 1) Где проверяется JWT
 
-В проекте используется **централизованный подход к безопасности**:
-вся аутентификация и авторизация выполняется на уровне **API Gateway**.
+* На **API Gateway**:
 
-**Базовый принцип:**
+  * валидируется подпись (HS256),
+  * проверяется `issuer`,
+  * проверяется `token_type`.
 
-* API Gateway валидирует **JWT-токен** и извлекает роль пользователя.
-* Gateway принимает решение о доступе к маршруту.
-* Бизнес-сервисы доверяют Gateway и не выполняют повторную валидацию токена.
-* Контекст пользователя (`userId`, `role`) передаётся в сервисы через HTTP-заголовки.
+Это защищает внутренние сервисы от:
 
-### Реализация в API Gateway
+* невалидных токенов,
+* подмены refresh/access,
+* запросов без авторизации.
 
-В Gateway реализованы:
+### 2) Роли и доступ
 
-* `GlobalFilter` для:
+Типичная модель:
 
-    * извлечения JWT из заголовка `Authorization`,
-    * валидации подписи и срока действия токена,
-    * извлечения `userId` и `role`,
-    * добавления заголовков `X-User-Id` и `X-User-Role` в downstream-запросы.
-* `SecurityWebFilterChain` для route-level правил доступа.
+* USER: бронирования, просмотр
+* MANAGER: управление рестораном
+* ADMIN: административные операции
 
-### Правила доступа по маршрутам
+Рекомендуемая практика:
 
-* **Публичные маршруты (без аутентификации):**
+* минимизировать роль-логику в gateway,
+* проверку полномочий “глубже” делать на сервисе (например restaurant-service знает, кто владелец ресторана).
 
-    * `GET /restaurants/**` — чтение данных о ресторанах, меню и столах.
+### 3) Refresh-токены
 
-* **Требуют аутентификации (USER / MANAGER / OWNER):**
+Ротация refresh токена должна:
 
-    * `POST /bookings`
-    * `GET /bookings/**`
-    * `DELETE /bookings/**` (с проверкой владельца бронирования)
+* деактивировать старый refresh JTI
+* выдавать новый refresh
+* по logout деактивировать текущий refresh
 
-* **Управление ресторанами (MANAGER / OWNER):**
+### 4) Рекомендации для production
 
-    * `PUT /restaurants/{id}`
-    * `POST /restaurants/{id}/menu`
-    * `POST /restaurants/{id}/tables`
-    * `PUT /restaurants/{id}/menu/**`
-    * `DELETE /restaurants/{id}/menu/**`
-
-* **Глобальное администрирование (только OWNER):**
-
-    * создание и удаление ресторанов,
-    * управление ролями пользователей,
-    * назначение менеджеров ресторанов.
-
-### Роли и модель доступа
-
-В системе используются три роли:
-
-* **USER**
-
-    * просматривает рестораны, меню и столы,
-    * создаёт бронирования,
-    * просматривает и отменяет **только свои** бронирования.
-
-* **MANAGER**
-
-    * обладает всеми возможностями USER,
-    * управляет меню, столами и данными **только тех ресторанов, которые ему назначены**.
-
-* **OWNER**
-
-    * обладает полным доступом ко всем ресторанам,
-    * управляет пользователями и ролями,
-    * назначает менеджеров ресторанов,
-    * выполняет глобальные административные операции.
-
-### Контроль принадлежности (ownership)
-
-Для операций менеджеров используется дополнительная проверка принадлежности ресурса:
-
-* при изменении ресторана API Gateway проверяет, что ресторан назначен текущему менеджеру,
-* проверка выполняется через внутренний запрос к User Service,
-* OWNER имеет доступ ко всем ресторанам без ограничений.
-
-Такой подход сочетает:
-
-* **RBAC** (role-based access control),
-* **ownership-based access control** (доступ к ресурсам по принадлежности),
-
-и позволяет централизовать безопасность без усложнения бизнес-сервисов.
+* секреты только через ENV / Vault / secret storage
+* запретить дефолтные значения секретов
+* настроить CORS/Rate limit на gateway
+* добавить аудит-лог для критичных операций (смена роли, удаление ресторана)
 
 ---
 
 ## Кэширование
 
-### Где кэшировать
-Наиболее логично кэшировать в `Restaurant Service`:
-- список ресторанов
-- меню ресторана
-- список столов
+### Что кэшируем
 
-Паттерн: **Cache-Aside**
-- чтение: сначала Redis, затем DB → и складываем в Redis
-- обновление: при POST/PUT/DELETE инвалидируем кэш
+В restaurant-service обычно выгодно кэшировать:
 
-Цель:
-- снизить нагрузку на Postgres
-- ускорить ответы на “каталог” и “меню” (read-heavy части)
+* карточку ресторана (`restaurantId -> RestaurantResponse`)
+* список блюд ресторана
+* список столов
+* список активных фото
+
+### Где кэшируем
+
+* Redis (внешний кэш)
+* TTL на ключи (например 5–30 минут), зависит от “живости” данных
+
+### Инвалидация
+
+Рекомендуемая стратегия:
+
+* при изменении ресторана/блюда/стола — удалять соответствующие ключи
+* при загрузке/удалении фото — инвалидировать фото-ключи ресторана/блюда
 
 ---
 
 ## Событийная модель (Kafka)
 
-### События
-Booking Service публикует события:
-- `booking.created`
-- `booking.cancelled`
-- `booking.updated` (опционально)
+### Topic’и
 
-Notification Service подписывается и отправляет уведомление.
+* `booking-created` — событие о создании бронирования
 
-### Почему Kafka полезна 
-- показывает асинхронную коммуникацию
-- повышает отказоустойчивость
-- уменьшает связность сервисов
+### Смысл события
+
+Событие должно содержать минимально достаточную информацию, чтобы notification-service мог:
+
+* отправить письмо
+* не ходить синхронно в другие сервисы
+
+Обычно в событии полезно иметь:
+
+* `bookingId`
+* `startAt`, `endAt`
+* `guests`
+* `totalAmount` (если есть)
+* данные ресторана и стола (снапшот)
+* `email` пользователя (если письмо отправляется пользователю)
+
+### Идемпотентность
+
+Notification-service должен:
+
+* иметь уникальный `messageId` (например равный bookingId)
+* хранить обработанные id в БД
+* при повторной доставке события не отправлять письмо повторно
+
+### Retry
+
+Паттерн:
+
+* consumer сохраняет “сообщение” и пытается отправить
+* если ошибка — выставляет FAILED
+* scheduler раз в N минут пробует снова до maxAttempts
 
 ---
 
 ## Конфигурация и окружение
 
-### Переменные окружения (пример)
-- `EUREKA_URL=http://eureka-server:8761/eureka`
-- `DB_HOST=postgres`
-- `DB_PORT=5432`
-- `DB_USER=postgres`
-- `DB_PASS=postgres`
-- `KAFKA_BOOTSTRAP=kafka:9092`
-- `REDIS_HOST=redis`
-- `REDIS_PORT=6379`
+### Обязательные переменные окружения (рекомендуемый минимум)
+
+**Базы данных**
+
+* `DB_HOST`, `DB_PORT`
+* `DB_USER`, `DB_PASS`
+
+**Eureka**
+
+* `EUREKA_URL` (например `http://eureka-server:8761/eureka` в docker-сети)
+
+**Kafka**
+
+* `KAFKA_HOST`, `KAFKA_PORT`
+* (важно) внутри docker обычно нужен `kafka:29092`, а не `localhost:9092`
+
+**MinIO**
+
+* `MINIO_ENDPOINT`
+* `MINIO_ACCESS_KEY`
+* `MINIO_SECRET_KEY`
+
+**JWT**
+
+* `JWT_SECRET` (access)
+* `JWT_REFRESH_SECRET` (refresh)
+* TTL’ы (access/refresh)
+
+**Email**
+
+* SMTP host/port
+* username/password
+* from address
 
 ---
 
 ## Docker / Docker Compose
 
-### Универсальный Dockerfile
-В корне лежит один `Dockerfile`, который собирает любой модуль по `ARG MODULE`.
+### Что поднимается
 
-Пример сборки:
-- `MODULE=user-service` → `./gradlew :user-service:bootJar`
+* Postgres
+* Redis
+* Kafka (KRaft)
+* MinIO
+* * сервисы приложения
 
-### Postgres: один сервер, несколько баз
-В `docker/postgres/init/01-create-databases.sql` создаются базы:
-- `userdb`
-- `bookingdb`
-- `restaurantdb`
-- `notificationdb`
+### Запуск
 
-Postgres создаёт их автоматически **на первом запуске** (в новом volume).
+```bash
+docker compose up -d
+```
 
-### Kafka: KRaft
-Kafka в docker-compose запущена в режиме KRaft (без ZooKeeper).
+### Проверки после запуска
 
----
-
-## Наблюдаемость (Actuator)
-
-Для каждого сервиса доступны:
-- `GET /actuator/health`
-- `GET /actuator/info`
-- `GET /actuator/metrics`
-
-Почему важно:
-- диагностика
-- мониторинг
-- проверка “живости” сервисов
+* Eureka UI: `http://localhost:8761`
+* Gateway health: `http://localhost:8080/actuator/health`
 
 ---
 
-## Тестирование
+## Лицензия и условия использования
 
-### Что тестировать
-1. **Unit-тесты**: сервисный слой, валидаторы, мапперы
-2. **Web-layer tests**: контроллеры (MockMvc / WebTestClient)
-3. **Integration tests**:
-    - Postgres через Testcontainers
-    - Kafka через embedded kafka / testcontainers (по желанию)
-    - Redis (опционально)
+Данный проект **НЕ является open-source**.
 
-### Минимальный набор
-- по 2–3 unit теста на каждый сервис
-- интеграционный тест для Booking (создание брони)
-- интеграционный тест Kafka (booking event → notification consumer)
+Исходный код размещён в открытом доступе **исключительно
+для ознакомления**.
+
+Любое использование кода, включая (но не ограничиваясь):
+запуск, компиляцию, модификацию, копирование, распространение,
+деплой или включение в другие проекты, **запрещено** без
+предварительного письменного согласия автора.
+
+© 2026 this-is-lama. Все права защищены.
 
 ---
