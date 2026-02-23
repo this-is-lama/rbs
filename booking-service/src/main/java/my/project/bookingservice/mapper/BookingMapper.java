@@ -60,12 +60,12 @@ public interface BookingMapper {
 
 	List<BookingResponse> toResponse(List<BookingEntity> entities);
 
-	@Mapping(target = "bookingId", source = "id")
-	@Mapping(target = "restaurantName", source = "restaurant.name")
-	@Mapping(target = "restaurantDescription", source = "restaurant.description")
-	@Mapping(target = "restaurantAddress", source = "restaurant.address")
-	@Mapping(target = "tableNumber", source = "table.tableNumber")
-	@Mapping(target = "tableDescription", source = "table.description")
+	@Mapping(target = "bookingId", source = "entity.id")
+	@Mapping(target = "restaurantName", source = "entity.restaurant.name")
+	@Mapping(target = "restaurantDescription", source = "entity.restaurant.description")
+	@Mapping(target = "restaurantAddress", source = "entity.restaurant.address")
+	@Mapping(target = "tableNumber", source = "entity.table.tableNumber")
+	@Mapping(target = "tableDescription", source = "entity.table.description")
 	BookingCreatedEvent toEvent(BookingEntity entity, String email);
 
 }

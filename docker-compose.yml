@@ -5,8 +5,8 @@ services:
     image: postgres:16
     env_file: .env
     environment:
-      POSTGRES_USER: ${PG_USER}
-      POSTGRES_PASSWORD: ${PG_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
@@ -23,8 +23,8 @@ services:
       - "9000:9000"  # S3 API
       - "9001:9001"  # MinIO Console
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio-data:/data
     networks: [ rbs-net ]
@@ -111,8 +111,8 @@ services:
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
-      DB_USER: ${PG_USER}
-      DB_PASS: ${PG_PASS}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
 
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
@@ -133,8 +133,8 @@ services:
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
-      DB_USER: ${PG_USER}
-      DB_PASS: ${PG_PASS}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
 
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
@@ -163,8 +163,8 @@ services:
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
-      DB_USER: ${PG_USER}
-      DB_PASS: ${PG_PASS}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
     networks: [rbs-net]
     depends_on:
       - eureka-server
@@ -182,8 +182,8 @@ services:
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
-      DB_USER: ${PG_USER}
-      DB_PASS: ${PG_PASS}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
       KAFKA_BOOTSTRAP: ${KAFKA_BOOTSTRAP}
     networks: [rbs-net]
     depends_on:

@@ -8,6 +8,7 @@ import my.project.restaurantservice.dto.table.TableDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.entity.TableEntity;
 import my.project.restaurantservice.mapper.TableMapper;
+import my.project.restaurantservice.repository.RestaurantRepository;
 import my.project.restaurantservice.repository.TableRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,8 @@ import java.util.UUID;
 public class TableService {
 
 	private final TableRepository repository;
+	private final RestaurantRepository restaurantRepository;
 	private final TableMapper tableMapper;
-	private final RestaurantService restaurantService;
 	private final ManagerService managerService;
 
 	@Transactional
@@ -31,7 +32,7 @@ public class TableService {
 		managerService.checkAccess(restId, auth);
 		TableEntity table = tableMapper.toEntity(dto);
 
-		RestaurantEntity restaurant = restaurantService.getRef(restId);
+		RestaurantEntity restaurant = restaurantRepository.getReferenceById(restId);
 		restaurant.addTable(table);
 
 		return repository.save(table).getId();

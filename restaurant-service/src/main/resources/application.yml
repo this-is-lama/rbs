@@ -2,22 +2,18 @@ server:
   port: 8081
 
 jwt:
-  access-secret: ${JWT_SECRET:SSBkb24ndCB0YWtlIG1vbmV5IGZvciBteSBmbHlpbmcgYWJpbGl0eSwgYW5kIGV2ZW4gbW9yZSBzbyBmb3IgbXkgYmVhdXR5}
+  access-secret: ${JWT_SECRET}
   issuer: user-service
 
 spring:
   application:
     name: restaurant-service
 
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/restaurantdb
-    username: ${DB_USER:postgres}
-    password: ${DB_PASS:postgres}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/restaurantdb
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -31,19 +27,22 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  cache:
+    type: redis
 
 minio:
-  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-  accessKey: ${MINIO_ROOT_USER:minioadmin}
-  secretKey: ${MINIO_ROOT_PASSWORD:minioadmin}
-  publicBaseUrl: ${MINIO_PUBLIC_BASE_URL:http://localhost:9000}
+  endpoint: ${MINIO_ENDPOINT}
+  accessKey: ${MINIO_ROOT_USER}
+  secretKey: ${MINIO_ROOT_PASSWORD}
+  publicBaseUrl: ${MINIO_PUBLIC_BASE_URL}
 
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_URL}
 
 management:
   endpoints:

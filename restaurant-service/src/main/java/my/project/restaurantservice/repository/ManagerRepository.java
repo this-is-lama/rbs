@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ManagerRepository extends JpaRepository<ManagerEntity, ManagerId> {
 
-    boolean existsByRestaurantIdAndManagerId(UUID restId, UUID managerId);
+    boolean existsByIdRestaurantIdAndIdManagerId(UUID restId, UUID managerId);
 
 }

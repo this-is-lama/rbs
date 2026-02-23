@@ -9,6 +9,7 @@ import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.mapper.DishMapper;
 import my.project.restaurantservice.repository.DishRepository;
+import my.project.restaurantservice.repository.RestaurantRepository;
 import my.project.restaurantservice.service.photo.PhotoService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,10 @@ import java.util.UUID;
 public class DishService {
 
 	private final DishRepository repository;
+	private final RestaurantRepository restaurantRepository;
 
 	private final DishMapper dishMapper;
 
-	private final RestaurantService restaurantService;
 	private final ManagerService managerService;
 	private final PhotoService photoService;
 
@@ -36,7 +37,7 @@ public class DishService {
 		managerService.checkAccess(restId, auth);
 		DishEntity dish = dishMapper.toEntity(dto);
 
-		RestaurantEntity restaurant = restaurantService.getRef(restId);
+		RestaurantEntity restaurant = restaurantRepository.getReferenceById(restId);
 		restaurant.addDish(dish);
 
 		return repository.save(dish).getId();

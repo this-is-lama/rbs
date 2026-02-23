@@ -50,7 +50,7 @@ public class ManagerService {
 
 	@Transactional(readOnly = true)
 	public boolean managerHasAccess(UUID restId, UUID managerId) {
-		return repository.existsByRestaurantIdAndManagerId(restId, managerId);
+		return repository.existsByIdRestaurantIdAndIdManagerId(restId, managerId);
 	}
 }
 

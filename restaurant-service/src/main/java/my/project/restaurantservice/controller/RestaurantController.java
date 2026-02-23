@@ -49,8 +49,9 @@ public class RestaurantController {
 														   @RequestParam(required = false) Boolean active,
 														   @RequestParam(required = false) String address,
 														   @RequestParam(defaultValue = "0") int page,
-														   @RequestParam(defaultValue = "10") int size) {
-		return ResponseEntity.ok(restaurantService.findAll(category, name, active, address, page, size));
+														   @RequestParam(defaultValue = "10") int size,
+														   Authentication auth) {
+		return ResponseEntity.ok(restaurantService.findAll(category, name, active, address, page, size, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")

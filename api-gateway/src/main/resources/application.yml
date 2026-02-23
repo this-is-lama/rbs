@@ -2,7 +2,7 @@ server:
   port: 8080
 
 jwt:
-  access-secret: ${JWT_SECRET:SSBkb24ndCB0YWtlIG1vbmV5IGZvciBteSBmbHlpbmcgYWJpbGl0eSwgYW5kIGV2ZW4gbW9yZSBzbyBmb3IgbXkgYmVhdXR5}
+  access-secret: ${JWT_SECRET}
   issuer: user-service
 
 spring:
@@ -50,7 +50,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_URL}
 
 management:
   endpoints:

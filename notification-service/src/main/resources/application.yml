@@ -5,10 +5,26 @@ spring:
   application:
     name: notification-service
 
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/notificationdb
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+
   mail:
     #https://support.google.com/accounts/answer/185833?hl=ru
-    username: islam@gmail.com
-    password: password
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     host: smtp.gmail.com
     port: 587
     properties:
@@ -17,10 +33,15 @@ spring:
           auth: true
           starttls:
             enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+        debug: true
 
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP}
     consumer:
       group-id: my-consumer
       auto-offset-reset: earliest
@@ -41,7 +62,7 @@ app:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_URL}
 
 management:
   endpoints:
