@@ -3,8 +3,10 @@ package my.project.bookingservice.mapper;
 import my.project.bookingservice.dto.client.BookingRestaurantDto;
 import my.project.bookingservice.dto.response.RestaurantResponse;
 import my.project.bookingservice.entity.RestaurantEntity;
+import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+@Mapper(componentModel = "spring")
 public interface RestaurantMapper {
 
 	@Mapping(target = "id", ignore = true)

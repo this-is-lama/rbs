@@ -2,8 +2,8 @@ server:
   port: 8083
 
 jwt:
-  access-secret: ${JWT_SECRET:SSBkb24ndCB0YWtlIG1vbmV5IGZvciBteSBmbHlpbmcgYWJpbGl0eSwgYW5kIGV2ZW4gbW9yZSBzbyBmb3IgbXkgYmVhdXR5}
-  refresh-secret: ${JWT_REFRESH_SECRET:VGhlcmUgaXMgbm8gc2VjcmV0IGluZ3JlZGllbnQuIDwuLi4+IFRvIG1ha2Ugc29tZXRoaW5nIHNwZWNpYWwsIHlvdSBqdXN0IGhhdmUgdG8gYmVsaWV2ZSB0aGF0IGl0IGlzIHNvbWV0aGluZyBzcGVjaWFsLg==}
+  access-secret: ${JWT_SECRET}
+  refresh-secret: ${JWT_REFRESH_SECRET}
   access-lifetime: 1h
   refresh-lifetime: 1d
   issuer: user-service
@@ -13,9 +13,9 @@ spring:
     name: user-service
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/userdb
-    username: ${DB_USER:postgres}
-    password: ${DB_PASS:postgres}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/userdb
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -29,7 +29,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_URL}
 
 management:
   endpoints:

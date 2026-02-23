@@ -15,9 +15,10 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
-    implementation("org.springframework.boot:spring-boot-liquibase")
 
     implementation("org.springframework.kafka:spring-kafka")
     testImplementation("org.springframework.kafka:spring-kafka-test")

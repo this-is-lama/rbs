@@ -17,7 +17,6 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
-    implementation("org.springframework.boot:spring-boot-liquibase")
 
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
@@ -34,6 +33,9 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     implementation("com.fasterxml.jackson.core:jackson-databind")
+
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+
 
 
     //jwt

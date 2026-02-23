@@ -41,6 +41,8 @@ public interface RestaurantMapper {
 						List<PhotoEntity> photos);
 
 
+	@Mapping(target = "id", source = "restaurant.id")
+	@Mapping(target = "category", source = "restaurant.category")
 	RestaurantCardDto toCardDto(RestaurantEntity restaurant, PhotoEntity bannerPhoto, WorkingHoursEntity workingHours);
 
 	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
