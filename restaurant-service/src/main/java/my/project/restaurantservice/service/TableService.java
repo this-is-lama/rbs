@@ -63,10 +63,8 @@ public class TableService {
 
 	@Transactional(readOnly = true)
 	public TableEntity getById(UUID restId, UUID id, Authentication auth) {
-		var userId = AuthUtil.id(auth);
-
 		Optional<TableEntity> table;
-		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, userId))) {
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, AuthUtil.id(auth)))) {
 			table = repository.findByIdAndRestaurantIdAndActiveTrue(id, restId);
 		} else {
 			table = repository.findByIdAndRestaurantId(id, restId);
@@ -77,8 +75,7 @@ public class TableService {
 
 	@Transactional(readOnly = true)
 	public List<TableEntity> findAllByRestaurantId(UUID restId, Authentication auth) {
-		var userId = AuthUtil.id(auth);
-		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, userId))) {
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, AuthUtil.id(auth)))) {
 			return repository.findAllByRestaurantIdAndActiveTrueOrderByTableNumberAsc(restId);
 		}
 		return repository.findAllByRestaurantIdOrderByTableNumberAsc(restId);

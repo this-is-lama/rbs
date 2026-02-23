@@ -39,6 +39,7 @@ public class BookingService {
 	public BookingResponse create(CreateBookingRequest req, Authentication auth) {
 		var userId = AuthUtil.id(auth);
 		var email = AuthUtil.email(auth);
+		var username = AuthUtil.username(auth);
 		Map<UUID, Integer> quantities = req.dishesQuantities();
 		var bookingSnapshot = restaurantClient.bookingSnapshot(req.restaurantId(),
 				new BookingSnapshotRequest(req.tableId(), quantities.keySet()));
@@ -50,7 +51,7 @@ public class BookingService {
 		BookingEntity entity = bookingMapper.toEntity(req, userId, bookingSnapshot, quantities);
 		entity = save(entity);
 
-		kafkaProducer.sendBookingCreated(bookingMapper.toEvent(entity, email));
+		kafkaProducer.sendBookingCreated(bookingMapper.toEvent(entity, email, username));
 
 		return bookingMapper.toResponse(entity);
 	}

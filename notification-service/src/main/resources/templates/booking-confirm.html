@@ -1,116 +1,156 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Confirmation</title>
 </head>
 
 <body style="margin:0; padding:0; background-color:#f4f6f9; font-family: Arial, sans-serif;">
-
-<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:36px 0;">
     <tr>
         <td align="center">
 
             <!-- Card -->
-            <table width="600" cellpadding="0" cellspacing="0"
-                   style="background:#ffffff; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.08); padding:40px;">
+            <table width="640" cellpadding="0" cellspacing="0"
+                   style="background:#ffffff; border-radius:14px; box-shadow:0 10px 25px rgba(0,0,0,0.08); padding:40px;">
 
                 <!-- Header -->
                 <tr>
-                    <td align="center" style="padding-bottom:20px;">
-                        <h1 style="
-                            margin:0;
-                            font-size:32px;
-                            font-weight:800;
-                            letter-spacing:3px;
-                            color:#111;
-                            font-family: 'Trebuchet MS', sans-serif;
-                        ">
+                    <td align="center" style="padding-bottom:18px;">
+                        <div style="font-size:34px; font-weight:800; letter-spacing:3px; color:#111; font-family:'Trebuchet MS', sans-serif;">
                             RBS
-                        </h1>
-                        <p style="margin:5px 0 0 0; color:#888; font-size:13px;">
+                        </div>
+                        <div style="margin-top:6px; color:#888; font-size:13px;">
                             Restaurant Booking Service
-                        </p>
+                        </div>
+
+                        <div style="margin-top:14px;">
+              <span style="display:inline-block; padding:6px 12px; border-radius:999px; font-size:12px; color:#111; background:#f3f4f6;">
+                Бронь № <b th:text="${bookingId}">00000000-0000-0000-0000-000000000000</b>
+              </span>
+                        </div>
                     </td>
                 </tr>
 
                 <tr>
-                    <td>
-                        <hr style="border:none; border-top:1px solid #eee;">
-                    </td>
+                    <td><hr style="border:none; border-top:1px solid #eee;"></td>
                 </tr>
 
                 <!-- Greeting -->
                 <tr>
-                    <td style="padding-top:25px;">
-                        <h2 style="margin:0; font-size:20px; color:#333;">
+                    <td style="padding-top:22px;">
+                        <div style="font-size:20px; color:#333; font-weight:700;">
                             Здравствуйте,
-                            <span style="color:#4f46e5; font-weight:600;"
-                                  th:text="${userName}">User</span> 👋
-                        </h2>
+                            <span style="color:#4f46e5; font-weight:800;"
+                                  th:text="${username != null ? username : email}">
+                user@example.com
+              </span> 👋
+                        </div>
+
+                        <div style="margin-top:10px; font-size:15px; color:#444; line-height:1.6;">
+                            Ваше бронирование в ресторане
+                            <b style="color:#111;" th:text="${restaurantName != null ? restaurantName : '—'}">Restaurant</b>
+                            успешно подтверждено.
+                        </div>
+
+                        <!-- Optional restaurant description -->
+                        <div th:if="${restaurantDescription != null and !#strings.isEmpty(restaurantDescription)}"
+                             style="margin-top:8px; font-size:13px; color:#6b7280;">
+                            <span th:text="${restaurantDescription}">Description</span>
+                        </div>
                     </td>
                 </tr>
 
-                <!-- Booking Info -->
+                <!-- Booking Info block -->
                 <tr>
-                    <td style="padding-top:20px; color:#444; font-size:15px; line-height:1.6;">
+                    <td style="padding-top:18px;">
 
-                        Ваше бронирование в ресторане
-                        <b style="color:#111;" th:text="${restaurantName}">Restaurant</b>
-                        успешно подтверждено.
-
-                        <br><br>
-
-                        <table width="100%" cellpadding="8" cellspacing="0"
-                               style="background:#f9fafc; border-radius:8px;">
-
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                               style="background:#f9fafc; border-radius:12px; padding:14px 14px;">
+                            <!-- Date -->
                             <tr>
-                                <td style="color:#777;">📅 Дата:</td>
-                                <td align="right">
-                                    <b th:text="${#temporals.format(startAt, 'dd.MM.yyyy')}">12.02.2026</b>
+                                <td style="padding:10px 10px; color:#6b7280; font-size:14px;">
+                                    📅 Дата
+                                </td>
+                                <td align="right" style="padding:10px 10px; color:#111; font-size:14px; font-weight:700;">
+                                    <span th:text="${startAt != null ? #temporals.format(startAt, 'dd.MM.yyyy') : '—'}">24.02.2026</span>
                                 </td>
                             </tr>
 
+                            <!-- Time -->
                             <tr>
-                                <td style="color:#777;">⏰ Время:</td>
-                                <td align="right">
-                                    <b th:text="${#temporals.format(startAt, 'HH:mm')}">18:00</b>
+                                <td style="padding:10px 10px; color:#6b7280; font-size:14px;">
+                                    ⏰ Время
+                                </td>
+                                <td align="right" style="padding:10px 10px; color:#111; font-size:14px; font-weight:700;">
+                                    <span th:text="${startAt != null ? #temporals.format(startAt, 'HH:mm') : '—'}">18:00</span>
+                                    <span th:if="${endAt != null}"
+                                          style="color:#6b7280; font-weight:600;">
+                    – <span th:text="${#temporals.format(endAt, 'HH:mm')}">20:00</span>
+                  </span>
                                 </td>
                             </tr>
 
+                            <!-- Guests -->
                             <tr>
-                                <td style="color:#777;">👥 Гостей:</td>
-                                <td align="right">
-                                    <b th:text="${guests}">2</b>
+                                <td style="padding:10px 10px; color:#6b7280; font-size:14px;">
+                                    👥 Гостей
+                                </td>
+                                <td align="right" style="padding:10px 10px; color:#111; font-size:14px; font-weight:700;">
+                                    <span th:text="${guests != null ? guests : '—'}">4</span>
                                 </td>
                             </tr>
 
+                            <!-- Table -->
                             <tr>
-                                <td style="color:#777;">🍽 Стол:</td>
-                                <td align="right">
-                                    <b th:text="${tableNumber}">5</b>
+                                <td style="padding:10px 10px; color:#6b7280; font-size:14px;">
+                                    🍽 Стол
+                                </td>
+                                <td align="right" style="padding:10px 10px; color:#111; font-size:14px; font-weight:700;">
+                                    <span th:text="${tableNumber != null ? tableNumber : '—'}">5</span>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <td style="color:#777;">💰 Сумма:</td>
-                                <td align="right">
-                                    <b th:text="${totalAmount}">1500</b> ₽
+                            <!-- Optional table description -->
+                            <tr th:if="${tableDescription != null and !#strings.isEmpty(tableDescription)}">
+                                <td style="padding:6px 10px 10px; color:#6b7280; font-size:13px;">
+                                    📝 Описание стола
+                                </td>
+                                <td align="right" style="padding:6px 10px 10px; color:#111; font-size:13px; font-weight:600;">
+                                    <span th:text="${tableDescription}">У окна</span>
                                 </td>
                             </tr>
 
+                            <!-- Amount -->
+                            <tr>
+                                <td style="padding:10px 10px; color:#6b7280; font-size:14px;">
+                                    💰 Сумма
+                                </td>
+                                <td align="right" style="padding:10px 10px; color:#111; font-size:14px; font-weight:800;">
+                                    <span th:text="${totalAmount != null ? totalAmount : 0}">0</span> ₽
+                                </td>
+                            </tr>
                         </table>
 
-                        <br>
-
-                        <div style="color:#666; font-size:14px;">
+                        <!-- Address (hide if empty) -->
+                        <div th:if="${restaurantAddress != null and !#strings.isEmpty(restaurantAddress)}"
+                             style="margin-top:16px; font-size:14px; color:#374151;">
                             📍 Адрес:
-                            <span th:text="${restaurantAddress}">Restaurant address</span>
+                            <span style="color:#111; font-weight:700;" th:text="${restaurantAddress}">Address</span>
                         </div>
 
-                        <div th:if="${comment != null}" style="margin-top:15px; font-size:14px; color:#555;">
+                        <!-- If address missing, show muted line -->
+                        <div th:if="${restaurantAddress == null or #strings.isEmpty(restaurantAddress)}"
+                             style="margin-top:16px; font-size:14px; color:#9ca3af;">
+                            📍 Адрес: <span style="font-weight:700;">—</span>
+                        </div>
+
+                        <!-- Comment (hide if empty) -->
+                        <div th:if="${comment != null and !#strings.isEmpty(comment)}"
+                             style="margin-top:12px; font-size:14px; color:#374151;">
                             💬 Комментарий:
-                            <i th:text="${comment}">Комментарий</i>
+                            <span style="font-style:italic; color:#111;" th:text="${comment}">Комментарий</span>
                         </div>
 
                     </td>
@@ -118,11 +158,12 @@
 
                 <!-- Footer -->
                 <tr>
-                    <td style="padding-top:35px; text-align:center; color:#999; font-size:13px;">
-                        <hr style="border:none; border-top:1px solid #eee; margin-bottom:15px;">
+                    <td style="padding-top:30px; text-align:center; color:#999; font-size:13px;">
+                        <hr style="border:none; border-top:1px solid #eee; margin-bottom:14px;">
                         Спасибо, что пользуетесь нашим сервисом ❤️
-                        <br><br>
-                        © 2026 RBS
+                        <div style="margin-top:10px; color:#c0c4cc; font-size:12px;">
+                            © 2026 RBS
+                        </div>
                     </td>
                 </tr>
 
@@ -131,6 +172,5 @@
         </td>
     </tr>
 </table>
-
 </body>
 </html>

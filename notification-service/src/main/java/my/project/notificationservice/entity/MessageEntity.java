@@ -24,7 +24,7 @@ public class MessageEntity {
     @Column(nullable = false)
     private MessageStatus status;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String jsonMessage;
 
     @Column(nullable = false)

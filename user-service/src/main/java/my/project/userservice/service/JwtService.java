@@ -52,6 +52,7 @@ public class JwtService {
 				.expiration(Date.from(exp))
 				.claim(ROLES_CLAIM, roles)
 				.claim(EMAIL_CLAIM, user.getEmail())
+				.claim(USERNAME_CLAIM, user.getSurname() + " " + user.getName())
 				.claim(TOKEN_TYPE_CLAIM, ACCESS_TOKEN)
 				.signWith(accessSecretKey, SignatureAlgorithm.HS256)
 				.compact();

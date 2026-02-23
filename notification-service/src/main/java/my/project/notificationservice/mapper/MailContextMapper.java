@@ -13,7 +13,7 @@ public class MailContextMapper {
 		Map<String, Object> context = new HashMap<>();
 
 		context.put("bookingId", event.bookingId());
-		context.put("email", event.email());
+		context.put("username", event.username());
 
 		context.put("startAt", event.startAt());
 		context.put("endAt", event.endAt());
@@ -30,8 +30,6 @@ public class MailContextMapper {
 		// table
 		context.put("tableNumber", event.tableNumber());
 		context.put("tableDescription", event.tableDescription());
-
-		context.put("userName", event.email());
 
 		return context;
 	}

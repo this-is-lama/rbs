@@ -1,6 +1,7 @@
 package my.project.restaurantservice.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.NotFoundException;
 import my.project.common.security.AuthUtil;
 import my.project.restaurantservice.dto.client.BookingDishDto;
@@ -66,10 +67,8 @@ public class DishService {
 
 	@Transactional(readOnly = true)
 	public DishEntity getById(UUID restId, UUID id, Authentication auth) {
-		var userId = AuthUtil.id(auth);
-
 		Optional<DishEntity> dish;
-		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, userId))) {
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, AuthUtil.id(auth)))) {
 			dish = repository.findByIdAndRestaurantIdAndAvailableTrue(id, restId);
 		} else {
 			dish = repository.findByIdAndRestaurantId(id, restId);
@@ -86,9 +85,7 @@ public class DishService {
 
 	@Transactional(readOnly = true)
 	public List<DishEntity> findAllByRestaurantId(UUID restId, Authentication auth) {
-		var userId = AuthUtil.id(auth);
-
-		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, userId))) {
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(restId, AuthUtil.id(auth)))) {
 			return repository.findAllByRestaurantIdAndAvailableTrueOrderByNameAsc(restId);
 		}
 		return repository.findAllByRestaurantIdOrderByNameAsc(restId);

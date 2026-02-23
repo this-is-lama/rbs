@@ -10,6 +10,7 @@ import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.entity.RestaurantSpecifications;
+import my.project.restaurantservice.entity.enums.WeekDay;
 import my.project.restaurantservice.mapper.ContactMapper;
 import my.project.restaurantservice.mapper.RestaurantMapper;
 import my.project.restaurantservice.mapper.WorkingHoursMapper;
@@ -106,10 +107,8 @@ public class RestaurantService {
 
 	@Transactional(readOnly = true)
 	public RestaurantEntity getById(UUID id, Authentication auth) {
-		var userId = AuthUtil.id(auth);
-
 		Optional<RestaurantEntity> restaurant;
-		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(id, userId))) {
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(id, AuthUtil.id(auth)))) {
 			restaurant = repository.findByIdAndActiveTrue(id);
 		} else {
 			restaurant = repository.findById(id);
@@ -126,7 +125,7 @@ public class RestaurantService {
 	public Page<RestaurantCardDto> findAll(String category, String name,
 										   Boolean active, String address,
 										   int page, int size, Authentication auth) {
-		DayOfWeek today = LocalDate.now().getDayOfWeek();
+		WeekDay today = WeekDay.valueOf(LocalDate.now().getDayOfWeek().name());
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
 		var spec = RestaurantSpecifications.getSpecification(category, name, active, address);

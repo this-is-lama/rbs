@@ -24,6 +24,13 @@ public final class AuthUtil {
 		throw new UnauthorizedException("common.unauthorized");
 	}
 
+	public static String username(Authentication auth) {
+		if (auth instanceof JwtAuthenticationToken jwtAuth) {
+			return jwtAuth.getToken().getClaim(JwtClaims.USERNAME_CLAIM);
+		}
+		throw new UnauthorizedException("common.unauthorized");
+	}
+
 	public static boolean has(Authentication auth, String role) {
 		return auth != null && auth.getAuthorities().stream()
 				.map(GrantedAuthority::getAuthority)

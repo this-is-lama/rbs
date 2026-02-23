@@ -1,11 +1,11 @@
 package my.project.restaurantservice.repository;
 
 import my.project.restaurantservice.entity.WorkingHoursEntity;
+import my.project.restaurantservice.entity.enums.WeekDay;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -21,7 +21,7 @@ public interface WorkingHoursRepository extends JpaRepository<WorkingHoursEntity
           and wh.restaurant.id in :restIds
     """)
 	List<WorkingHoursEntity> findTodayWorkingHoursForRestaurants(@Param("restIds") Set<UUID> restIds,
-																 @Param("today") DayOfWeek today);
+																 @Param("today") WeekDay today);
 
 }
 
