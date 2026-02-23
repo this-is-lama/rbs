@@ -9,6 +9,7 @@ public record BookingCreatedEvent(
 		UUID bookingId,
 
 		String email,
+		String username,
 
 		Instant startAt,
 		Instant endAt,

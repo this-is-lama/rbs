@@ -8,6 +8,7 @@ public final class JwtClaims {
 
     public static final String ROLES_CLAIM = "roles";
     public static final String EMAIL_CLAIM = "email";
+    public static final String USERNAME_CLAIM = "name";
     public static final String TOKEN_TYPE_CLAIM = "token_type";
     public static final String JTI_CLAIM = "jti";
 
