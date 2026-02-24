@@ -1,20 +1,25 @@
 package my.project.restaurantservice.dto.photo;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import my.project.restaurantservice.entity.enums.PhotoCategory;
 
 import java.util.UUID;
 
-public record PhotoDto(
+@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class PhotoDto {
 
-		UUID id,
+	UUID id;
 
-		String objectKey,
+	String objectKey;
 
-		String publicUrl,
+	String publicUrl;
 
-		String contentType,
+	String contentType;
 
-		PhotoCategory category,
+	PhotoCategory category;
 
-		int sortOrder
-) {}
+	int sortOrder;
+}

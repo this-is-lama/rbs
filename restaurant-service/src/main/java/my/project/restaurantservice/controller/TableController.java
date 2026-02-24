@@ -3,7 +3,7 @@ package my.project.restaurantservice.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.dto.table.TableDto;
-import my.project.restaurantservice.service.TableService;
+import my.project.restaurantservice.service.table.TableService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -1,8 +1,11 @@
 package my.project.restaurantservice.mapper;
 
 import my.project.restaurantservice.dto.client.BookingRestaurantDto;
+import my.project.restaurantservice.dto.dish.DishDto;
+import my.project.restaurantservice.dto.photo.PhotoDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
+import my.project.restaurantservice.dto.table.TableDto;
 import my.project.restaurantservice.entity.*;
 import org.mapstruct.*;
 
@@ -31,20 +34,6 @@ public interface RestaurantMapper {
 	@Mapping(target = "photos", ignore = true)
 	RestaurantEntity toEntity(RestaurantDto dto);
 
-	RestaurantDto toDto(RestaurantEntity entity);
-
-	RestaurantDto toDto(RestaurantEntity entity,
-						List<WorkingHoursEntity> wh,
-						List<ContactEntity> contacts,
-						List<DishEntity> dishes,
-						List<TableEntity> tables,
-						List<PhotoEntity> photos);
-
-
-	@Mapping(target = "id", source = "restaurant.id")
-	@Mapping(target = "category", source = "restaurant.category")
-	RestaurantCardDto toCardDto(RestaurantEntity restaurant, PhotoEntity bannerPhoto, WorkingHoursEntity workingHours);
-
 	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "createdAt", ignore = true)
@@ -55,6 +44,33 @@ public interface RestaurantMapper {
 	@Mapping(target = "tables", ignore = true)
 	@Mapping(target = "photos", ignore = true)
 	void updateEntity(@MappingTarget RestaurantEntity entity, RestaurantDto dto);
+
+
+
+	RestaurantDto toDto(RestaurantEntity entity);
+
+	RestaurantDto toDto(RestaurantEntity entity,
+						List<WorkingHoursEntity> wh,
+						List<ContactEntity> contacts);
+
+	@Mapping(target = "dishes", ignore = true)
+	@Mapping(target = "tables", ignore = true)
+	@Mapping(target = "photos", ignore = true)
+	RestaurantDto copyBase(RestaurantDto base);
+
+	default RestaurantDto copyWithDetails(RestaurantDto base,
+									  List<DishDto> dishes,
+									  List<TableDto> tables,
+									  List<PhotoDto> photos) {
+
+		RestaurantDto dto = copyBase(base);
+		dto.setDetails(dishes, tables, photos);
+		return dto;
+	}
+
+	@Mapping(target = "id", source = "restaurant.id")
+	@Mapping(target = "category", source = "restaurant.category")
+	RestaurantCardDto toCardDto(RestaurantEntity restaurant, PhotoEntity bannerPhoto, WorkingHoursEntity workingHours);
 
 	BookingRestaurantDto toBookingDto(RestaurantEntity entity);
 

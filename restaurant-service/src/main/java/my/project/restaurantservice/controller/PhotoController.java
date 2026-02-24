@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.dto.photo.PhotoConfirmRequest;
-import my.project.restaurantservice.dto.photo.PhotoResponse;
+import my.project.restaurantservice.dto.photo.PhotoConfirmResponse;
 import my.project.restaurantservice.dto.photo.PhotoUploadRequest;
 import my.project.restaurantservice.service.photo.UploadService;
 import my.project.restaurantservice.service.photo.provider.ContainerType;
@@ -28,11 +28,11 @@ public class PhotoController {
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@PostMapping("/photos/uploads")
-	public ResponseEntity<List<PhotoResponse>> pendingUpload(@PathVariable String container,
-															 @PathVariable UUID containerId,
-															 @RequestBody @NotEmpty @Size(max = 32)
+	public ResponseEntity<List<PhotoConfirmResponse>> pendingUpload(@PathVariable String container,
+																	@PathVariable UUID containerId,
+																	@RequestBody @NotEmpty @Size(max = 32)
 															 List<@Valid PhotoUploadRequest> req,
-															 Authentication auth) {
+																	Authentication auth) {
 		ContainerType type = ContainerType.fromPath(container);
 		var dto = uploadService.pendingUpload(type, containerId, req, auth);
 		return ResponseEntity.ok(dto);

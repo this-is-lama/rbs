@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
-import my.project.restaurantservice.service.RestaurantService;
+import my.project.restaurantservice.service.restaurant.RestaurantService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
