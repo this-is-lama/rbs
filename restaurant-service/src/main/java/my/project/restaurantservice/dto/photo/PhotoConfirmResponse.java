@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PhotoResponse {
+public class PhotoConfirmResponse {
 
     UUID id;
 

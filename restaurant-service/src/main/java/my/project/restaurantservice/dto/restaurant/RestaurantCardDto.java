@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import my.project.restaurantservice.dto.photo.PhotoDto;
-import my.project.restaurantservice.dto.photo.PhotoResponse;
 import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 
 import java.util.List;

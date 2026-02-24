@@ -6,11 +6,11 @@ import my.project.common.exception.CommonErrorCode;
 import my.project.common.exception.NotFoundException;
 import my.project.common.exception.ValidationException;
 import my.project.restaurantservice.dto.photo.PhotoConfirmRequest;
-import my.project.restaurantservice.dto.photo.PhotoResponse;
+import my.project.restaurantservice.dto.photo.PhotoConfirmResponse;
 import my.project.restaurantservice.dto.photo.PhotoUploadRequest;
 import my.project.restaurantservice.entity.PhotoEntity;
 import my.project.restaurantservice.mapper.PhotoMapper;
-import my.project.restaurantservice.service.ManagerService;
+import my.project.restaurantservice.service.manager.ManagerService;
 import my.project.restaurantservice.service.photo.provider.ContainerType;
 import my.project.restaurantservice.service.photo.provider.PhotoContainerProvider;
 import my.project.restaurantservice.service.photo.provider.ProviderContext;
@@ -30,15 +30,18 @@ public class UploadService {
 
     private final StorageService storageService;
     private final ManagerService managerService;
+
     private final PhotoService photoService;
+    private final PhotoReadService photoReadService;
+
     private final PhotoMapper photoMapper;
     private final KeyGenerator keyGenerator;
 
     private final Map<ContainerType, PhotoContainerProvider> providers;
 
     @Transactional
-    public List<PhotoResponse> pendingUpload(ContainerType type, UUID containerId,
-                                             List<PhotoUploadRequest> dto, Authentication auth) {
+    public List<PhotoConfirmResponse> pendingUpload(ContainerType type, UUID containerId,
+                                                    List<PhotoUploadRequest> dto, Authentication auth) {
         ProviderContext context = checkAccessAndGetContext(type, containerId, auth);
         var bucket = context.bucket();
         var container = context.container();
@@ -65,7 +68,7 @@ public class UploadService {
                 continue;
             }
 
-            PhotoEntity photo = photoService.findPending(dto.id(), dto.objectKey());
+            PhotoEntity photo = photoReadService.findPending(dto.id(), dto.objectKey());
             assertBelongsToContainer(photo, type, containerId, bucket);
             photo.confirm();
             ids.add(photo.getId());
@@ -73,13 +76,14 @@ public class UploadService {
         return ids;
     }
 
+
     @Transactional
     public void delete(ContainerType type, UUID containerId,
                        Set<UUID> ids, Authentication auth) {
         ProviderContext context = checkAccessAndGetContext(type, containerId, auth);
         var bucket = context.bucket();
 
-        var photos = photoService.findAllByIdIn(ids);
+        var photos = photoReadService.findAllByIdIn(ids);
         photos.forEach(p -> assertBelongsToContainer(p, type, containerId, bucket));
         photoService.markDeleting(photos);
     }
@@ -92,9 +96,9 @@ public class UploadService {
         return p;
     }
 
-    private List<PhotoResponse> createPresignedUpload(String bucket, List<PhotoEntity> photos) {
-        List<PhotoResponse> dto = photoMapper.toDto(photos);
-        for (PhotoResponse p : dto) {
+    private List<PhotoConfirmResponse> createPresignedUpload(String bucket, List<PhotoEntity> photos) {
+        List<PhotoConfirmResponse> dto = photoMapper.toResponse(photos);
+        for (PhotoConfirmResponse p : dto) {
             String key = p.getObjectKey();
             p.setPresignedUrl(storageService.presignedUrl(bucket, key, Method.PUT, SECONDS_DURATION));
         }
@@ -113,6 +117,5 @@ public class UploadService {
             throw new NotFoundException("restaurant.photo.not-found", photo.getId());
         }
     }
-
 
 }

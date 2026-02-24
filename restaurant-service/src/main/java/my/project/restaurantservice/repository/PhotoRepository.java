@@ -9,17 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public interface PhotoRepository extends JpaRepository<PhotoEntity, UUID> {
 
-	Optional<PhotoEntity> findByIdAndStatus(UUID id, PhotoStatus status);
-
 	List<PhotoEntity> findAllByRestaurantIdAndStatus(UUID restId, PhotoStatus status);
-
 	List<PhotoEntity> findAllByDishIdAndStatus(UUID dishId, PhotoStatus status);
 
 	@EntityGraph(attributePaths = {"restaurant", "dish"})
@@ -45,6 +39,8 @@ public interface PhotoRepository extends JpaRepository<PhotoEntity, UUID> {
     """)
 	List<PhotoEntity> findFirstPhotosForRestaurants(@Param("restIds") Set<UUID> restIds,
 													@Param("category") PhotoCategory category);
+
+	List<PhotoEntity> findAllByDishIdInAndStatusOrderBySortOrderAsc(Collection<UUID> dishIds, PhotoStatus status);
 
 	Optional<PhotoEntity> findByIdAndObjectKeyAndStatus(UUID id, String objectKey, PhotoStatus status);
 

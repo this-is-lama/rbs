@@ -2,7 +2,7 @@ package my.project.restaurantservice.service.photo.provider;
 
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.entity.PhotoContainer;
-import my.project.restaurantservice.service.RestaurantService;
+import my.project.restaurantservice.service.restaurant.RestaurantService;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;

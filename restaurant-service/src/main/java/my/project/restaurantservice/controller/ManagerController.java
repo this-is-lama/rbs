@@ -2,7 +2,7 @@ package my.project.restaurantservice.controller;
 
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.dto.manager.AddManagerRequest;
-import my.project.restaurantservice.service.ManagerService;
+import my.project.restaurantservice.service.manager.ManagerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;

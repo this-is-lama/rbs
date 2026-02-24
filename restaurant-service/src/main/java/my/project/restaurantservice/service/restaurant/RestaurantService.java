@@ -1,4 +1,4 @@
-package my.project.restaurantservice.service;
+package my.project.restaurantservice.service.restaurant;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,18 +14,24 @@ import my.project.restaurantservice.entity.enums.WeekDay;
 import my.project.restaurantservice.mapper.ContactMapper;
 import my.project.restaurantservice.mapper.RestaurantMapper;
 import my.project.restaurantservice.mapper.WorkingHoursMapper;
-import my.project.restaurantservice.repository.ContactRepository;
 import my.project.restaurantservice.repository.RestaurantRepository;
 import my.project.restaurantservice.repository.WorkingHoursRepository;
-import my.project.restaurantservice.service.photo.PhotoService;
+import my.project.restaurantservice.service.dish.DishService;
+import my.project.restaurantservice.service.manager.ManagerService;
+import my.project.restaurantservice.service.photo.PhotoReadService;
+import my.project.restaurantservice.service.table.TableService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,29 +39,29 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RestaurantService {
 
-	private final RestaurantMapper restaurantMapper;
+	private final RestaurantMapper mapper;
 	private final ContactMapper contactMapper;
 	private final WorkingHoursMapper workingHoursMapper;
 
 	private final RestaurantRepository repository;
 	private final WorkingHoursRepository workingHoursRepository;
-	private final ContactRepository contactRepository;
 
 	private final ManagerService managerService;
 	private final DishService dishService;
 	private final TableService tableService;
-	private final PhotoService photoService;
+
+	private final PhotoReadService photoReadService;
+	private final RestaurantReadService readService;
 
 	@Transactional
 	public UUID save(RestaurantDto dto, Authentication auth) {
-		RestaurantEntity restaurant = restaurantMapper.toEntity(dto);
+		RestaurantEntity restaurant = mapper.toEntity(dto);
 		var managerId = AuthUtil.id(auth);
 
-		contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
-		workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
+		contactMapper.toEntity(dto.getContacts()).forEach(restaurant::addContact);
+		workingHoursMapper.toEntity(dto.getWorkingHours()).forEach(restaurant::addWorkingHours);
 
 		var restId = repository.save(restaurant).getId();
-
 		if (AuthUtil.isManager(auth)) {
 			managerService.save(restId, managerId);
 		}
@@ -63,12 +69,18 @@ public class RestaurantService {
 		return restId;
 	}
 
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "publicRestaurantById", key = "#id"),
+			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id")
+	})
 	@Transactional
 	public RestaurantDto update(UUID id, RestaurantDto dto, Authentication auth) {
 		managerService.checkAccess(id, auth);
 
-		var restaurant = getById(id, auth);
-		restaurantMapper.updateEntity(restaurant, dto);
+		var restaurant = repository.findById(id)
+				.orElseThrow(() -> new NotFoundException("restaurant.not-found", id));
+
+		mapper.updateEntity(restaurant, dto);
 
 		for (var c : new ArrayList<>(restaurant.getContacts())) {
 			restaurant.removeContact(c);
@@ -79,12 +91,16 @@ public class RestaurantService {
 
 		repository.flush();
 
-		contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
-		workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
+		contactMapper.toEntity(dto.getContacts()).forEach(restaurant::addContact);
+		workingHoursMapper.toEntity(dto.getWorkingHours()).forEach(restaurant::addWorkingHours);
 
-		return restaurantMapper.toDto(restaurant);
+		return mapper.toDto(restaurant);
 	}
 
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "publicRestaurantById", key = "#id", beforeInvocation = true),
+			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id", beforeInvocation = true)
+	})
 	@Transactional
 	public void delete(UUID id, Authentication auth) {
 		managerService.checkAccess(id, auth);
@@ -93,27 +109,13 @@ public class RestaurantService {
 
 	@Transactional(readOnly = true)
 	public RestaurantDto findById(UUID id, Authentication auth) {
-		var restaurant = getById(id, auth);
-
-		var wh = workingHoursRepository.findAllByRestaurantId(id);
-		var contacts = contactRepository.findAllByRestaurantId(id);
-
+		var restaurant = managerService.onlyPublic(id, auth)
+				? readService.getPublicById(id)
+				: readService.getPrivateById(id);
 		var dishes = dishService.findAllByRestaurantId(id, auth);
 		var tables = tableService.findAllByRestaurantId(id, auth);
-		var photos = photoService.getAllByRestaurantId(id);
-
-		return restaurantMapper.toDto(restaurant, wh, contacts, dishes, tables, photos);
-	}
-
-	@Transactional(readOnly = true)
-	public RestaurantEntity getById(UUID id, Authentication auth) {
-		Optional<RestaurantEntity> restaurant;
-		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerService.managerHasAccess(id, AuthUtil.id(auth)))) {
-			restaurant = repository.findByIdAndActiveTrue(id);
-		} else {
-			restaurant = repository.findById(id);
-		}
-		return restaurant.orElseThrow(() -> new NotFoundException("restaurant.not-found", id));
+		var photos = photoReadService.getAllByRestaurantId(id);
+		return mapper.copyWithDetails(restaurant, dishes, tables, photos);
 	}
 
 	@Transactional(readOnly = true)
@@ -143,12 +145,12 @@ public class RestaurantService {
 				.map(RestaurantEntity::getId)
 				.collect(Collectors.toSet());
 
-		var banners = photoService.findBannersForRestaurants(restIds);
+		var banners = photoReadService.findBannersForRestaurants(restIds);
 		var whs = workingHoursRepository.findTodayWorkingHoursForRestaurants(restIds, today).stream()
 				.collect(Collectors.toMap(wh -> wh.getRestaurant().getId(), wh -> wh));
 
 		List<RestaurantCardDto> cards = restaurantsPage.getContent().stream()
-				.map(r -> restaurantMapper.toCardDto(
+				.map(r -> mapper.toCardDto(
 						r,
 						banners.get(r.getId()),
 						whs.get(r.getId())))
@@ -157,14 +159,15 @@ public class RestaurantService {
 		return new PageImpl<>(cards, pageable, restaurantsPage.getTotalElements());
 	}
 
-
 	@Transactional(readOnly = true)
 	public BookingSnapshotResponse bookingSnapshot(UUID restId, BookingSnapshotRequest req) {
-		var dishes = dishService.findRestaurantBookingDishes(restId, req.dishes());
-		var table = tableService.findRestaurantBookingTable(restId, req.tableId());
 		var entity = repository.findByIdAndActiveTrue(restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.not-found", restId));
-		var restaurant = restaurantMapper.toBookingDto(entity);
+
+		var restaurant = mapper.toBookingDto(entity);
+		var dishes = dishService.findRestaurantBookingDishes(restId, req.dishes());
+		var table = tableService.findRestaurantBookingTable(restId, req.tableId());
+
 		return new BookingSnapshotResponse(restaurant, table, dishes);
 	}
 }

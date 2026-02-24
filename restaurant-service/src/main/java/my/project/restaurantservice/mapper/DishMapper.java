@@ -2,6 +2,7 @@ package my.project.restaurantservice.mapper;
 
 import my.project.restaurantservice.dto.client.BookingDishDto;
 import my.project.restaurantservice.dto.dish.DishDto;
+import my.project.restaurantservice.dto.photo.PhotoDto;
 import my.project.restaurantservice.entity.DishEntity;
 import my.project.restaurantservice.entity.PhotoEntity;
 import org.mapstruct.*;
@@ -40,4 +41,14 @@ public interface DishMapper {
 	List<DishDto> toDto(List<DishEntity> dishes);
 
 	List<BookingDishDto> toBookingDto(List<DishEntity> entity);
+
+
+	@Mapping(target = "photos", ignore = true)
+	DishDto copyBase(DishDto base);
+
+	default DishDto copyWithPhotos(DishDto base, List<PhotoDto> photos) {
+		DishDto dto = copyBase(base);
+		dto.setPhotos(photos);
+		return dto;
+	}
 }
