@@ -8,6 +8,8 @@ import my.project.restaurantservice.entity.enums.PhotoCategory;
 import my.project.restaurantservice.entity.enums.PhotoStatus;
 import my.project.restaurantservice.mapper.PhotoMapper;
 import my.project.restaurantservice.repository.PhotoRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,18 +27,34 @@ public class PhotoReadService {
 	private final PhotoMapper mapper;
 
 
+	@Cacheable(
+			cacheNames = "photosByRestaurantId",
+			key = "#restId",
+			sync = true
+	)
 	@Transactional(readOnly = true)
 	public List<PhotoDto> getAllByRestaurantId(UUID restId) {
 		var photos = repository.findAllByRestaurantIdAndStatus(restId, PhotoStatus.ACTIVE);
 		return mapper.toDto(photos);
 	}
+	@CacheEvict(cacheNames = "photosByRestaurantId", key = "#restId")
+	public void evictPhotosByRestaurantId(UUID restId) {}
 
 
+
+	@Cacheable(
+			cacheNames = "photosByDishId",
+			key = "#dishId",
+			sync = true
+	)
 	@Transactional(readOnly = true)
 	public List<PhotoDto> getAllByDishId(UUID dishId) {
 		var photos = repository.findAllByDishIdAndStatus(dishId, PhotoStatus.ACTIVE);
 		return mapper.toDto(photos);
 	}
+	@CacheEvict(cacheNames = "photosByDishId", key = "#dishId")
+	public void evictPhotosByDishId(UUID dishId) {}
+
 
 	@Transactional(readOnly = true)
 	public PhotoEntity findPending(UUID id, String objectKey) {

@@ -62,6 +62,7 @@ public class UploadService {
                                     List<PhotoConfirmRequest> uploaded, Authentication auth) {
         ProviderContext context = checkAccessAndGetContext(type, containerId, auth);
         var bucket = context.bucket();
+
         List<UUID> ids = new ArrayList<>();
         for (PhotoConfirmRequest dto : uploaded) {
             if (!storageService.objectExists(bucket, dto.objectKey())) {
@@ -71,8 +72,12 @@ public class UploadService {
             PhotoEntity photo = photoReadService.findPending(dto.id(), dto.objectKey());
             assertBelongsToContainer(photo, type, containerId, bucket);
             photo.confirm();
+
             ids.add(photo.getId());
         }
+
+        evictPhotosCache(type, containerId);
+
         return ids;
     }
 
@@ -86,6 +91,8 @@ public class UploadService {
         var photos = photoReadService.findAllByIdIn(ids);
         photos.forEach(p -> assertBelongsToContainer(p, type, containerId, bucket));
         photoService.markDeleting(photos);
+
+        evictPhotosCache(type, containerId);
     }
 
     private PhotoContainerProvider provider(ContainerType type) {
@@ -115,6 +122,13 @@ public class UploadService {
                                           UUID containerId, String expectedBucket) {
         if (!photo.isOwnContainerAndBucket(type, containerId, expectedBucket)) {
             throw new NotFoundException("restaurant.photo.not-found", photo.getId());
+        }
+    }
+
+    private void evictPhotosCache(ContainerType type, UUID containerId) {
+        switch (type) {
+            case DISH -> photoReadService.evictPhotosByDishId(containerId);
+            case RESTAURANT -> photoReadService.evictPhotosByRestaurantId(containerId);
         }
     }
 
