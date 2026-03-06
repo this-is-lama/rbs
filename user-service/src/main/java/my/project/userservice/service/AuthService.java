@@ -11,7 +11,6 @@ import my.project.userservice.entity.UserEntity;
 import my.project.userservice.exception.InvalidCredentialsException;
 import my.project.userservice.exception.InvalidTokenException;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,7 @@ public class AuthService {
         try {
             authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(req.email(), req.password()));
-        } catch (BadCredentialsException e) {
+        } catch (Exception e) {
             throw new InvalidCredentialsException("user.invalid-credentials");
         }
 
