@@ -13,39 +13,27 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
-          lower-case-service-id: true
+          enabled: false
+      routes:
+        - id: user-service-auth
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/auth/**
 
-#      routes:
-#        - id: restaurant-service
-#          uri: lb://restaurant-service
-#          predicates:
-#            - Path=/restaurants/**
-#
-#        - id: restaurant-service-dish
-#          uri: lb://restaurant-service
-#          predicates:
-#            - Path=/dish/**
-#
-#        - id: booking-service
-#          uri: lb://booking-service
-#          predicates:
-#            - Path=/bookings/**
-#
-#        - id: user-service
-#          uri: lb://user-service
-#          predicates:
-#            - Path=/users/**
-#
-#        - id: user-service-auth
-#          uri: lb://user-service
-#          predicates:
-#            - Path=/auth/**
-#
-#        - id: notification-service
-#          uri: lb://notification-service
-#          predicates:
-#            - Path=/notifications/**
+        - id: user-service-users
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/users/**
+
+        - id: restaurant-service
+          uri: lb://restaurant-service
+          predicates:
+            - Path=/api/v1/restaurants/**,/api/v1/dishes/**
+
+        - id: booking-service
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/v1/bookings/**
 
 eureka:
   client:
@@ -57,3 +45,7 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus
+
+logging:
+  level:
+    org.springframework.security: DEBUG
