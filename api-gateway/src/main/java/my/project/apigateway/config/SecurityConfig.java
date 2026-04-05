@@ -2,6 +2,7 @@ package my.project.apigateway.config;
 
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import javax.crypto.SecretKey;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
@@ -35,6 +37,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        log.info("Настройка Spring Security для api-gateway");
+
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(Customizer.withDefaults())
@@ -60,6 +64,8 @@ public class SecurityConfig {
     public ReactiveJwtDecoder jwtDecoder(@Value("${jwt.access-secret}") String secret,
                                          @Value("${jwt.issuer:user-service}") String issuer) {
 
+        log.info("Инициализация ReactiveJwtDecoder для issuer={}", issuer);
+
         SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
 
         NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder
@@ -74,7 +80,14 @@ public class SecurityConfig {
             if (ACCESS_TOKEN.equals(tokenType)) {
                 return OAuth2TokenValidatorResult.success();
             }
-            OAuth2Error err = new OAuth2Error("invalid_token", "token_type must be access_token", null);
+
+            log.warn("JWT отклонён: claim token_type имеет недопустимое значение: {}", tokenType);
+
+            OAuth2Error err = new OAuth2Error(
+                    "invalid_token",
+                    "token_type must be access_token",
+                    null
+            );
             return OAuth2TokenValidatorResult.failure(err);
         };
 
@@ -84,6 +97,8 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        log.info("Настройка CORS для api-gateway");
+
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
@@ -95,4 +110,3 @@ public class SecurityConfig {
         return source;
     }
 }
-
