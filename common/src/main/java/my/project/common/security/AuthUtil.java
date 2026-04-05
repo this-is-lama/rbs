@@ -2,6 +2,7 @@ package my.project.common.security;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.UnauthorizedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -10,6 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AuthUtil {
 
@@ -21,6 +23,8 @@ public final class AuthUtil {
 		if (auth instanceof JwtAuthenticationToken jwtAuth) {
 			return jwtAuth.getToken().getClaim(JwtClaims.EMAIL_CLAIM);
 		}
+
+		log.warn("Не удалось получить email из Authentication");
 		throw new UnauthorizedException("common.unauthorized");
 	}
 
@@ -28,6 +32,8 @@ public final class AuthUtil {
 		if (auth instanceof JwtAuthenticationToken jwtAuth) {
 			return jwtAuth.getToken().getClaim(JwtClaims.USERNAME_CLAIM);
 		}
+
+		log.warn("Не удалось получить имя пользователя из Authentication");
 		throw new UnauthorizedException("common.unauthorized");
 	}
 
@@ -55,4 +61,3 @@ public final class AuthUtil {
 		return auth == null || has(auth, "ROLE_USER");
 	}
 }
-

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import my.project.common.dto.ApiError;
 import my.project.common.exception.CommonErrorCode;
 import org.springframework.context.MessageSource;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 import java.io.IOException;
 import java.util.Locale;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CommonAccessDeniedHandler implements AccessDeniedHandler {
@@ -29,6 +31,9 @@ public class CommonAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException) throws IOException {
 
         Locale locale = RequestContextUtils.getLocale(request);
+
+        log.warn("Доступ запрещён: path={}, message={}",
+                request.getRequestURI(), accessDeniedException.getMessage());
 
         ApiError body = new ApiError(
                 403,

@@ -12,7 +12,6 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -30,9 +29,11 @@ public class CommonExceptionHandler {
         var locale = LocaleContextHolder.getLocale();
 
         if (status.is5xxServerError()) {
-            log.error("ApiException: code={}, path={}, message={}", ex.getCode(), request.getRequestURI(), ex.getMessage(), ex);
+            log.error("Обработано прикладное исключение: code={}, path={}, message={}",
+                    ex.getCode(), request.getRequestURI(), ex.getMessage(), ex);
         } else {
-            log.warn("ApiException: code={}, path={}, message={}", ex.getCode(), request.getRequestURI(), ex.getMessage());
+            log.warn("Обработано прикладное исключение: code={}, path={}, message={}",
+                    ex.getCode(), request.getRequestURI(), ex.getMessage());
         }
 
         ApiError body = new ApiError(
@@ -41,12 +42,14 @@ public class CommonExceptionHandler {
                 messageSource.getMessage(ex.getMessage(), ex.getArgs(), ex.getMessage(), locale),
                 request.getRequestURI()
         );
+
         return ResponseEntity.status(status).body(body);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         var locale = LocaleContextHolder.getLocale();
+
         String msgKey = ex.getBindingResult().getAllErrors().stream()
                 .findFirst()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
@@ -54,12 +57,15 @@ public class CommonExceptionHandler {
 
         String msg = messageSource.getMessage(msgKey, null, msgKey, locale);
 
+        log.warn("Ошибка валидации тела запроса: path={}, message={}", request.getRequestURI(), msg);
+
         ApiError body = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "VALIDATION_ERROR",
                 msg,
                 request.getRequestURI()
         );
+
         return ResponseEntity.badRequest().body(body);
     }
 
@@ -70,12 +76,15 @@ public class CommonExceptionHandler {
                 .map(ConstraintViolation::getMessage)
                 .orElse("common.validation-error");
 
+        log.warn("Ошибка валидации параметров запроса: path={}, message={}", request.getRequestURI(), msg);
+
         ApiError body = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "VALIDATION_ERROR",
                 msg,
                 request.getRequestURI()
         );
+
         return ResponseEntity.badRequest().body(body);
     }
 
@@ -84,18 +93,22 @@ public class CommonExceptionHandler {
         var locale = LocaleContextHolder.getLocale();
         String msg = messageSource.getMessage("common.bad-request", null, "common.bad-request", locale);
 
+        log.warn("Некорректный формат тела запроса: path={}", request.getRequestURI());
+
         ApiError body = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 "BAD_REQUEST",
                 msg,
                 request.getRequestURI()
         );
+
         return ResponseEntity.badRequest().body(body);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleAny(Exception ex, HttpServletRequest request) {
-        log.error("Unhandled exception: path={}", request.getRequestURI(), ex);
+        log.error("Необработанное исключение: path={}", request.getRequestURI(), ex);
+
         var locale = LocaleContextHolder.getLocale();
 
         ApiError body = new ApiError(
@@ -104,6 +117,7 @@ public class CommonExceptionHandler {
                 messageSource.getMessage("common.internal-error", null, "common.internal-error", locale),
                 request.getRequestURI()
         );
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 }

@@ -28,6 +28,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
+    compileOnly("org.slf4j:slf4j-api")
 }
 
 tasks.test {
