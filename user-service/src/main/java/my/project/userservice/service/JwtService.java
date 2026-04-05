@@ -3,6 +3,7 @@ package my.project.userservice.service;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import my.project.userservice.entity.UserEntity;
 import my.project.userservice.exception.InvalidTokenException;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 import static my.project.common.security.JwtClaims.*;
 
+@Slf4j
 @Service
 public class JwtService {
 
@@ -37,6 +39,9 @@ public class JwtService {
 		this.accessLifetime = accessLifetime;
 		this.refreshLifetime = refreshLifetime;
 		this.issuer = issuer;
+
+		log.info("JwtService инициализирован, issuer={}, accessLifetime={}, refreshLifetime={}",
+				issuer, accessLifetime, refreshLifetime);
 	}
 
 	public String generateAccessToken(UserEntity user) {
@@ -44,6 +49,8 @@ public class JwtService {
 		Instant exp = now.plus(accessLifetime);
 
 		List<String> roles = List.of(user.getRole().name());
+
+		log.debug("Генерация access token для userId={}, email={}", user.getId(), user.getEmail());
 
 		return Jwts.builder()
 				.issuer(issuer)
@@ -62,6 +69,8 @@ public class JwtService {
 		Instant now = Instant.now();
 		Instant exp = now.plus(refreshLifetime);
 
+		log.debug("Генерация refresh token для userId={}", user.getId());
+
 		return Jwts.builder()
 				.issuer(issuer)
 				.subject(user.getId().toString())
@@ -76,17 +85,23 @@ public class JwtService {
 	public void validateRefreshToken(String token) {
 		try {
 			parseRefreshToken(token);
+			log.debug("Refresh token успешно прошёл валидацию");
 		} catch (JwtException | IllegalArgumentException e) {
+			log.warn("Ошибка валидации refresh token");
 			throw new InvalidTokenException("user.invalid-token");
 		}
 	}
 
 	public UUID getUserIdFromRefreshToken(String token) {
-		return UUID.fromString(parseRefreshToken(token).getPayload().getSubject());
+		UUID userId = UUID.fromString(parseRefreshToken(token).getPayload().getSubject());
+		log.debug("Из refresh token извлечён userId={}", userId);
+		return userId;
 	}
 
 	public String getJtiClaimFromRefreshToken(String token) {
-		return parseRefreshToken(token).getPayload().get(JTI_CLAIM).toString();
+		String jti = parseRefreshToken(token).getPayload().get(JTI_CLAIM).toString();
+		log.debug("Из refresh token извлечён jti");
+		return jti;
 	}
 
 	private Jws<Claims> parseRefreshToken(String token) {
@@ -98,5 +113,3 @@ public class JwtService {
 				.parseSignedClaims(token);
 	}
 }
-
-

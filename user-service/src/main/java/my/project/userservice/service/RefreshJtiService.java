@@ -23,7 +23,6 @@ public class RefreshJtiService {
 	private Duration refreshLifetime;
 
 	private final RefreshJtiRepository repository;
-
 	private final PasswordEncoder passwordEncoder;
 
 	@Transactional
@@ -39,9 +38,10 @@ public class RefreshJtiService {
 				.build();
 
 		repository.save(refreshToken);
+
+		log.info("Сохранён новый refresh JTI для userId={}, expiresAt={}", userId, expiresAt);
 		return jti;
 	}
-
 
 	@Transactional
 	public void deactivateForRefresh(String jti, UUID userId) {
@@ -51,9 +51,13 @@ public class RefreshJtiService {
 				.filter(t -> !t.isExpired(now))
 				.filter(t -> passwordEncoder.matches(jti, t.getJtiHash()))
 				.findFirst()
-				.orElseThrow(() -> new UnauthorizedException("user.invalid-token"));
+				.orElseThrow(() -> {
+					log.warn("Не удалось деактивировать refresh JTI при обновлении токена, userId={}", userId);
+					return new UnauthorizedException("user.invalid-token");
+				});
 
 		token.deactivate();
+		log.info("Refresh JTI деактивирован после обновления токенов, userId={}", userId);
 	}
 
 	@Transactional
@@ -61,19 +65,24 @@ public class RefreshJtiService {
 		repository.findAllByUserIdAndActiveTrue(userId).stream()
 				.filter(t -> passwordEncoder.matches(jti, t.getJtiHash()))
 				.findFirst()
-				.ifPresent(RefreshJtiEntity::deactivate);
+				.ifPresent(token -> {
+					token.deactivate();
+					log.info("Refresh JTI деактивирован при выходе из системы, userId={}", userId);
+				});
 	}
 
 	@Transactional
 	public void deactivateAllForUser(UUID userId) {
 		repository.findAllByUserIdAndActiveTrue(userId)
 				.forEach(RefreshJtiEntity::deactivate);
-	}
 
+		log.info("Все активные refresh JTI деактивированы для userId={}", userId);
+	}
 
 	@Transactional
 	public long deleteAllDeactivatedOrExpired() {
-		return repository.deleteAllByActiveFalseOrExpiresAtBefore(Instant.now());
+		long deleted = repository.deleteAllByActiveFalseOrExpiresAtBefore(Instant.now());
+		log.debug("Удалено refresh JTI: {}", deleted);
+		return deleted;
 	}
-
 }

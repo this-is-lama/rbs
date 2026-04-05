@@ -14,7 +14,8 @@ public class RefreshJtiCleaner {
 
 	@Scheduled(fixedDelayString = "PT1H")
 	public void cleanRefreshToken() {
+		log.info("Запущена очистка неактивных и просроченных refresh токенов");
 		long deleted = refreshJtiService.deleteAllDeactivatedOrExpired();
-		log.debug("Deleted refresh tokens: {}", deleted);
+		log.info("Очистка refresh токенов завершена, удалено записей: {}", deleted);
 	}
 }
