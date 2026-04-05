@@ -1,6 +1,7 @@
 package my.project.restaurantservice.service.dish;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.dto.dish.DishDto;
 import my.project.restaurantservice.mapper.DishMapper;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DishReadService {
@@ -19,50 +21,37 @@ public class DishReadService {
 	private final DishRepository repository;
 	private final DishMapper mapper;
 
-	@Cacheable(
-			cacheNames = "publicDishById",
-			key = "#restId + ':' + #id",
-			sync = true
-	)
+	@Cacheable(cacheNames = "publicDishById", key = "#restId + ':' + #id", sync = true)
 	@Transactional(readOnly = true)
 	public DishDto getPublicById(UUID restId, UUID id) {
+		log.debug("Получение публичного блюда, restId={}, dishId={}", restId, id);
 		return repository.findByIdAndRestaurantIdAndAvailableTrue(id, restId)
 				.map(mapper::toDto)
 				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 	}
 
-	@Cacheable(
-			cacheNames = "privateDishById",
-			key = "#restId + ':' + #id",
-			sync = true
-	)
+	@Cacheable(cacheNames = "privateDishById", key = "#restId + ':' + #id", sync = true)
 	@Transactional(readOnly = true)
 	public DishDto getPrivateById(UUID restId, UUID id) {
+		log.debug("Получение полного блюда, restId={}, dishId={}", restId, id);
 		return repository.findByIdAndRestaurantId(id, restId)
 				.map(mapper::toDto)
 				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
 	}
 
-	@Cacheable(
-			cacheNames = "publicDishesByRestaurantId",
-			key = "#restId",
-			sync = true
-	)
+	@Cacheable(cacheNames = "publicDishesByRestaurantId", key = "#restId", sync = true)
 	@Transactional(readOnly = true)
 	public List<DishDto> findAllPublicByRestaurantId(UUID restId) {
+		log.debug("Получение публичного списка блюд ресторана, restId={}", restId);
 		var dishes = repository.findAllByRestaurantIdAndAvailableTrueOrderByNameAsc(restId);
 		return mapper.toDto(dishes);
 	}
 
-	@Cacheable(
-			cacheNames = "privateDishesByRestaurantId",
-			key = "#restId",
-			sync = true
-	)
+	@Cacheable(cacheNames = "privateDishesByRestaurantId", key = "#restId", sync = true)
 	@Transactional(readOnly = true)
 	public List<DishDto> findAllPrivateByRestaurantId(UUID restId) {
+		log.debug("Получение полного списка блюд ресторана, restId={}", restId);
 		var dishes = repository.findAllByRestaurantIdOrderByNameAsc(restId);
 		return mapper.toDto(dishes);
 	}
-
 }

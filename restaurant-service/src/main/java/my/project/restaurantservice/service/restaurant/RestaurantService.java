@@ -55,6 +55,8 @@ public class RestaurantService {
 
 	@Transactional
 	public UUID save(RestaurantDto dto, Authentication auth) {
+		log.info("Создание ресторана, name={}", dto.getName());
+
 		RestaurantEntity restaurant = mapper.toEntity(dto);
 		var managerId = AuthUtil.id(auth);
 
@@ -62,10 +64,13 @@ public class RestaurantService {
 		workingHoursMapper.toEntity(dto.getWorkingHours()).forEach(restaurant::addWorkingHours);
 
 		var restId = repository.save(restaurant).getId();
+
 		if (AuthUtil.isManager(auth)) {
 			managerService.save(restId, managerId);
+			log.info("Текущий менеджер привязан к ресторану, restId={}, managerId={}", restId, managerId);
 		}
 
+		log.info("Ресторан успешно создан, restId={}", restId);
 		return restId;
 	}
 
@@ -75,10 +80,14 @@ public class RestaurantService {
 	})
 	@Transactional
 	public RestaurantDto update(UUID id, RestaurantDto dto, Authentication auth) {
+		log.info("Обновление ресторана, restId={}", id);
 		managerService.checkAccess(id, auth);
 
 		var restaurant = repository.findById(id)
-				.orElseThrow(() -> new NotFoundException("restaurant.not-found", id));
+				.orElseThrow(() -> {
+					log.warn("Ресторан не найден для обновления, restId={}", id);
+					return new NotFoundException("restaurant.not-found", id);
+				});
 
 		mapper.updateEntity(restaurant, dto);
 
@@ -94,6 +103,7 @@ public class RestaurantService {
 		contactMapper.toEntity(dto.getContacts()).forEach(restaurant::addContact);
 		workingHoursMapper.toEntity(dto.getWorkingHours()).forEach(restaurant::addWorkingHours);
 
+		log.info("Ресторан успешно обновлён, restId={}", id);
 		return mapper.toDto(restaurant);
 	}
 
@@ -103,23 +113,31 @@ public class RestaurantService {
 	})
 	@Transactional
 	public void delete(UUID id, Authentication auth) {
+		log.info("Удаление ресторана, restId={}", id);
 		managerService.checkAccess(id, auth);
 		repository.deleteById(id);
+		log.info("Ресторан успешно удалён, restId={}", id);
 	}
 
 	@Transactional(readOnly = true)
 	public RestaurantDto findById(UUID id, Authentication auth) {
+		log.info("Получение ресторана по id, restId={}", id);
+
 		var restaurant = managerService.onlyPublic(id, auth)
 				? readService.getPublicById(id)
 				: readService.getPrivateById(id);
+
 		var dishes = dishService.findAllByRestaurantId(id, auth);
 		var tables = tableService.findAllByRestaurantId(id, auth);
 		var photos = photoReadService.getAllByRestaurantId(id);
+
+		log.debug("Ресторан успешно собран со всеми деталями, restId={}", id);
 		return mapper.copyWithDetails(restaurant, dishes, tables, photos);
 	}
 
 	@Transactional(readOnly = true)
 	public RestaurantEntity getRef(UUID id) {
+		log.debug("Получение ссылки на ресторан, restId={}", id);
 		return repository.getReferenceById(id);
 	}
 
@@ -127,8 +145,10 @@ public class RestaurantService {
 	public Page<RestaurantCardDto> findAll(String category, String name,
 										   Boolean active, String address,
 										   int page, int size, Authentication auth) {
-		WeekDay today = WeekDay.valueOf(LocalDate.now().getDayOfWeek().name());
+		log.info("Поиск ресторанов, category={}, name={}, active={}, address={}, page={}, size={}",
+				category, name, active, address, page, size);
 
+		WeekDay today = WeekDay.valueOf(LocalDate.now().getDayOfWeek().name());
 		Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
 		var spec = RestaurantSpecifications.getSpecification(category, name, active, address);
 
@@ -150,24 +170,28 @@ public class RestaurantService {
 				.collect(Collectors.toMap(wh -> wh.getRestaurant().getId(), wh -> wh));
 
 		List<RestaurantCardDto> cards = restaurantsPage.getContent().stream()
-				.map(r -> mapper.toCardDto(
-						r,
-						banners.get(r.getId()),
-						whs.get(r.getId())))
+				.map(r -> mapper.toCardDto(r, banners.get(r.getId()), whs.get(r.getId())))
 				.toList();
 
+		log.info("Поиск ресторанов завершён, найдено элементов: {}", restaurantsPage.getTotalElements());
 		return new PageImpl<>(cards, pageable, restaurantsPage.getTotalElements());
 	}
 
 	@Transactional(readOnly = true)
 	public BookingSnapshotResponse bookingSnapshot(UUID restId, BookingSnapshotRequest req) {
+		log.info("Формирование snapshot для бронирования, restId={}, tableId={}", restId, req.tableId());
+
 		var entity = repository.findByIdAndActiveTrue(restId)
-				.orElseThrow(() -> new NotFoundException("restaurant.not-found", restId));
+				.orElseThrow(() -> {
+					log.warn("Активный ресторан не найден для snapshot, restId={}", restId);
+					return new NotFoundException("restaurant.not-found", restId);
+				});
 
 		var restaurant = mapper.toBookingDto(entity);
 		var dishes = dishService.findRestaurantBookingDishes(restId, req.dishes());
 		var table = tableService.findRestaurantBookingTable(restId, req.tableId());
 
+		log.info("Snapshot для бронирования успешно сформирован, restId={}", restId);
 		return new BookingSnapshotResponse(restaurant, table, dishes);
 	}
 }

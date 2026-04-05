@@ -2,6 +2,7 @@ package my.project.restaurantservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.service.restaurant.RestaurantService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/restaurants")
 @RequiredArgsConstructor
@@ -21,13 +23,14 @@ public class RestaurantController {
 
 	private final RestaurantService restaurantService;
 
-
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PostMapping()
+	@PostMapping
 	public ResponseEntity<UUID> create(@Valid @RequestBody RestaurantDto dto,
 									   Authentication auth) {
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(restaurantService.save(dto, auth));
+		log.info("Получен запрос на создание ресторана, name={}", dto.getName());
+		UUID id = restaurantService.save(dto, auth);
+		log.info("Ресторан успешно создан, restId={}", id);
+		return ResponseEntity.status(HttpStatus.CREATED).body(id);
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
@@ -35,15 +38,19 @@ public class RestaurantController {
 	public ResponseEntity<RestaurantDto> update(@PathVariable UUID id,
 												@RequestBody @Valid RestaurantDto dto,
 												Authentication auth) {
-		return ResponseEntity.ok(restaurantService.update(id, dto, auth));
+		log.info("Получен запрос на обновление ресторана, restId={}", id);
+		RestaurantDto response = restaurantService.update(id, dto, auth);
+		log.info("Ресторан успешно обновлён, restId={}", id);
+		return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<RestaurantDto> findById(@PathVariable UUID id, Authentication auth) {
+		log.info("Получен запрос на получение ресторана, restId={}", id);
 		return ResponseEntity.ok(restaurantService.findById(id, auth));
 	}
 
-	@GetMapping()
+	@GetMapping
 	public ResponseEntity<Page<RestaurantCardDto>> findAll(@RequestParam(required = false) String category,
 														   @RequestParam(required = false) String name,
 														   @RequestParam(required = false) Boolean active,
@@ -51,14 +58,17 @@ public class RestaurantController {
 														   @RequestParam(defaultValue = "0") int page,
 														   @RequestParam(defaultValue = "10") int size,
 														   Authentication auth) {
+		log.info("Получен запрос на список ресторанов, category={}, name={}, active={}, address={}, page={}, size={}",
+				category, name, active, address, page, size);
 		return ResponseEntity.ok(restaurantService.findAll(category, name, active, address, page, size, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable UUID id, Authentication auth) {
+		log.info("Получен запрос на удаление ресторана, restId={}", id);
 		restaurantService.delete(id, auth);
+		log.info("Ресторан успешно удалён, restId={}", id);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
-
 }

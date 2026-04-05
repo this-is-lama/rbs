@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -25,9 +24,11 @@ public class PhotoCleaner {
 
 	@Scheduled(fixedDelayString = "PT10M")
 	public void run() {
+		log.info("Запущена фоновая очистка фотографий");
 		photoService.markExpired();
 		cleanByStatus(PhotoStatus.EXPIRED);
 		cleanByStatus(PhotoStatus.DELETING);
+		log.info("Фоновая очистка фотографий завершена");
 	}
 
 	private void cleanByStatus(PhotoStatus status) {
@@ -43,15 +44,16 @@ public class PhotoCleaner {
 					toDelete.add(p.getId());
 					continue;
 				}
-				log.warn("Failed to remove object: bucket={}, key={}, id={}",
+				log.warn("Не удалось удалить объект из хранилища, bucket={}, key={}, id={}",
 						p.getBucket(), p.getObjectKey(), p.getId(), ex);
 			}
 		}
+
 		if (!toDelete.isEmpty()) {
 			photoService.deleteAllById(toDelete);
+			log.info("Удалены записи о фотографиях из базы данных, status={}, count={}", status, toDelete.size());
 		}
 	}
-
 
 	private boolean isNotFound(Exception ex) {
 		return ex instanceof StorageException se && se.getCode() == CommonErrorCode.NOT_FOUND;

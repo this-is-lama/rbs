@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import my.project.restaurantservice.dto.photo.PhotoConfirmRequest;
 import my.project.restaurantservice.dto.photo.PhotoConfirmResponse;
 import my.project.restaurantservice.dto.photo.PhotoUploadRequest;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/{container:restaurants|dishes}/{containerId}")
 @RequiredArgsConstructor
@@ -31,11 +32,12 @@ public class PhotoController {
 	public ResponseEntity<List<PhotoConfirmResponse>> pendingUpload(@PathVariable String container,
 																	@PathVariable UUID containerId,
 																	@RequestBody @NotEmpty @Size(max = 32)
-															 List<@Valid PhotoUploadRequest> req,
+																	List<@Valid PhotoUploadRequest> req,
 																	Authentication auth) {
+		log.info("Получен запрос на подготовку загрузки фото, container={}, containerId={}, count={}",
+				container, containerId, req.size());
 		ContainerType type = ContainerType.fromPath(container);
-		var dto = uploadService.pendingUpload(type, containerId, req, auth);
-		return ResponseEntity.ok(dto);
+		return ResponseEntity.ok(uploadService.pendingUpload(type, containerId, req, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
@@ -45,9 +47,10 @@ public class PhotoController {
 													@RequestBody @NotEmpty @Size(max = 32)
 													List<@Valid PhotoConfirmRequest> uploaded,
 													Authentication auth) {
+		log.info("Получен запрос на подтверждение загрузки фото, container={}, containerId={}, count={}",
+				container, containerId, uploaded.size());
 		ContainerType type = ContainerType.fromPath(container);
-		var ids = uploadService.confirmUpload(type, containerId, uploaded, auth);
-		return ResponseEntity.ok(ids);
+		return ResponseEntity.ok(uploadService.confirmUpload(type, containerId, uploaded, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
@@ -56,9 +59,12 @@ public class PhotoController {
 									   @PathVariable UUID containerId,
 									   @RequestBody @NotEmpty @Size(max = 200) Set<UUID> ids,
 									   Authentication auth) {
+		log.info("Получен запрос на удаление фото, container={}, containerId={}, count={}",
+				container, containerId, ids.size());
 		ContainerType type = ContainerType.fromPath(container);
 		uploadService.delete(type, containerId, ids, auth);
+		log.info("Фото помечены на удаление, container={}, containerId={}, count={}",
+				container, containerId, ids.size());
 		return ResponseEntity.accepted().build();
 	}
-
 }
