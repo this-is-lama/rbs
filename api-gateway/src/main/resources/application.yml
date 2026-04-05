@@ -67,3 +67,14 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus
+
+
+logging:
+  level:
+    root: INFO
+    my.project.apigateway: DEBUG
+    org.springframework.security: INFO
+    org.springframework.cloud.gateway: INFO
+    reactor.netty.http.client: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
