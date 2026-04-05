@@ -23,7 +23,7 @@ public class RestaurantCardDto {
 
 		Boolean active;
 
-		List<WorkingHoursDto> workingHours;
+		WorkingHoursDto workingHour;
 
 		PhotoDto bannerPhoto;
 

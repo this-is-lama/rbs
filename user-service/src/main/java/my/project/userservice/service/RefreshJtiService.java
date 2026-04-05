@@ -1,6 +1,5 @@
 package my.project.userservice.service;
 
-import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.UnauthorizedException;

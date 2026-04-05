@@ -70,7 +70,8 @@ public interface RestaurantMapper {
 
 	@Mapping(target = "id", source = "restaurant.id")
 	@Mapping(target = "category", source = "restaurant.category")
-	RestaurantCardDto toCardDto(RestaurantEntity restaurant, PhotoEntity bannerPhoto, WorkingHoursEntity workingHours);
+	@Mapping(target = "workingHour", source = "workingHour")
+	RestaurantCardDto toCardDto(RestaurantEntity restaurant, PhotoEntity bannerPhoto, WorkingHoursEntity workingHour);
 
 	BookingRestaurantDto toBookingDto(RestaurantEntity entity);
 
