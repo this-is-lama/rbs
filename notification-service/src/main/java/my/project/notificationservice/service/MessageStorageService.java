@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -30,8 +29,11 @@ public class MessageStorageService {
         try {
             MessageEntity message = new MessageEntity(event.bookingId(), mapper.writeJson(event));
             repository.save(message);
+
+            log.info("Сообщение сохранено в хранилище, bookingId={}", event.bookingId());
             return true;
         } catch (DataIntegrityViolationException ignored) {
+            log.info("Сообщение уже было сохранено ранее, bookingId={}", event.bookingId());
             return false;
         }
     }
@@ -39,8 +41,13 @@ public class MessageStorageService {
     @Transactional
     public void markStatus(UUID bookingId, Consumer<MessageEntity> action) {
         repository.findById(bookingId).ifPresent(m -> {
+            MessageStatus oldStatus = m.getStatus();
+
             action.accept(m);
             repository.save(m);
+
+            log.info("Статус сообщения обновлён, bookingId={}, oldStatus={}, newStatus={}, attempts={}",
+                    bookingId, oldStatus, m.getStatus(), m.getAttempts());
         });
     }
 
@@ -49,12 +56,23 @@ public class MessageStorageService {
         var batch = repository.lockWorkBatch(maxAttempts, stuckMinutes);
         batch.forEach(MessageEntity::processing);
 
-        return repository.saveAll(batch);
+        var savedBatch = repository.saveAll(batch);
+
+        if (!savedBatch.isEmpty()) {
+            log.info("Получена рабочая пачка сообщений для повторной обработки, count={}", savedBatch.size());
+        }
+
+        return savedBatch;
     }
 
     @Transactional
     public long cleanDone(Instant time) {
-        return repository.deleteTop500ByStatusAndUpdatedAtLessThan(MessageStatus.DONE, time);
-    }
+        long deleted = repository.deleteTop500ByStatusAndUpdatedAtLessThan(MessageStatus.DONE, time);
 
+        if (deleted > 0) {
+            log.info("Удалены обработанные сообщения, deleted={}, olderThan={}", deleted, time);
+        }
+
+        return deleted;
+    }
 }

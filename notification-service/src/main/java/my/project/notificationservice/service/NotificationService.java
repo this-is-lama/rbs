@@ -18,18 +18,20 @@ public class NotificationService {
 	public void send(BookingCreatedEvent event) {
 		var messageId = event.bookingId();
 
+		log.info("Начата обработка уведомления, bookingId={}", messageId);
+
 		if (!messageStorageService.save(event)) {
-			log.info("Duplicate event skipped bookingId={}", messageId);
+			log.info("Дубликат события пропущен, bookingId={}", messageId);
 			return;
 		}
 
 		try {
 			mailSenderService.sendMessage(event);
 			messageStorageService.markStatus(messageId, MessageEntity::done);
+			log.info("Уведомление успешно обработано, bookingId={}", messageId);
 		} catch (MessagingException e) {
-			log.error("Failed to send notification bookingId={}", messageId, e);
+			log.error("Не удалось отправить уведомление, bookingId={}", messageId, e);
 			messageStorageService.markStatus(messageId, MessageEntity::processing);
 		}
 	}
-
 }
