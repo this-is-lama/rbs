@@ -1,6 +1,7 @@
 package my.project.restaurantservice.service.table;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.dto.client.BookingTableDto;
 import my.project.restaurantservice.dto.table.TableDto;
@@ -20,18 +21,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TableService {
 
 	private final TableRepository repository;
 	private final RestaurantRepository restaurantRepository;
-
 	private final TableMapper mapper;
-
 	private final TableReadService readService;
 	private final ManagerService managerService;
-
 
 	@Caching(evict = {
 			@CacheEvict(cacheNames = "publicTablesByRestaurantId", key = "#restId"),
@@ -39,13 +38,16 @@ public class TableService {
 	})
 	@Transactional
 	public UUID save(TableDto dto, UUID restId, Authentication auth) {
+		log.info("Создание стола, restId={}, tableNumber={}", restId, dto.tableNumber());
 		managerService.checkAccess(restId, auth);
-		TableEntity table = mapper.toEntity(dto);
 
+		TableEntity table = mapper.toEntity(dto);
 		RestaurantEntity restaurant = restaurantRepository.getReferenceById(restId);
 		restaurant.addTable(table);
 
-		return repository.save(table).getId();
+		UUID id = repository.save(table).getId();
+		log.info("Стол успешно создан, restId={}, tableId={}", restId, id);
+		return id;
 	}
 
 	@Caching(evict = {
@@ -54,16 +56,18 @@ public class TableService {
 			@CacheEvict(cacheNames = "publicTablesByRestaurantId", key = "#restId"),
 			@CacheEvict(cacheNames = "privateTablesByRestaurantId", key = "#restId"),
 			@CacheEvict(cacheNames = "restaurantBookingTable", key = "#restId + ':' + #id")
-
 	})
 	@Transactional
 	public TableDto update(UUID restId, UUID id, TableDto dto, Authentication auth) {
+		log.info("Обновление стола, restId={}, tableId={}", restId, id);
 		managerService.checkAccess(restId, auth);
+
 		TableEntity entity = repository.findByIdAndRestaurantId(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
 
 		mapper.updateEntity(entity, dto);
 
+		log.info("Стол успешно обновлён, restId={}, tableId={}", restId, id);
 		return mapper.toDto(entity);
 	}
 
@@ -73,41 +77,39 @@ public class TableService {
 			@CacheEvict(cacheNames = "publicTablesByRestaurantId", key = "#restId"),
 			@CacheEvict(cacheNames = "privateTablesByRestaurantId", key = "#restId"),
 			@CacheEvict(cacheNames = "restaurantBookingTable", key = "#restId + ':' + #id")
-
 	})
 	@Transactional
 	public void delete(UUID restId, UUID id, Authentication auth) {
+		log.info("Удаление стола, restId={}, tableId={}", restId, id);
 		managerService.checkAccess(restId, auth);
 		repository.deleteByIdAndRestaurantId(id, restId);
+		log.info("Стол успешно удалён, restId={}, tableId={}", restId, id);
 	}
 
 	@Transactional(readOnly = true)
 	public TableDto findById(UUID restId, UUID id, Authentication auth) {
+		log.info("Получение стола, restId={}, tableId={}", restId, id);
 		return managerService.onlyPublic(restId, auth)
 				? readService.getPublicById(restId, id)
 				: readService.getPrivateById(restId, id);
 	}
 
-
 	@Transactional(readOnly = true)
 	public List<TableDto> findAllByRestaurantId(UUID restId, Authentication auth) {
+		log.info("Получение списка столов ресторана, restId={}", restId);
 		return managerService.onlyPublic(restId, auth)
 				? readService.findAllPublicByRestaurantId(restId)
 				: readService.findAllPrivateByRestaurantId(restId);
 	}
 
-
-
-	@Cacheable(
-			cacheNames = "restaurantBookingTable",
-			key = "#restId + ':' + #id",
-			sync = true
-	)
+	@Cacheable(cacheNames = "restaurantBookingTable", key = "#restId + ':' + #id", sync = true)
 	@Transactional(readOnly = true)
 	public BookingTableDto findRestaurantBookingTable(UUID restId, UUID id) {
+		log.debug("Получение стола для snapshot бронирования, restId={}, tableId={}", restId, id);
+
 		var table = repository.findByIdAndRestaurantIdAndActiveTrue(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
+
 		return mapper.toBookingDto(table);
 	}
-
 }

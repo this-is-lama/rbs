@@ -21,16 +21,17 @@ public class MinioStorageService implements StorageService {
 
 	public String presignedUrl(String bucket, String objectKey, Method method, int seconds) {
 		try {
+			log.debug("Генерация presigned URL, bucket={}, objectKey={}, method={}", bucket, objectKey, method);
 			return minioClient.getPresignedObjectUrl(
-						GetPresignedObjectUrlArgs.builder()
-						.method(method)
-						.bucket(bucket)
-						.object(objectKey)
-						.expiry(seconds)
-						.build()
+					GetPresignedObjectUrlArgs.builder()
+							.method(method)
+							.bucket(bucket)
+							.object(objectKey)
+							.expiry(seconds)
+							.build()
 			);
 		} catch (Exception e) {
-			log.error("Presign Put URL failed. bucket={}, key={}", bucket, objectKey, e);
+			log.error("Ошибка генерации presigned URL, bucket={}, objectKey={}", bucket, objectKey, e);
 			throw new StorageException("restaurant.storage.presignedurl-generation-error");
 		}
 	}
@@ -43,26 +44,28 @@ public class MinioStorageService implements StorageService {
 							.object(objectKey)
 							.build()
 			);
+			log.debug("Объект найден в хранилище, bucket={}, objectKey={}", bucket, objectKey);
 			return true;
 		} catch (ErrorResponseException e) {
 			String code = e.errorResponse().code();
 
 			if ("NoSuchKey".equals(code) || "NoSuchObject".equals(code)) {
+				log.debug("Объект не найден в хранилище, bucket={}, objectKey={}", bucket, objectKey);
 				return false;
 			}
 
-			log.warn("Stat object failed (MinIO error). bucket={}, key={}, code={}",
+			log.warn("Ошибка проверки объекта в MinIO, bucket={}, objectKey={}, code={}",
 					bucket, objectKey, code, e);
 			throw new StorageException("restaurant.storage.stat-error", objectKey, bucket);
 		} catch (Exception e) {
-			log.warn("Stat object failed. bucket={}, key={}", bucket, objectKey, e);
+			log.warn("Ошибка проверки объекта в хранилище, bucket={}, objectKey={}", bucket, objectKey, e);
 			throw new StorageException("restaurant.storage.stat-error", objectKey, bucket);
 		}
 	}
 
-
 	public void removeObject(String bucket, String objectKey) {
 		try {
+			log.debug("Удаление объекта из хранилища, bucket={}, objectKey={}", bucket, objectKey);
 			minioClient.removeObject(
 					RemoveObjectArgs.builder()
 							.bucket(bucket)
@@ -71,17 +74,15 @@ public class MinioStorageService implements StorageService {
 			);
 		} catch (ErrorResponseException e) {
 			if ("NoSuchKey".equals(e.errorResponse().code())) {
-				log.debug("Object not found. bucket={}, objectKey={}", bucket, objectKey);
+				log.debug("Объект для удаления не найден, bucket={}, objectKey={}", bucket, objectKey);
 				throw new StorageException(CommonErrorCode.NOT_FOUND, "restaurant.storage.not-found", objectKey, bucket);
 			}
-			log.error("Remove object failed (MinIO error). bucket={}, objectKey={}, code={}",
+			log.error("Ошибка удаления объекта из MinIO, bucket={}, objectKey={}, code={}",
 					bucket, objectKey, e.errorResponse().code(), e);
 			throw new StorageException("restaurant.storage.delete-error", objectKey);
 		} catch (Exception e) {
-			log.error("Remove object failed. bucket={}, objectKey={}", bucket, objectKey, e);
+			log.error("Ошибка удаления объекта из хранилища, bucket={}, objectKey={}", bucket, objectKey, e);
 			throw new StorageException("restaurant.storage.delete-error", objectKey);
 		}
 	}
-
-
 }

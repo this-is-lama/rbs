@@ -2,6 +2,7 @@ package my.project.restaurantservice.service.photo;
 
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.CommonErrorCode;
 import my.project.common.exception.NotFoundException;
 import my.project.common.exception.ValidationException;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UploadService {
@@ -30,18 +32,17 @@ public class UploadService {
 
     private final StorageService storageService;
     private final ManagerService managerService;
-
     private final PhotoService photoService;
     private final PhotoReadService photoReadService;
-
     private final PhotoMapper photoMapper;
     private final KeyGenerator keyGenerator;
-
     private final Map<ContainerType, PhotoContainerProvider> providers;
 
     @Transactional
     public List<PhotoConfirmResponse> pendingUpload(ContainerType type, UUID containerId,
                                                     List<PhotoUploadRequest> dto, Authentication auth) {
+        log.info("Подготовка загрузки фотографий, type={}, containerId={}, count={}", type, containerId, dto.size());
+
         ProviderContext context = checkAccessAndGetContext(type, containerId, auth);
         var bucket = context.bucket();
         var container = context.container();
@@ -54,18 +55,26 @@ public class UploadService {
         }
 
         List<PhotoEntity> saved = photoService.saveAll(photos);
+        log.info("Фотографии успешно подготовлены к загрузке, type={}, containerId={}, count={}",
+                type, containerId, saved.size());
+
         return createPresignedUpload(bucket, saved);
     }
 
     @Transactional
     public List<UUID> confirmUpload(ContainerType type, UUID containerId,
                                     List<PhotoConfirmRequest> uploaded, Authentication auth) {
+        log.info("Подтверждение загрузки фотографий, type={}, containerId={}, count={}",
+                type, containerId, uploaded.size());
+
         ProviderContext context = checkAccessAndGetContext(type, containerId, auth);
         var bucket = context.bucket();
 
         List<UUID> ids = new ArrayList<>();
         for (PhotoConfirmRequest dto : uploaded) {
             if (!storageService.objectExists(bucket, dto.objectKey())) {
+                log.warn("Объект не найден в хранилище при подтверждении, bucket={}, objectKey={}",
+                        bucket, dto.objectKey());
                 continue;
             }
 
@@ -78,13 +87,17 @@ public class UploadService {
 
         evictPhotosCache(type, containerId);
 
+        log.info("Загрузка фотографий подтверждена, type={}, containerId={}, confirmedCount={}",
+                type, containerId, ids.size());
         return ids;
     }
-
 
     @Transactional
     public void delete(ContainerType type, UUID containerId,
                        Set<UUID> ids, Authentication auth) {
+        log.info("Запрос на удаление фотографий, type={}, containerId={}, count={}",
+                type, containerId, ids.size());
+
         ProviderContext context = checkAccessAndGetContext(type, containerId, auth);
         var bucket = context.bucket();
 
@@ -93,11 +106,15 @@ public class UploadService {
         photoService.markDeleting(photos);
 
         evictPhotosCache(type, containerId);
+
+        log.info("Фотографии помечены на удаление, type={}, containerId={}, count={}",
+                type, containerId, ids.size());
     }
 
     private PhotoContainerProvider provider(ContainerType type) {
         PhotoContainerProvider p = providers.get(type);
         if (p == null) {
+            log.warn("Неподдерживаемый тип контейнера для фотографий: {}", type);
             throw new ValidationException(CommonErrorCode.BAD_REQUEST, "restaurant.photo.unsupported-owner-type", type);
         }
         return p;
@@ -121,6 +138,8 @@ public class UploadService {
     private void assertBelongsToContainer(PhotoEntity photo, ContainerType type,
                                           UUID containerId, String expectedBucket) {
         if (!photo.isOwnContainerAndBucket(type, containerId, expectedBucket)) {
+            log.warn("Фотография не принадлежит указанному контейнеру, photoId={}, type={}, containerId={}",
+                    photo.getId(), type, containerId);
             throw new NotFoundException("restaurant.photo.not-found", photo.getId());
         }
     }
@@ -131,5 +150,4 @@ public class UploadService {
             case RESTAURANT -> photoReadService.evictPhotosByRestaurantId(containerId);
         }
     }
-
 }
