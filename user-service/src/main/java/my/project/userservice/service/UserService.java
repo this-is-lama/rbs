@@ -1,12 +1,12 @@
 package my.project.userservice.service;
 
 import lombok.RequiredArgsConstructor;
+import my.project.common.exception.ConflictException;
 import my.project.common.security.AuthUtil;
 import my.project.common.exception.BadRequestException;
 import my.project.common.exception.ForbiddenException;
 import my.project.common.exception.NotFoundException;
-import my.project.userservice.dto.ChangeRoleRequest;
-import my.project.userservice.dto.RegistrationRequest;
+import my.project.userservice.dto.*;
 import my.project.userservice.entity.UserEntity;
 import my.project.common.security.UserRole;
 import my.project.userservice.mapper.UserMapper;
@@ -28,7 +28,7 @@ import java.util.UUID;
 public class UserService implements UserDetailsService {
 
 	private final UserRepository repository;
-	private final UserMapper userMapper;
+	private final UserMapper mapper;
 	private final RefreshJtiService refreshJtiService;
 
 	private final PasswordEncoder passwordEncoder;
@@ -45,6 +45,12 @@ public class UserService implements UserDetailsService {
 				user.getPasswordHash(),
 				List.of(new SimpleGrantedAuthority(user.getRole().name()))
 		);
+	}
+
+	@Transactional(readOnly = true)
+	public UserDto getById(UUID id) {
+		var user = findById(id);
+		return mapper.toDto(user);
 	}
 
 	@Transactional(readOnly = true)
@@ -66,7 +72,7 @@ public class UserService implements UserDetailsService {
 
 	@Transactional
 	public UserEntity save(RegistrationRequest req) {
-		UserEntity user = userMapper.toEntity(req, passwordEncoder);
+		UserEntity user = mapper.toEntity(req, passwordEncoder);
 		return repository.save(user);
 	}
 
@@ -87,5 +93,42 @@ public class UserService implements UserDetailsService {
 		return repository.save(user).getId();
 	}
 
+	@Transactional
+	public UserDto update(UUID userId, UpdateUserRequest req) {
+		UserEntity user = findById(userId);
+
+		boolean emailChanged = !user.getEmail().equals(req.email());
+
+		if (emailChanged && existsByEmail(req.email())) {
+			throw new ConflictException("user.email-already-use");
+		}
+
+		mapper.updateEntity(req, user);
+		UserEntity savedUser = repository.save(user);
+
+		if (emailChanged) {
+			refreshJtiService.deactivateAllForUser(savedUser.getId());
+		}
+
+		return mapper.toDto(savedUser	);
+	}
+
+	@Transactional
+	public void changePassword(UUID userId, ChangePasswordRequest req) {
+		UserEntity user = findById(userId);
+
+		if (!passwordEncoder.matches(req.currentPassword(), user.getPasswordHash())) {
+			throw new BadRequestException("user.invalid-current-password");
+		}
+
+		if (passwordEncoder.matches(req.newPassword(), user.getPasswordHash())) {
+			throw new BadRequestException("user.new-password-must-differ");
+		}
+
+		user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
+		repository.save(user);
+
+		refreshJtiService.deactivateAllForUser(user.getId());
+	}
 
 }

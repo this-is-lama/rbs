@@ -5,7 +5,6 @@ import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.dto.dish.DishDto;
 import my.project.restaurantservice.mapper.DishMapper;
 import my.project.restaurantservice.repository.DishRepository;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
