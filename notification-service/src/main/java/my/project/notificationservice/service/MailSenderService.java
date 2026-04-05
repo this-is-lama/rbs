@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,9 +25,10 @@ public class MailSenderService {
 	private final SpringTemplateEngine templateEngine;
 	private final MailContextMapper mapper;
 
-
 	public void sendMessage(BookingCreatedEvent event) throws MessagingException {
 		String sendToEmail = event.email();
+
+		log.info("Подготовка email для отправки, bookingId={}, email={}", event.bookingId(), sendToEmail);
 
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 		var helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -43,6 +43,7 @@ public class MailSenderService {
 		helper.setText(html, true);
 
 		mailSender.send(mimeMessage);
+
+		log.info("Email успешно отправлен, bookingId={}, email={}", event.bookingId(), sendToEmail);
 	}
 }
-

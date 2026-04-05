@@ -73,3 +73,14 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus
+
+
+logging:
+  level:
+    root: INFO
+    my.project.notificationservice: DEBUG
+    org.springframework.kafka: INFO
+    org.springframework.mail: INFO
+    org.hibernate.SQL: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"

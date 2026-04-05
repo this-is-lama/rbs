@@ -31,28 +31,36 @@ public class NotificationRetryService {
 
 	@Scheduled(fixedDelayString = "PT10M")
 	public void retry() {
+		log.info("Запущена повторная обработка уведомлений");
+
 		var failed = messageStorageService.getWorkBatch(maxAttempts, stuckMinutes);
 
 		for (var message : failed) {
 			var event = mapper.readJson(message.getJsonMessage());
+
 			try {
 				mailSenderService.sendMessage(event);
 				messageStorageService.markStatus(event.bookingId(), MessageEntity::done);
+
+				log.info("Повторная отправка уведомления выполнена успешно, bookingId={}", event.bookingId());
 			} catch (MessagingException e) {
 				if (message.getAttempts() >= maxAttempts) {
 					messageStorageService.markStatus(event.bookingId(), MessageEntity::fail);
 				}
-				log.error("Retry failed bookingId={} attempts={}/{}",
+
+				log.error("Повторная отправка уведомления завершилась ошибкой, bookingId={}, attempts={}/{}",
 						event.bookingId(), message.getAttempts() + 1, maxAttempts, e);
 			}
 		}
+
+		log.info("Повторная обработка уведомлений завершена, count={}", failed.size());
 	}
 
 	@Scheduled(fixedDelayString = "PT60M")
 	public void clean() {
 		Instant time = Instant.now().minus(timeAfterDone);
 		long deleted = messageStorageService.cleanDone(time);
-		log.info("Clean DONE messages older than {} deleted={}", time, deleted);
-	}
 
+		log.info("Очистка DONE-сообщений завершена, deleted={}, olderThan={}", deleted, time);
+	}
 }

@@ -22,8 +22,15 @@ public class KafkaConsumer {
 	public void listen(ConsumerRecord<String, BookingCreatedEvent> consumerRecord) {
 		var event = consumerRecord.value();
 		var key = consumerRecord.key();
-		notificationService.send(event);
-		log.info("Booking created event accepted: key={}", key);
-	}
 
+		log.info("Получено событие из Kafka, key={}, topic={}, partition={}, offset={}",
+				key,
+				consumerRecord.topic(),
+				consumerRecord.partition(),
+				consumerRecord.offset());
+
+		notificationService.send(event);
+
+		log.info("Событие о создании бронирования принято в обработку, key={}", key);
+	}
 }
