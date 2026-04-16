@@ -2,8 +2,8 @@ package my.project.restaurantservice.dto.workinghours;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 import my.project.restaurantservice.entity.enums.WeekDay;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalTime;
 

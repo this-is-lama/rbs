@@ -89,11 +89,15 @@ public class CommonExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiError> handleBadJson(HttpServletRequest request) {
+    public ResponseEntity<ApiError> handleBadJson(HttpMessageNotReadableException ex,
+                                                  HttpServletRequest request) {
         var locale = LocaleContextHolder.getLocale();
         String msg = messageSource.getMessage("common.bad-request", null, "common.bad-request", locale);
 
-        log.warn("Некорректный формат тела запроса: path={}", request.getRequestURI());
+        log.warn("Некорректный формат тела запроса: path={}, error={}",
+                request.getRequestURI(),
+                ex.getMostSpecificCause().getMessage(),
+                ex);
 
         ApiError body = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),

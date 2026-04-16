@@ -13,7 +13,7 @@ public class RestaurantContainerProvider implements PhotoContainerProvider {
 
     private final RestaurantService restaurantService;
 
-    private static final ContainerType CONTAINER_TYPE = ContainerType.RESTAURANT;
+    private static final ContainerType CONTAINER_TYPE = ContainerType.RESTAURANTS;
     private static final String BUCKET_NAME = "restaurant-media";
 
     @Override

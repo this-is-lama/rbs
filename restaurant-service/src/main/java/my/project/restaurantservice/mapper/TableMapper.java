@@ -12,23 +12,21 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface TableMapper {
 
-	@Mapping(target = "id", ignore = true)
-	@Mapping(target = "restaurant", ignore = true)
-	@Mapping(target = "createdAt", ignore = true)
-	@Mapping(target = "updatedAt", ignore = true)
-	TableEntity toEntity(TableDto dto);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "restaurant", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    TableEntity toEntity(TableDto dto);
 
-	@Mapping(target = "id", ignore = true)
-	@Mapping(target = "restaurant", ignore = true)
-	@Mapping(target = "createdAt", ignore = true)
-	@Mapping(target = "updatedAt", ignore = true)
-	void updateEntity(@MappingTarget TableEntity entity, TableDto dto);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "restaurant", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntity(@MappingTarget TableEntity entity, TableDto dto);
 
+    TableDto toDto(TableEntity entity);
 
+    List<TableDto> toDto(List<TableEntity> entity);
 
-	TableDto toDto(TableEntity entity);
-
-	List<TableDto> toDto(List<TableEntity> entity);
-
-	BookingTableDto toBookingDto(TableEntity entity);
+    BookingTableDto toBookingDto(TableEntity entity);
 }

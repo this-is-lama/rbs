@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -148,7 +149,9 @@ public class RestaurantService {
 		log.info("Поиск ресторанов, category={}, name={}, active={}, address={}, page={}, size={}",
 				category, name, active, address, page, size);
 
-		WeekDay today = WeekDay.valueOf(LocalDate.now().getDayOfWeek().name());
+		WeekDay today = WeekDay.valueOf(
+				LocalDate.now(ZoneId.of("Europe/Moscow")).getDayOfWeek().name()
+		);
 		Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
 		var spec = RestaurantSpecifications.getSpecification(category, name, active, address);
 
@@ -193,5 +196,19 @@ public class RestaurantService {
 
 		log.info("Snapshot для бронирования успешно сформирован, restId={}", restId);
 		return new BookingSnapshotResponse(restaurant, table, dishes);
+	}
+
+	@Transactional(readOnly = true)
+	public List<String> findAllCategories() {
+		log.info("Получение списка категорий ресторанов");
+
+		var categories = repository.findDistinctCategories().stream()
+				.map(String::trim)
+				.filter(category -> !category.isBlank())
+				.distinct()
+				.toList();
+
+		log.info("Список категорий успешно получен, count={}", categories.size());
+		return categories;
 	}
 }

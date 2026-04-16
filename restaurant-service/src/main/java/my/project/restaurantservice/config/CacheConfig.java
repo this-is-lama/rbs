@@ -1,11 +1,10 @@
 package my.project.restaurantservice.config;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -15,29 +14,20 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import java.time.Duration;
 
 @Configuration
+@EnableCaching
 public class CacheConfig {
 
-
     @Bean
-    public ObjectMapper redisObjectMapper() {
-        ObjectMapper om = new ObjectMapper();
-        om.registerModule(new JavaTimeModule());
-        om.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    public RedisCacheConfiguration redisCacheConfiguration() {
+        ObjectMapper redisObjectMapper = new ObjectMapper();
+        redisObjectMapper.registerModule(new JavaTimeModule());
+        redisObjectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        om.activateDefaultTyping(
-                LaissezFaireSubTypeValidator.instance,
-                ObjectMapper.DefaultTyping.NON_FINAL,
-                JsonTypeInfo.As.PROPERTY
-        );
-
-        return om;
-    }
-
-
-    @Bean
-    public RedisCacheConfiguration redisCacheConfiguration(ObjectMapper redisObjectMapper) {
         GenericJackson2JsonRedisSerializer serializer =
-                new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+                GenericJackson2JsonRedisSerializer.builder()
+                        .objectMapper(redisObjectMapper)
+                        .defaultTyping(true)
+                        .build();
 
         return RedisCacheConfiguration.defaultCacheConfig()
                 .disableCachingNullValues()
@@ -46,11 +36,13 @@ public class CacheConfig {
                 );
     }
 
-
     @Bean
-    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(RedisCacheConfiguration base) {
+    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(
+            RedisCacheConfiguration base
+    ) {
         return builder -> builder
-                .cacheDefaults(base.entryTtl(Duration.ofMinutes(10))) // дефолт
+                .cacheDefaults(base.entryTtl(Duration.ofMinutes(10)))
+
                 .withCacheConfiguration("publicRestaurantById", base.entryTtl(Duration.ofMinutes(5)))
                 .withCacheConfiguration("privateRestaurantById", base.entryTtl(Duration.ofMinutes(5)))
 
@@ -63,7 +55,6 @@ public class CacheConfig {
                 .withCacheConfiguration("privateTableById", base.entryTtl(Duration.ofMinutes(5)))
                 .withCacheConfiguration("publicTablesByRestaurantId", base.entryTtl(Duration.ofMinutes(2)))
                 .withCacheConfiguration("privateTablesByRestaurantId", base.entryTtl(Duration.ofMinutes(2)))
-
                 .withCacheConfiguration("restaurantBookingTable", base.entryTtl(Duration.ofMinutes(2)))
 
                 .withCacheConfiguration("photosByDishId", base.entryTtl(Duration.ofMinutes(1)))
@@ -71,5 +62,4 @@ public class CacheConfig {
 
                 .withCacheConfiguration("managerAccess", base.entryTtl(Duration.ofMinutes(30)));
     }
-
 }

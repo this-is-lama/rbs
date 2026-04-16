@@ -11,7 +11,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DishContainerProvider implements PhotoContainerProvider {
 
-    private static final ContainerType CONTAINER_TYPE = ContainerType.DISH;
+    private static final ContainerType CONTAINER_TYPE = ContainerType.DISHES;
     private static final String BUCKET_NAME = "dish-media";
 
     private final DishService dishService;
