@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ContainerType {
 
-    RESTAURANT,
-    DISH;
+    RESTAURANTS,
+    DISHES;
 
     public static ContainerType fromPath(String container) {
         if (container == null) throw new IllegalArgumentException("container is null");

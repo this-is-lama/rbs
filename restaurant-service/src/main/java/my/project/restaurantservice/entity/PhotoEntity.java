@@ -106,8 +106,8 @@
                 return false;
             }
             return switch (type) {
-                case RESTAURANT -> restaurant != null && Objects.equals(restaurant.getId(), containerId);
-                case DISH -> dish != null && Objects.equals(dish.getId(), containerId);
+                case RESTAURANTS -> restaurant != null && Objects.equals(restaurant.getId(), containerId);
+                case DISHES -> dish != null && Objects.equals(dish.getId(), containerId);
             };
         }
 

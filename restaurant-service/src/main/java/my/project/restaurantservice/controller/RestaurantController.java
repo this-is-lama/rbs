@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -70,5 +71,10 @@ public class RestaurantController {
 		restaurantService.delete(id, auth);
 		log.info("Ресторан успешно удалён, restId={}", id);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+	}
+
+	@GetMapping("/categories")
+	public ResponseEntity<List<String>> findAllCategories() {
+		return ResponseEntity.ok(restaurantService.findAllCategories());
 	}
 }

@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -30,6 +31,18 @@ public class TableController {
 		UUID id = tableService.save(dto, restId, auth);
 		log.info("Стол успешно создан, restId={}, tableId={}", restId, id);
 		return ResponseEntity.status(HttpStatus.CREATED).body(id);
+	}
+
+
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@PostMapping("/all")
+	public ResponseEntity<List<UUID>> createAll(@PathVariable UUID restId,
+												@RequestBody @Valid List<@Valid TableDto> dtos,
+												Authentication auth) {
+		log.info("Получен запрос на массовое создание столов, restId={}, count={}", restId, dtos.size());
+		List<UUID> ids = tableService.saveAll(dtos, restId, auth);
+		log.info("Массовое создание столов завершено, restId={}, createdCount={}", restId, ids.size());
+		return ResponseEntity.status(HttpStatus.CREATED).body(ids);
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")

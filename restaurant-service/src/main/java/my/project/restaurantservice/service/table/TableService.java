@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +49,28 @@ public class TableService {
 		UUID id = repository.save(table).getId();
 		log.info("Стол успешно создан, restId={}, tableId={}", restId, id);
 		return id;
+	}
+
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "publicTablesByRestaurantId", key = "#restId"),
+			@CacheEvict(cacheNames = "privateTablesByRestaurantId", key = "#restId")
+	})
+	@Transactional
+	public List<UUID> saveAll(List<TableDto> dtos, UUID restId, Authentication auth) {
+		log.info("Массовое создание столов, restId={}, count={}", restId, dtos.size());
+		managerService.checkAccess(restId, auth);
+
+		RestaurantEntity restaurant = restaurantRepository.getReferenceById(restId);
+		List<UUID> ids = new ArrayList<>();
+
+		for (TableDto dto : dtos) {
+			TableEntity table = mapper.toEntity(dto);
+			restaurant.addTable(table);
+			ids.add(repository.save(table).getId());
+		}
+
+		log.info("Массовое создание столов завершено, restId={}, createdCount={}", restId, ids.size());
+		return ids;
 	}
 
 	@Caching(evict = {

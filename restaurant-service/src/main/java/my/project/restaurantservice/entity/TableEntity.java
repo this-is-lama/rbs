@@ -6,8 +6,10 @@ import lombok.*;
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Entity
 @Table(
@@ -46,6 +48,15 @@ public class TableEntity {
 
     @Column(name = "is_active", nullable = false)
     private boolean active;
+
+    @Column(name = "position_x")
+    private Double positionX;
+
+    @Column(name = "position_y")
+    private Double positionY;
+
+    @Column(name = "marker_size")
+    private Integer markerSize;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

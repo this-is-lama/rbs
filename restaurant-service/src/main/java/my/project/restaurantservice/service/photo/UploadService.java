@@ -146,8 +146,8 @@ public class UploadService {
 
     private void evictPhotosCache(ContainerType type, UUID containerId) {
         switch (type) {
-            case DISH -> photoReadService.evictPhotosByDishId(containerId);
-            case RESTAURANT -> photoReadService.evictPhotosByRestaurantId(containerId);
+            case DISHES -> photoReadService.evictPhotosByDishId(containerId);
+            case RESTAURANTS -> photoReadService.evictPhotosByRestaurantId(containerId);
         }
     }
 }

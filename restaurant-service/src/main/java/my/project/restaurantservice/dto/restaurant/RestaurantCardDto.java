@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 import my.project.restaurantservice.dto.photo.PhotoDto;
 import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -18,6 +17,8 @@ public class RestaurantCardDto {
 		String name;
 
 		String category;
+
+		String description;
 
 		String address;
 

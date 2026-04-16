@@ -69,7 +69,12 @@ public interface RestaurantMapper {
 	}
 
 	@Mapping(target = "id", source = "restaurant.id")
+	@Mapping(target = "name", source = "restaurant.name")
 	@Mapping(target = "category", source = "restaurant.category")
+	@Mapping(target = "description", source = "restaurant.description")
+	@Mapping(target = "address", source = "restaurant.address")
+	@Mapping(target = "active", source = "restaurant.active")
+	@Mapping(target = "bannerPhoto", source = "bannerPhoto")
 	@Mapping(target = "workingHour", source = "workingHour")
 	RestaurantCardDto toCardDto(RestaurantEntity restaurant, PhotoEntity bannerPhoto, WorkingHoursEntity workingHour);
 

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import my.project.notificationservice.events.BookingCreatedEvent;
 import my.project.notificationservice.mapper.MailContextMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ public class MailSenderService {
 		helper.setSubject("Подтверждение бронирования");
 		helper.setFrom(sendFrom);
 		helper.setText(html, true);
+		helper.addInline("rbs-logo", new ClassPathResource("resources/templates/logo.svg"));
 
 		mailSender.send(mimeMessage);
 
