@@ -13,11 +13,13 @@ import java.util.UUID;
 @Repository
 public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
 
-    List<BookingEntity> findAllByUserIdOrderByStartAtDesc(UUID userId);
+    List<BookingEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
 
     Optional<BookingEntity> findByIdAndUserId(UUID id, UUID userId);
 
     List<BookingEntity> findAllByRestaurantId(UUID restId);
+
+    List<BookingEntity> findAllByRestaurantIdOrderByStartAtDesc(UUID restId);
 
     List<BookingEntity> findAllByRestaurantIdAndTableIdAndStatusAndStartAtLessThanAndEndAtGreaterThanOrderByStartAtAsc(
             UUID restaurantId,
