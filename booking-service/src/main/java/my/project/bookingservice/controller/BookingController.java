@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
+import my.project.bookingservice.dto.response.ManagerBookingResponse;
 import my.project.bookingservice.dto.response.TableAvailabilityResponse;
 import my.project.bookingservice.service.BookingReadService;
 import my.project.bookingservice.service.BookingService;
@@ -57,8 +58,9 @@ public class BookingController {
 
 	@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')")
 	@GetMapping("/manager/restaurants/{restId}")
-	public ResponseEntity<List<BookingResponse>> restaurantBookings(@PathVariable UUID restId, Authentication auth) {
-		log.info("Получен запрос на список бронирований ресторана, restId={}", restId);
+	public ResponseEntity<List<ManagerBookingResponse>> restaurantBookings(@PathVariable UUID restId,
+																		   Authentication auth) {
+		log.info("Получен запрос на список бронирований ресторана для менеджера, restId={}", restId);
 		return ResponseEntity.ok(bookingReadService.findAllByRestaurantId(restId, auth));
 	}
 

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.restaurantservice.dto.table.TableDto;
+import my.project.restaurantservice.dto.table.TableLayoutUpdateRequest;
 import my.project.restaurantservice.service.table.TableService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,6 @@ public class TableController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(id);
 	}
 
-
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@PostMapping("/all")
 	public ResponseEntity<List<UUID>> createAll(@PathVariable UUID restId,
@@ -51,6 +51,15 @@ public class TableController {
 										   @RequestBody @Valid TableDto dto, Authentication auth) {
 		log.info("Получен запрос на обновление стола, restId={}, tableId={}", restId, id);
 		return ResponseEntity.ok(tableService.update(restId, id, dto, auth));
+	}
+
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@PutMapping("/layout")
+	public ResponseEntity<List<TableDto>> updateLayout(@PathVariable UUID restId,
+													   @RequestBody @Valid TableLayoutUpdateRequest req,
+													   Authentication auth) {
+		log.info("Получен запрос на обновление layout столов, restId={}, count={}", restId, req.tables().size());
+		return ResponseEntity.ok(tableService.updateLayout(restId, req, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")

@@ -2,71 +2,48 @@
 
 Сервис регистрации и обнаружения микросервисов.
 
----
+## Что делает сервис
 
-## Назначение
-
-`eureka-server` выполняет роль Service Discovery.
-Все сервисы регистрируются в нём и получают возможность динамического обнаружения.
-
-Используется:
-Netflix Eureka
-
----
+- Поднимает Eureka Server.
+- Принимает регистрацию от `api-gateway`, `user-service`, `restaurant-service`, `booking-service` и `notification-service`.
+- Используется как service discovery для внутренних вызовов.
 
 ## Порт
 
-```
+```text
 8761
 ```
 
----
-
-## Используемые технологии и зависимости
-
-* Spring Boot
-* Spring Cloud Netflix Eureka Server
-* Spring Boot Actuator
-* Micrometer
-* Gradle (Kotlin DSL)
-* Java 17
-
----
-
 ## Конфигурация
 
-* `register-with-eureka=false`
-* `fetch-registry=false`
-* Actuator endpoints:
+В текущей версии сервер работает как standalone discovery node:
 
-    * health
-    * info
-    * metrics
-    * prometheus
+- `register-with-eureka=false`
+- `fetch-registry=false`
 
----
+Конфигурация находится в `src/main/resources/application.yml`.
 
-## Проверка работоспособности
+## Проверка работы
 
-```
-GET http://localhost:8761
-GET http://localhost:8761/actuator/health
-```
+- UI: `http://localhost:8761`
+- Health: `http://localhost:8761/actuator/health`
 
----
+## Технологии
 
-## Лицензия и условия использования
+- Spring Boot
+- Spring Cloud Netflix Eureka Server
+- Spring Boot Actuator
+- Java 17
 
-Данный проект **НЕ является open-source**.
+## Actuator
 
-Исходный код размещён в открытом доступе **исключительно
-для ознакомления**.
+Открыты endpoints:
 
-Любое использование кода, включая (но не ограничиваясь):
-запуск, компиляцию, модификацию, копирование, распространение,
-деплой или включение в другие проекты, **запрещено** без
-предварительного письменного согласия автора.
+- `health`
+- `info`
+- `metrics`
+- `prometheus`
 
-© 2026 this-is-lama. Все права защищены.
+## Лицензия
 
----
+См. корневой `readme.md` и файл `LICENSE`.

@@ -3,7 +3,10 @@ package my.project.bookingservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.bookingservice.client.RestaurantServiceClient;
+import my.project.bookingservice.client.UserServiceClient;
 import my.project.bookingservice.dto.response.BookingResponse;
+import my.project.bookingservice.dto.response.BookingUserResponse;
+import my.project.bookingservice.dto.response.ManagerBookingResponse;
 import my.project.bookingservice.dto.response.TableAvailabilityResponse;
 import my.project.bookingservice.entity.BookingEntity;
 import my.project.bookingservice.entity.BookingStatus;
@@ -18,8 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,23 +40,23 @@ public class BookingReadService {
 	private final BookingHelper helper;
 
 	private final RestaurantServiceClient restaurantClient;
-
+	private final UserServiceClient userServiceClient;
 
 	public BookingResponse findById(UUID id, Authentication auth) {
 		log.info("Получение бронирования по id, bookingId={}", id);
-		var booking = findByAuth(id, auth);
+		BookingEntity booking = findByAuth(id, auth);
 		return mapper.toResponse(booking);
 	}
 
 	public List<BookingResponse> findUserBookings(Authentication auth) {
-		var userId = AuthUtil.id(auth);
+		UUID userId = AuthUtil.id(auth);
 		log.info("Получение списка бронирований пользователя, userId={}", userId);
 
 		List<BookingEntity> bookings = repository.findAllByUserIdOrderByCreatedAtDesc(userId);
 		return mapper.toResponse(bookings);
 	}
 
-	public List<BookingResponse> findAllByRestaurantId(UUID restId, Authentication auth) {
+	public List<ManagerBookingResponse> findAllByRestaurantId(UUID restId, Authentication auth) {
 		log.info("Получение списка бронирований ресторана, restId={}", restId);
 
 		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(restId))) {
@@ -56,12 +64,24 @@ public class BookingReadService {
 			throw new ForbiddenException("booking.forbidden.restaurant-bookings");
 		}
 
-		var bookings = repository.findAllByRestaurantId(restId);
-		return mapper.toResponse(bookings);
+		List<BookingEntity> bookings = repository.findAllByRestaurantIdOrderByCreatedAtDesc(restId);
+
+		Set<UUID> userIds = bookings.stream()
+				.map(BookingEntity::getUserId)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+
+		Map<UUID, BookingUserResponse> usersById = userServiceClient.getBriefs(userIds).stream()
+				.map(mapper::toBookingUserResponse)
+				.collect(Collectors.toMap(BookingUserResponse::id, Function.identity()));
+
+		return bookings.stream()
+				.map(booking -> mapper.toManagerResponse(booking, usersById.get(booking.getUserId())))
+				.toList();
 	}
 
 	public BookingEntity findByAuth(UUID id, Authentication auth) {
-		var userId = AuthUtil.id(auth);
+		UUID userId = AuthUtil.id(auth);
 
 		Optional<BookingEntity> optional;
 		if (AuthUtil.isUser(auth)) {
@@ -72,14 +92,14 @@ public class BookingReadService {
 			optional = repository.findById(id);
 		}
 
-		var booking = optional.orElseThrow(() -> {
+		BookingEntity booking = optional.orElseThrow(() -> {
 			log.warn("Бронирование не найдено, bookingId={}", id);
 			return new NotFoundException("booking.not-found", id);
 		});
 
-		if (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(booking.getRestaurant().getRestaurantId())) {
+		if (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(booking.getRestaurantId())) {
 			log.warn("Менеджеру запрещён доступ к бронированию, bookingId={}, restId={}",
-					id, booking.getRestaurant().getRestaurantId());
+					id, booking.getRestaurantId());
 			throw new ForbiddenException("booking.forbidden.booking-access");
 		}
 
@@ -90,7 +110,7 @@ public class BookingReadService {
 		log.info("Получение публичной занятости стола, restaurantId={}, tableId={}, date={}",
 				restaurantId, tableId, date);
 
-		var bookings = repository
+		List<BookingEntity> bookings = repository
 				.findAllByRestaurantIdAndTableIdAndStatusAndStartAtLessThanAndEndAtGreaterThanOrderByStartAtAsc(
 						restaurantId,
 						tableId,
@@ -101,5 +121,4 @@ public class BookingReadService {
 
 		return helper.buildAvailabilityResponse(restaurantId, tableId, date, bookings);
 	}
-
 }

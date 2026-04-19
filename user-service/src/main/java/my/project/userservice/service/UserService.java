@@ -2,18 +2,24 @@ package my.project.userservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import my.project.common.exception.ConflictException;
-import my.project.common.security.AuthUtil;
 import my.project.common.exception.BadRequestException;
+import my.project.common.exception.ConflictException;
 import my.project.common.exception.ForbiddenException;
 import my.project.common.exception.NotFoundException;
-import my.project.userservice.dto.*;
-import my.project.userservice.entity.UserEntity;
+import my.project.common.security.AuthUtil;
 import my.project.common.security.UserRole;
+import my.project.userservice.dto.ChangePasswordRequest;
+import my.project.userservice.dto.ChangeRoleByIdRequest;
+import my.project.userservice.dto.RegistrationRequest;
+import my.project.userservice.dto.UpdateUserRequest;
+import my.project.userservice.dto.UserBriefDto;
+import my.project.userservice.dto.UserDto;
+import my.project.userservice.dto.UserLookupDto;
+import my.project.userservice.entity.UserEntity;
 import my.project.userservice.mapper.UserMapper;
 import my.project.userservice.repository.UserRepository;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,8 +27,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,31 +48,24 @@ public class UserService implements UserDetailsService {
 
 		UserEntity user = findByEmail(email);
 		if (!user.isEnabled()) {
-			log.warn("Попытка входа отключённого пользователя, userId={}, email={}", user.getId(), email);
+			log.warn("Пользователь отключён, email={}", email);
 			throw new ForbiddenException("user.not-enabled");
 		}
 
-		return new User(
-				user.getEmail(),
-				user.getPasswordHash(),
-				List.of(new SimpleGrantedAuthority(user.getRole().name()))
+		List<GrantedAuthority> authorities = List.of(
+				(GrantedAuthority) () -> user.getRole().name()
 		);
+
+		return User.builder()
+				.username(user.getId().toString())
+				.password(user.getPasswordHash())
+				.authorities(authorities)
+				.build();
 	}
 
 	@Transactional(readOnly = true)
-	public UserDto getById(UUID id) {
-		log.info("Получение пользователя по id={}", id);
-		var user = findById(id);
-		return mapper.toDto(user);
-	}
-
-	@Transactional(readOnly = true)
-	public UserEntity findById(UUID id) {
-		return repository.findById(id)
-				.orElseThrow(() -> {
-					log.warn("Пользователь не найден по id={}", id);
-					return new NotFoundException("user.not-found-by-id", id);
-				});
+	public boolean existsByEmail(String email) {
+		return repository.existsByEmail(email);
 	}
 
 	@Transactional(readOnly = true)
@@ -78,43 +78,99 @@ public class UserService implements UserDetailsService {
 	}
 
 	@Transactional(readOnly = true)
-	public boolean existsByEmail(String email) {
-		boolean exists = repository.existsByEmail(email);
-		log.debug("Проверка существования пользователя по email={}, результат={}", email, exists);
-		return exists;
+	public UserEntity findById(UUID id) {
+		return repository.findById(id)
+				.orElseThrow(() -> {
+					log.warn("Пользователь не найден по id={}", id);
+					return new NotFoundException("user.not-found-by-id", id);
+				});
 	}
 
 	@Transactional
 	public UserEntity save(RegistrationRequest req) {
-		log.info("Сохранение нового пользователя, email={}", req.email());
+		log.info("Создание пользователя, email={}", req.email());
 		UserEntity user = mapper.toEntity(req, passwordEncoder);
-		UserEntity savedUser = repository.save(user);
-		log.info("Пользователь сохранён, userId={}, email={}", savedUser.getId(), savedUser.getEmail());
-		return savedUser;
+		return repository.save(user);
+	}
+
+	@Transactional(readOnly = true)
+	public UserDto getMe(Authentication auth) {
+		UUID userId = AuthUtil.id(auth);
+		log.info("Получение профиля текущего пользователя, userId={}", userId);
+		return mapper.toDto(findById(userId));
+	}
+
+	@Transactional(readOnly = true)
+	public UserLookupDto lookupByEmail(String email) {
+		log.info("Lookup пользователя по email={}", email);
+		return mapper.toLookupDto(findByEmail(email));
+	}
+
+	@Transactional(readOnly = true)
+	public List<UserLookupDto> getSummaries(Set<UUID> ids) {
+		if (ids == null || ids.isEmpty()) {
+			log.info("Запрошены summaries пользователей с пустым списком ids");
+			return List.of();
+		}
+
+		log.info("Получение summaries пользователей, count={}", ids.size());
+
+		List<UserEntity> users = repository.findAllById(ids);
+		Map<UUID, UserLookupDto> mapped = mapper.toLookupDto(users).stream()
+				.collect(Collectors.toMap(UserLookupDto::id, Function.identity()));
+
+		return ids.stream()
+				.map(mapped::get)
+				.filter(Objects::nonNull)
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<UserBriefDto> getBriefs(Set<UUID> ids) {
+		if (ids == null || ids.isEmpty()) {
+			log.info("Запрошены brief-пользователи с пустым списком ids");
+			return List.of();
+		}
+
+		log.info("Получение краткой информации о пользователях, count={}", ids.size());
+
+		List<UserEntity> users = repository.findAllById(ids);
+		Map<UUID, UserBriefDto> mapped = mapper.toBriefDto(users).stream()
+				.collect(Collectors.toMap(UserBriefDto::id, Function.identity()));
+
+		return ids.stream()
+				.map(mapped::get)
+				.filter(Objects::nonNull)
+				.toList();
 	}
 
 	@Transactional
-	public UUID changeRoleByEmail(ChangeRoleRequest req, Authentication auth) {
+	public UUID changeRoleById(ChangeRoleByIdRequest req, Authentication auth) {
+		UUID currentUserId = AuthUtil.id(auth);
+		UserRole currentRole = extractHighestRole(auth);
+
+		UUID targetUserId = req.userId();
 		UserRole newRole = req.role();
-		UserEntity user = findByEmail(req.email());
 
-		log.info("Попытка смены роли пользователя, userId={}, email={}, новая роль={}",
-				user.getId(), user.getEmail(), newRole);
+		log.info("Смена роли пользователя, initiatorUserId={}, targetUserId={}, newRole={}",
+				currentUserId, targetUserId, newRole);
 
-		if (AuthUtil.isManager(auth) && newRole == UserRole.ROLE_ADMIN) {
-			log.warn("Менеджеру запрещено назначать роль администратора, email={}", req.email());
+		UserEntity targetUser = findById(targetUserId);
+
+		if (targetUser.getRole() == UserRole.ROLE_ADMIN) {
+			log.warn("Попытка смены роли администратора отклонена, targetUserId={}", targetUserId);
 			throw new ForbiddenException("user.admin-change-role-error");
 		}
 
-		if (user.getRole() == UserRole.ROLE_ADMIN) {
-			log.warn("Попытка изменения роли администратора отклонена, email={}", req.email());
-			throw new BadRequestException("user.admin-change-role-error");
+		if (currentRole == UserRole.ROLE_MANAGER && newRole == UserRole.ROLE_ADMIN) {
+			log.warn("Менеджер не может назначить роль администратора, initiatorUserId={}", currentUserId);
+			throw new ForbiddenException("common.forbidden");
 		}
 
-		user.setRole(newRole);
-		refreshJtiService.deactivateAllForUser(user.getId());
+		targetUser.setRole(newRole);
+		refreshJtiService.deactivateAllForUser(targetUser.getId());
 
-		UUID savedId = repository.save(user).getId();
+		UUID savedId = repository.save(targetUser).getId();
 		log.info("Роль пользователя успешно изменена, userId={}, новая роль={}", savedId, newRole);
 
 		return savedId;
@@ -166,5 +222,19 @@ public class UserService implements UserDetailsService {
 		refreshJtiService.deactivateAllForUser(user.getId());
 
 		log.info("Пароль пользователя успешно изменён, userId={}", userId);
+	}
+
+	private UserRole extractHighestRole(Authentication auth) {
+		Set<String> authorities = auth.getAuthorities().stream()
+				.map(GrantedAuthority::getAuthority)
+				.collect(Collectors.toSet());
+
+		if (authorities.contains(UserRole.ROLE_ADMIN.name())) {
+			return UserRole.ROLE_ADMIN;
+		}
+		if (authorities.contains(UserRole.ROLE_MANAGER.name())) {
+			return UserRole.ROLE_MANAGER;
+		}
+		return UserRole.ROLE_USER;
 	}
 }

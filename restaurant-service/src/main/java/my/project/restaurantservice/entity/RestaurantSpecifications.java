@@ -1,13 +1,10 @@
 package my.project.restaurantservice.entity;
 
-import jakarta.persistence.criteria.JoinType;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
+import jakarta.persistence.criteria.JoinType;
 import java.util.UUID;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RestaurantSpecifications {
 
     public static Specification<RestaurantEntity> hasCategory(String category) {
@@ -34,12 +31,22 @@ public class RestaurantSpecifications {
                         cb.like(cb.lower(root.get("address")), "%" + address.toLowerCase() + "%");
     }
 
+    public static Specification<RestaurantEntity> ownedByManager(UUID managerId) {
+        return (root, query, cb) -> {
+            if (query != null) {
+                query.distinct(true);
+            }
+            var join = root.join("managers", JoinType.INNER);
+            return cb.equal(join.get("id").get("managerId"), managerId);
+        };
+    }
+
     public static Specification<RestaurantEntity> isActiveOrOwnedByManager(UUID managerId) {
         return (root, query, cb) -> {
-			if (query != null) {
-				query.distinct(true);
-			}
-			var join = root.join("managers", JoinType.LEFT);
+            if (query != null) {
+                query.distinct(true);
+            }
+            var join = root.join("managers", JoinType.LEFT);
             return cb.or(
                     cb.isTrue(root.get("active")),
                     cb.equal(join.get("id").get("managerId"), managerId)

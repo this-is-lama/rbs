@@ -2,101 +2,118 @@
 
 Сервис управления бронированиями.
 
----
+## Что делает сервис
 
-## Назначение
-
-* Создание бронирования
-* Отмена бронирования
-* Получение списка бронирований
-* Публикация события
-
----
+- Создает бронирование по ресторану, столу, интервалу времени и списку блюд.
+- Отдает бронирование по `id` и список бронирований текущего пользователя.
+- Позволяет отменить бронирование.
+- Отдает список бронирований ресторана для менеджера или администратора.
+- Публикует событие `BookingCreatedEvent` в Kafka.
+- Получает данные о ресторане из `restaurant-service` и краткие данные о пользователях из `user-service` через OpenFeign.
 
 ## Порт
 
-```
+```text
 8082
 ```
 
----
-
-## Используемые технологии и зависимости
-
-* Spring Boot
-* Spring Web
-* Spring Security
-* Spring Data JPA
-* Spring Validation
-* Spring Cloud Netflix Eureka Client
-* Spring Cloud OpenFeign
-* Spring Kafka
-* PostgreSQL Driver
-* Liquibase
-* MapStruct
-* Lombok
-* Spring Boot Actuator
-* Micrometer
-* Gradle (Kotlin DSL)
-* Java 17
-
-Используется:
-Apache Kafka
-
----
-
-## База данных
-
-Отдельная БД: `bookingdb`
-
-Сущность:
-
-* Booking
-
----
-
 ## REST API
 
-```
-POST   /api/v1/bookings
-GET    /api/v1/bookings/{id}
-GET    /api/v1/bookings/my
-DELETE /api/v1/bookings/{id}
-```
+- `POST /api/v1/bookings`
+- `GET /api/v1/bookings/{id}`
+- `GET /api/v1/bookings/me`
+- `DELETE /api/v1/bookings/{id}/cancel`
+- `GET /api/v1/bookings/manager/restaurants/{restId}`
+- `GET /api/v1/bookings/public/restaurants/{restaurantId}/tables/{tableId}/availability?date=YYYY-MM-DD`
 
----
+Публичным является только маршрут доступности столика:
 
-## Kafka
+- `GET /api/v1/bookings/public/**`
 
-Topic:
+Все остальные маршруты требуют access token.
 
-```
-booking-created
-```
+## Данные и модель
 
----
+В сервисе есть собственная БД `bookingdb`.
 
-## Actuator
+Основные сущности текущей версии:
 
-* health
-* info
-* metrics
-* prometheus
+- `BookingEntity`
+- `RestaurantEntity`
+- `TableEntity`
+- `DishEntity`
 
----
+Статусы бронирования:
 
-## Лицензия и условия использования
+- `RESERVED`
+- `CANCELLED`
 
-Данный проект **НЕ является open-source**.
+При создании брони валидируется:
 
-Исходный код размещён в открытом доступе **исключительно
-для ознакомления**.
+- наличие `restaurantId` и `tableId`
+- интервал `startAt/endAt`
+- бронирование минимум за 1 час до начала
+- длительность минимум 1 час
+- число гостей от `1` до `50`
+- список блюд не больше `50` позиций
 
-Любое использование кода, включая (но не ограничиваясь):
-запуск, компиляцию, модификацию, копирование, распространение,
-деплой или включение в другие проекты, **запрещено** без
-предварительного письменного согласия автора.
+## Интеграции
 
-© 2026 this-is-lama. Все права защищены.
+### Kafka
 
----
+- property: `app.kafka.topics.booking-created`
+- текущее значение topic: `booking-topic`
+
+### Feign
+
+- `restaurant-service`
+  - `GET /api/v1/restaurants/{restId}/manager-access`
+  - `POST /api/v1/restaurants/{restId}/booking-snapshot`
+- `user-service`
+  - `POST /api/v1/users/briefs`
+
+## Конфигурация
+
+Обязательные переменные окружения:
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_USER`
+- `DB_PASS`
+- `JWT_SECRET`
+- `KAFKA_BOOTSTRAP`
+- `EUREKA_URL`
+
+Основные настройки лежат в `src/main/resources/application.yml`.
+
+## Технологии
+
+- Spring Boot
+- Spring Web
+- Spring Security OAuth2 Resource Server
+- Spring Data JPA
+- Spring Validation
+- Spring Cloud OpenFeign
+- Spring Cloud Netflix Eureka Client
+- Spring Kafka
+- PostgreSQL
+- Liquibase
+- MapStruct
+- Springdoc OpenAPI
+- Java 17
+
+## Swagger и Actuator
+
+- Swagger UI: `http://localhost:8082/swagger-ui/index.html`
+- OpenAPI: `http://localhost:8082/v3/api-docs`
+
+Открыты actuator endpoints:
+
+- `health`
+- `info`
+- `metrics`
+- `prometheus`
+
+## Лицензия
+
+См. корневой `readme.md` и файл `LICENSE`.
