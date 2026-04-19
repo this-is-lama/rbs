@@ -1,115 +1,157 @@
 # user-service
 
-Сервис аутентификации и управления пользователями.
+Сервис аутентификации, управления профилем пользователя и ролями.
 
----
+## Что делает сервис
 
-## Назначение
-
-* Регистрация
-* Логин
-* Refresh
-* Logout
-* Управление ролями
-* Хранение refresh JTI
-
----
+- Регистрирует пользователей.
+- Выполняет логин и выдает пару `access + refresh`.
+- Обновляет токены по refresh token.
+- Делает logout через деактивацию refresh JTI.
+- Отдает и обновляет профиль текущего пользователя.
+- Меняет пароль текущего пользователя.
+- Позволяет менеджеру или администратору менять роли и запрашивать краткие данные пользователей.
+- Периодически очищает неактивные и просроченные refresh JTI.
 
 ## Порт
 
-```
+```text
 8083
 ```
 
----
-
-## Используемые технологии и зависимости
-
-* Spring Boot
-* Spring Web
-* Spring Security
-* Spring Data JPA
-* Spring Validation
-* Spring Cloud Netflix Eureka Client
-* PostgreSQL Driver
-* Liquibase
-* jjwt (JWT generation / parsing)
-* Spring Boot Actuator
-* Micrometer
-* Gradle (Kotlin DSL)
-* Java 17
-
----
-
-## База данных
-
-Отдельная БД: `userdb`
-
-Таблицы:
-
-* users
-* refresh_jtis
-
----
-
-## JWT модель
-
-### Access Token
-
-Содержит:
-
-* sub
-* email
-* roles
-* token_type
-* issuer
-
-### Refresh Token
-
-Содержит:
-
-* sub
-* jti
-* token_type
-
-JTI хранится в БД в виде хэша.
-
----
-
 ## REST API
 
-```
-POST /api/v1/auth/register
-POST /api/v1/auth/login
-POST /api/v1/auth/refresh
-POST /api/v1/auth/logout
-PATCH /api/v1/users/change-role
-GET   /api/v1/users/{id}
-```
+### Auth
 
----
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/refresh`
+- `POST /api/v1/auth/logout`
 
-## Actuator
+### Users
 
-* health
-* info
-* metrics
-* prometheus
+- `GET /api/v1/users/me`
+- `PUT /api/v1/users/me`
+- `PATCH /api/v1/users/me/password`
+- `POST /api/v1/users/change-role-by-id`
+- `GET /api/v1/users/lookup`
+- `POST /api/v1/users/summaries`
+- `POST /api/v1/users/briefs`
 
----
+Публичными являются только `/api/v1/auth/**` и `/actuator/health`.
 
-## Лицензия и условия использования
+## JWT-модель
 
-Данный проект **НЕ является open-source**.
+### Access token
 
-Исходный код размещён в открытом доступе **исключительно
-для ознакомления**.
+Содержит:
 
-Любое использование кода, включая (но не ограничиваясь):
-запуск, компиляцию, модификацию, копирование, распространение,
-деплой или включение в другие проекты, **запрещено** без
-предварительного письменного согласия автора.
+- `sub`
+- `roles`
+- `email`
+- `name`
+- `token_type=access_token`
+- `issuer=user-service`
 
-© 2026 this-is-lama. Все права защищены.
+### Refresh token
 
----
+Содержит:
+
+- `sub`
+- `jti`
+- `token_type=refresh_token`
+- `issuer=user-service`
+
+Текущие lifetimes из конфигурации:
+
+- access: `1h`
+- refresh: `1d`
+
+`JWT_SECRET` и `JWT_REFRESH_SECRET` должны быть base64-строками.
+
+## Роли
+
+Реальные enum-значения:
+
+- `ROLE_USER`
+- `ROLE_MANAGER`
+- `ROLE_ADMIN`
+
+## Данные
+
+Собственная БД: `userdb`.
+
+Основные таблицы:
+
+- `users`
+- `refresh_jtis`
+
+`UserEntity` хранит:
+
+- `name`
+- `surname`
+- `dateOfBirth`
+- `phone`
+- `email`
+- `passwordHash`
+- `role`
+- `enabled`
+- `createdAt`
+- `updatedAt`
+
+Фоновая очистка refresh JTI запускается каждый `1` час.
+
+## Интеграции
+
+Сервис не использует внешние REST-клиенты, но предоставляет внутренние endpoints для других модулей:
+
+- `POST /api/v1/users/change-role-by-id`
+- `GET /api/v1/users/lookup`
+- `POST /api/v1/users/summaries`
+- `POST /api/v1/users/briefs`
+
+Их используют `restaurant-service` и `booking-service`.
+
+## Конфигурация
+
+Обязательные переменные окружения:
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_USER`
+- `DB_PASS`
+- `JWT_SECRET`
+- `JWT_REFRESH_SECRET`
+- `EUREKA_URL`
+
+Основные настройки лежат в `src/main/resources/application.yml`.
+
+## Технологии
+
+- Spring Boot
+- Spring Web
+- Spring Security OAuth2 Resource Server
+- Spring Data JPA
+- Spring Validation
+- Spring Cloud Netflix Eureka Client
+- JJWT
+- PostgreSQL
+- MapStruct
+- Springdoc OpenAPI
+- Java 17
+
+## Swagger и Actuator
+
+- Swagger UI: `http://localhost:8083/swagger-ui/index.html`
+- OpenAPI: `http://localhost:8083/v3/api-docs`
+
+Открыты actuator endpoints:
+
+- `health`
+- `info`
+- `metrics`
+- `prometheus`
+
+## Лицензия
+
+См. корневой `readme.md` и файл `LICENSE`.

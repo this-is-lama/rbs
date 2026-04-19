@@ -3,6 +3,7 @@ package my.project.restaurantservice.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.restaurantservice.dto.restaurant.RestaurantActiveUpdateRequest;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
 import my.project.restaurantservice.service.restaurant.RestaurantService;
@@ -43,6 +44,31 @@ public class RestaurantController {
 		RestaurantDto response = restaurantService.update(id, dto, auth);
 		log.info("Ресторан успешно обновлён, restId={}", id);
 		return ResponseEntity.ok(response);
+	}
+
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@PatchMapping("/{id}/active")
+	public ResponseEntity<RestaurantDto> setActive(@PathVariable UUID id,
+												   @RequestBody @Valid RestaurantActiveUpdateRequest req,
+												   Authentication auth) {
+		log.info("Получен запрос на изменение активности ресторана, restId={}, active={}", id, req.active());
+		RestaurantDto response = restaurantService.setActive(id, req.active(), auth);
+		log.info("Активность ресторана успешно изменена, restId={}, active={}", id, req.active());
+		return ResponseEntity.ok(response);
+	}
+
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@GetMapping("/my")
+	public ResponseEntity<Page<RestaurantCardDto>> findMy(@RequestParam(required = false) Boolean active,
+														  @RequestParam(required = false) String category,
+														  @RequestParam(required = false) String name,
+														  @RequestParam(required = false) String address,
+														  @RequestParam(defaultValue = "0") int page,
+														  @RequestParam(defaultValue = "10") int size,
+														  Authentication auth) {
+		log.info("Получен запрос на список ресторанов текущего пользователя, active={}, category={}, name={}, address={}, page={}, size={}",
+				active, category, name, address, page, size);
+		return ResponseEntity.ok(restaurantService.findMy(active, category, name, address, page, size, auth));
 	}
 
 	@GetMapping("/{id}")

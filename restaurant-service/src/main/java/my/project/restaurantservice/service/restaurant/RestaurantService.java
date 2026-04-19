@@ -29,16 +29,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RestaurantService {
+
+	private static final ZoneId BUSINESS_ZONE = ZoneId.of("Europe/Moscow");
 
 	private final RestaurantMapper mapper;
 	private final ContactMapper contactMapper;
@@ -105,7 +104,28 @@ public class RestaurantService {
 		workingHoursMapper.toEntity(dto.getWorkingHours()).forEach(restaurant::addWorkingHours);
 
 		log.info("Ресторан успешно обновлён, restId={}", id);
-		return mapper.toDto(restaurant);
+		return readService.getPrivateById(id);
+	}
+
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "publicRestaurantById", key = "#id"),
+			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id")
+	})
+	@Transactional
+	public RestaurantDto setActive(UUID id, boolean active, Authentication auth) {
+		log.info("Изменение активности ресторана, restId={}, active={}", id, active);
+		managerService.checkAccess(id, auth);
+
+		var restaurant = repository.findById(id)
+				.orElseThrow(() -> {
+					log.warn("Ресторан не найден для смены активности, restId={}", id);
+					return new NotFoundException("restaurant.not-found", id);
+				});
+
+		restaurant.setActive(active);
+
+		log.info("Активность ресторана успешно изменена, restId={}, active={}", id, active);
+		return readService.getPrivateById(id);
 	}
 
 	@Caching(evict = {
@@ -149,9 +169,6 @@ public class RestaurantService {
 		log.info("Поиск ресторанов, category={}, name={}, active={}, address={}, page={}, size={}",
 				category, name, active, address, page, size);
 
-		WeekDay today = WeekDay.valueOf(
-				LocalDate.now(ZoneId.of("Europe/Moscow")).getDayOfWeek().name()
-		);
 		Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
 		var spec = RestaurantSpecifications.getSpecification(category, name, active, address);
 
@@ -163,21 +180,29 @@ public class RestaurantService {
 		}
 
 		Page<RestaurantEntity> restaurantsPage = repository.findAll(spec, pageable);
+		return buildCardsPage(restaurantsPage, pageable);
+	}
 
-		Set<UUID> restIds = restaurantsPage.getContent().stream()
-				.map(RestaurantEntity::getId)
-				.collect(Collectors.toSet());
+	@Transactional(readOnly = true)
+	public Page<RestaurantCardDto> findMy(Boolean active,
+										  String category,
+										  String name,
+										  String address,
+										  int page,
+										  int size,
+										  Authentication auth) {
+		log.info("Поиск ресторанов текущего владельца/менеджера, active={}, category={}, name={}, address={}, page={}, size={}",
+				active, category, name, address, page, size);
 
-		var banners = photoReadService.findBannersForRestaurants(restIds);
-		var whs = workingHoursRepository.findTodayWorkingHoursForRestaurants(restIds, today).stream()
-				.collect(Collectors.toMap(wh -> wh.getRestaurant().getId(), wh -> wh));
+		Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+		var spec = RestaurantSpecifications.getSpecification(category, name, active, address);
 
-		List<RestaurantCardDto> cards = restaurantsPage.getContent().stream()
-				.map(r -> mapper.toCardDto(r, banners.get(r.getId()), whs.get(r.getId())))
-				.toList();
+		if (AuthUtil.isManager(auth)) {
+			spec = spec.and(RestaurantSpecifications.ownedByManager(AuthUtil.id(auth)));
+		}
 
-		log.info("Поиск ресторанов завершён, найдено элементов: {}", restaurantsPage.getTotalElements());
-		return new PageImpl<>(cards, pageable, restaurantsPage.getTotalElements());
+		Page<RestaurantEntity> restaurantsPage = repository.findAll(spec, pageable);
+		return buildCardsPage(restaurantsPage, pageable);
 	}
 
 	@Transactional(readOnly = true)
@@ -210,5 +235,28 @@ public class RestaurantService {
 
 		log.info("Список категорий успешно получен, count={}", categories.size());
 		return categories;
+	}
+
+	private Page<RestaurantCardDto> buildCardsPage(Page<RestaurantEntity> restaurantsPage, Pageable pageable) {
+		WeekDay today = WeekDay.valueOf(LocalDate.now(BUSINESS_ZONE).getDayOfWeek().name());
+
+		Set<UUID> restIds = restaurantsPage.getContent().stream()
+				.map(RestaurantEntity::getId)
+				.collect(Collectors.toSet());
+
+		if (restIds.isEmpty()) {
+			return new PageImpl<>(List.of(), pageable, restaurantsPage.getTotalElements());
+		}
+
+		var banners = photoReadService.findBannersForRestaurants(restIds);
+		var whs = workingHoursRepository.findTodayWorkingHoursForRestaurants(restIds, today).stream()
+				.collect(Collectors.toMap(wh -> wh.getRestaurant().getId(), wh -> wh));
+
+		List<RestaurantCardDto> cards = restaurantsPage.getContent().stream()
+				.map(r -> mapper.toCardDto(r, banners.get(r.getId()), whs.get(r.getId())))
+				.toList();
+
+		log.info("Поиск ресторанов завершён, найдено элементов: {}", restaurantsPage.getTotalElements());
+		return new PageImpl<>(cards, pageable, restaurantsPage.getTotalElements());
 	}
 }

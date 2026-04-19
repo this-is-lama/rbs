@@ -1,92 +1,77 @@
 # api-gateway
 
-Единая точка входа во всю систему RBS.
+Единая точка входа в систему `RBS`.
 
----
+## Что делает сервис
 
-## Назначение
-
-* Проверка access JWT
-* Проверка issuer
-* Проверка claim `token_type`
-* Маршрутизация через discovery
-
-Используется:
-Spring Cloud Gateway
-
----
+- Проверяет access JWT по HS256.
+- Валидирует `issuer=user-service`.
+- Проверяет claim `token_type=access_token`.
+- Маршрутизирует запросы в `user-service`, `restaurant-service`, `booking-service` и `notification-service`.
+- Применяет CORS для фронтенда `http://localhost:5173`.
+- Логирует входящие HTTP-запросы через `LoggingGlobalFilter`.
 
 ## Порт
 
-```
+```text
 8080
 ```
 
----
-
-## Используемые технологии и зависимости
-
-* Spring Boot
-* Spring WebFlux
-* Spring Security
-* Spring OAuth2 Resource Server
-* Spring Cloud Gateway
-* Spring Cloud Netflix Eureka Client
-* Spring Boot Actuator
-* Micrometer
-* Gradle (Kotlin DSL)
-* Java 17
-
----
-
-## Безопасность
-
-* HS256 проверка подписи
-* Проверка issuer
-* Проверка `token_type=access_token`
-
-Публичные маршруты:
-
-* `/api/v1/auth/**`
-* `/actuator/health`
-* `/actuator/info`
-
----
-
 ## Маршрутизация
 
-Используется discovery locator.
+`discovery locator` в текущей версии выключен. Используются явные маршруты из `application.yml`:
 
-Формат:
+- `/api/v1/auth/** -> user-service`
+- `/api/v1/users/** -> user-service`
+- `/api/v1/restaurants/** -> restaurant-service`
+- `/api/v1/bookings/** -> booking-service`
+- `/api/v1/notifications/** -> notification-service`
 
-```
-http://localhost:8080/{service-name}/...
-```
+Маршрут для `notification-service` настроен, но в текущем коде сам сервис не публикует REST-контроллеры.
 
----
+## Публичные маршруты
+
+- `OPTIONS /**`
+- `/actuator/health`
+- `/actuator/info`
+- `/api/v1/auth/**`
+- `GET /api/v1/restaurants/**`
+- `GET /api/v1/bookings/public/**`
+- `/v3/api-docs/**`
+- `/swagger-ui/**`
+- `/swagger-ui.html`
+
+Все остальные запросы требуют `Authorization: Bearer <access_token>`.
+
+## Конфигурация
+
+Обязательные переменные:
+
+- `JWT_SECRET` — base64-секрет access token.
+- `EUREKA_URL` — адрес Eureka.
+
+Основные настройки находятся в `src/main/resources/application.yml`.
 
 ## Actuator
 
-* health
-* info
-* metrics
-* prometheus
+Открыты endpoints:
 
----
+- `health`
+- `info`
+- `metrics`
+- `prometheus`
 
-## Лицензия и условия использования
+## Стек
 
-Данный проект **НЕ является open-source**.
+- Spring Boot
+- Spring WebFlux
+- Spring Cloud Gateway
+- Spring Security OAuth2 Resource Server
+- Spring Cloud Netflix Eureka Client
+- JJWT
+- Spring Boot Actuator
+- Java 17
 
-Исходный код размещён в открытом доступе **исключительно
-для ознакомления**.
+## Лицензия
 
-Любое использование кода, включая (но не ограничиваясь):
-запуск, компиляцию, модификацию, копирование, распространение,
-деплой или включение в другие проекты, **запрещено** без
-предварительного письменного согласия автора.
-
-© 2026 this-is-lama. Все права защищены.
-
----
-
+См. корневой `readme.md` и файл `LICENSE`.

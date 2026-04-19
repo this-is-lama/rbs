@@ -17,9 +17,7 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
 
     Optional<BookingEntity> findByIdAndUserId(UUID id, UUID userId);
 
-    List<BookingEntity> findAllByRestaurantId(UUID restId);
-
-    List<BookingEntity> findAllByRestaurantIdOrderByStartAtDesc(UUID restId);
+    List<BookingEntity> findAllByRestaurantIdOrderByCreatedAtDesc(UUID restId);
 
     List<BookingEntity> findAllByRestaurantIdAndTableIdAndStatusAndStartAtLessThanAndEndAtGreaterThanOrderByStartAtAsc(
             UUID restaurantId,

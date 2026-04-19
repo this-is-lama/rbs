@@ -2,7 +2,9 @@ package my.project.userservice.mapper;
 
 import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.dto.UpdateUserRequest;
+import my.project.userservice.dto.UserBriefDto;
 import my.project.userservice.dto.UserDto;
+import my.project.userservice.dto.UserLookupDto;
 import my.project.userservice.entity.UserEntity;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -10,9 +12,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-@Mapper(
-        componentModel = "spring"
-)
+import java.util.List;
+
+@Mapper(componentModel = "spring")
 public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -32,5 +34,14 @@ public interface UserMapper {
     void updateEntity(UpdateUserRequest req, @MappingTarget UserEntity user);
 
     @Mapping(target = "role", expression = "java(user.getRole().name())")
-	UserDto toDto(UserEntity user);
+    UserDto toDto(UserEntity user);
+
+    @Mapping(target = "role", expression = "java(user.getRole().name())")
+    UserLookupDto toLookupDto(UserEntity user);
+
+    List<UserLookupDto> toLookupDto(List<UserEntity> users);
+
+    UserBriefDto toBriefDto(UserEntity user);
+
+    List<UserBriefDto> toBriefDto(List<UserEntity> users);
 }

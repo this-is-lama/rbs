@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.NotFoundException;
 import my.project.restaurantservice.dto.client.BookingTableDto;
 import my.project.restaurantservice.dto.table.TableDto;
+import my.project.restaurantservice.dto.table.TableLayoutItemRequest;
+import my.project.restaurantservice.dto.table.TableLayoutUpdateRequest;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.entity.TableEntity;
 import my.project.restaurantservice.mapper.TableMapper;
@@ -18,9 +20,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -92,6 +93,47 @@ public class TableService {
 
 		log.info("Стол успешно обновлён, restId={}, tableId={}", restId, id);
 		return mapper.toDto(entity);
+	}
+
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "publicTableById", allEntries = true),
+			@CacheEvict(cacheNames = "privateTableById", allEntries = true),
+			@CacheEvict(cacheNames = "publicTablesByRestaurantId", key = "#restId"),
+			@CacheEvict(cacheNames = "privateTablesByRestaurantId", key = "#restId"),
+			@CacheEvict(cacheNames = "restaurantBookingTable", allEntries = true)
+	})
+	@Transactional
+	public List<TableDto> updateLayout(UUID restId, TableLayoutUpdateRequest req, Authentication auth) {
+		log.info("Обновление layout столов, restId={}, count={}", restId, req.tables().size());
+		managerService.checkAccess(restId, auth);
+
+		Set<UUID> ids = req.tables().stream()
+				.map(TableLayoutItemRequest::id)
+				.collect(Collectors.toSet());
+
+		List<TableEntity> tables = repository.findAllByRestaurantIdAndIdIn(restId, ids);
+		if (tables.size() != ids.size()) {
+			Set<UUID> foundIds = tables.stream().map(TableEntity::getId).collect(Collectors.toSet());
+			Set<UUID> missedIds = new HashSet<>(ids);
+			missedIds.removeAll(foundIds);
+			throw new NotFoundException("restaurant.table.not-found", missedIds);
+		}
+
+		Map<UUID, TableEntity> tableById = tables.stream()
+				.collect(Collectors.toMap(TableEntity::getId, table -> table));
+
+		for (TableLayoutItemRequest item : req.tables()) {
+			TableEntity table = tableById.get(item.id());
+			table.setPositionX(item.positionX());
+			table.setPositionY(item.positionY());
+			table.setMarkerSize(item.markerSize());
+		}
+
+		log.info("Layout столов успешно обновлён, restId={}", restId);
+		return tables.stream()
+				.sorted(Comparator.comparingInt(TableEntity::getTableNumber))
+				.map(mapper::toDto)
+				.toList();
 	}
 
 	@Caching(evict = {
