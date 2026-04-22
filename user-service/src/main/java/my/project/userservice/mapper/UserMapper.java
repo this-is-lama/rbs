@@ -19,7 +19,6 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "passwordHash", expression = "java(passwordEncoder.encode(req.password()))")
-    @Mapping(target = "role", constant = "ROLE_USER")
     @Mapping(target = "enabled", constant = "true")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

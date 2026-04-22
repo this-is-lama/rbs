@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.ConflictException;
 import my.project.common.exception.ForbiddenException;
+import my.project.common.security.UserRole;
 import my.project.userservice.dto.AuthRequest;
 import my.project.userservice.dto.AuthTokens;
 import my.project.userservice.dto.RefreshTokenDto;
@@ -52,8 +53,14 @@ public class AuthService {
             throw new ConflictException("user.email-already-use");
         }
 
+        if (req.role() == UserRole.ROLE_ADMIN) {
+            log.warn("Регистрация отклонена: пользователь с email={} не может зарегистрироваться как админ", req.email());
+            throw new ConflictException("user.invalid-role");
+        }
+
         UserEntity user = userService.save(req);
-        log.info("Пользователь успешно зарегистрирован, userId={}, email={}", user.getId(), user.getEmail());
+        log.info("Пользователь успешно зарегистрирован, userId={}, email={}, role={}",
+                user.getId(), user.getEmail(), user.getRole());
 
         return user.getId();
     }
