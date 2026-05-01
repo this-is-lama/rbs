@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import my.project.notificationservice.entity.MessageEntity;
 import my.project.notificationservice.mapper.MessageJsonMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -33,27 +34,32 @@ public class NotificationRetryService {
 	public void retry() {
 		log.info("Запущена повторная обработка уведомлений");
 
-		var failed = messageStorageService.getWorkBatch(maxAttempts, stuckMinutes);
+		var messages = messageStorageService.getWorkBatch(maxAttempts, stuckMinutes);
 
-		for (var message : failed) {
-			var event = mapper.readJson(message.getJsonMessage());
-
+		for (var message : messages) {
 			try {
-				mailSenderService.sendMessage(event);
-				messageStorageService.markStatus(event.bookingId(), MessageEntity::done);
+				var event = mapper.readJson(message.getJsonMessage());
 
-				log.info("Повторная отправка уведомления выполнена успешно, bookingId={}", event.bookingId());
-			} catch (MessagingException e) {
+				mailSenderService.sendMessage(event);
+				messageStorageService.markStatus(message.getMessageId(), MessageEntity::done);
+
+				log.info("Повторная отправка уведомления выполнена успешно, bookingId={}", message.getMessageId());
+			} catch (MessagingException | MailException e) {
 				if (message.getAttempts() >= maxAttempts) {
-					messageStorageService.markStatus(event.bookingId(), MessageEntity::fail);
+					messageStorageService.markStatus(message.getMessageId(), MessageEntity::fail);
 				}
 
 				log.error("Повторная отправка уведомления завершилась ошибкой, bookingId={}, attempts={}/{}",
-						event.bookingId(), message.getAttempts() + 1, maxAttempts, e);
+						message.getMessageId(), message.getAttempts(), maxAttempts, e);
+			} catch (Exception e) {
+				messageStorageService.markStatus(message.getMessageId(), MessageEntity::fail);
+
+				log.error("Повторная обработка уведомления завершилась непредвиденной ошибкой, bookingId={}",
+						message.getMessageId(), e);
 			}
 		}
 
-		log.info("Повторная обработка уведомлений завершена, count={}", failed.size());
+		log.info("Повторная обработка уведомлений завершена, count={}", messages.size());
 	}
 
 	@Scheduled(fixedDelayString = "PT60M")

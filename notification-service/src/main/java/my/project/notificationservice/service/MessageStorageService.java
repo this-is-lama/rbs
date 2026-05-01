@@ -26,43 +26,48 @@ public class MessageStorageService {
 
     @Transactional
     public boolean save(BookingCreatedEvent event) {
-        try {
-            MessageEntity message = new MessageEntity(event.bookingId(), mapper.writeJson(event));
-            repository.save(message);
+        UUID bookingId = event.bookingId();
 
-            log.info("Сообщение сохранено в хранилище, bookingId={}", event.bookingId());
+        if (repository.existsById(bookingId)) {
+            log.info("Сообщение уже было сохранено ранее, bookingId={}", bookingId);
+            return false;
+        }
+
+        try {
+            MessageEntity message = new MessageEntity(bookingId, mapper.writeJson(event));
+            repository.saveAndFlush(message);
+
+            log.info("Сообщение сохранено в хранилище, bookingId={}", bookingId);
             return true;
-        } catch (DataIntegrityViolationException ignored) {
-            log.info("Сообщение уже было сохранено ранее, bookingId={}", event.bookingId());
+        } catch (DataIntegrityViolationException e) {
+            log.info("Сообщение уже было сохранено ранее, bookingId={}", bookingId);
             return false;
         }
     }
 
     @Transactional
     public void markStatus(UUID bookingId, Consumer<MessageEntity> action) {
-        repository.findById(bookingId).ifPresent(m -> {
-            MessageStatus oldStatus = m.getStatus();
+        repository.findById(bookingId).ifPresentOrElse(message -> {
+            MessageStatus oldStatus = message.getStatus();
 
-            action.accept(m);
-            repository.save(m);
+            action.accept(message);
 
             log.info("Статус сообщения обновлён, bookingId={}, oldStatus={}, newStatus={}, attempts={}",
-                    bookingId, oldStatus, m.getStatus(), m.getAttempts());
-        });
+                    bookingId, oldStatus, message.getStatus(), message.getAttempts());
+        }, () -> log.warn("Сообщение не найдено для обновления статуса, bookingId={}", bookingId));
     }
 
     @Transactional
     public List<MessageEntity> getWorkBatch(int maxAttempts, int stuckMinutes) {
         var batch = repository.lockWorkBatch(maxAttempts, stuckMinutes);
+
         batch.forEach(MessageEntity::processing);
 
-        var savedBatch = repository.saveAll(batch);
-
-        if (!savedBatch.isEmpty()) {
-            log.info("Получена рабочая пачка сообщений для повторной обработки, count={}", savedBatch.size());
+        if (!batch.isEmpty()) {
+            log.info("Получена рабочая пачка сообщений для повторной обработки, count={}", batch.size());
         }
 
-        return savedBatch;
+        return batch;
     }
 
     @Transactional
