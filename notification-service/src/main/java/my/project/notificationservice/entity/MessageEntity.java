@@ -9,7 +9,8 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter @Setter
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -24,13 +25,14 @@ public class MessageEntity {
     @Column(nullable = false)
     private MessageStatus status;
 
-    @Column(nullable = false, length = 1000)
+    @Lob
+    @Column(name = "json_message", nullable = false, columnDefinition = "text")
     private String jsonMessage;
 
     @Column(nullable = false)
     private int attempts;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
@@ -44,14 +46,20 @@ public class MessageEntity {
     }
 
     @PrePersist
-    void prePersist() {
+    public void prePersist() {
         Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
+
+        if (createdAt == null) {
+            createdAt = now;
+        }
+
+        if (updatedAt == null) {
+            updatedAt = now;
+        }
     }
 
     @PreUpdate
-    void preUpdate() {
+    public void preUpdate() {
         updatedAt = Instant.now();
     }
 
@@ -62,13 +70,12 @@ public class MessageEntity {
 
     public void fail() {
         status = MessageStatus.FAILED;
-        attempts++;
+        updatedAt = Instant.now();
     }
 
     public void processing() {
         status = MessageStatus.PROCESSING;
         attempts++;
+        updatedAt = Instant.now();
     }
-
-
 }

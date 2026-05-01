@@ -19,6 +19,10 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 @RequiredArgsConstructor
 public class MailSenderService {
 
+	private static final String LOGO_PATH = "templates/logo.svg";
+	private static final String LOGO_CONTENT_ID = "rbs-logo";
+	private static final String LOGO_CONTENT_TYPE = "image/svg+xml";
+
 	@Value("${spring.mail.username}")
 	private String sendFrom;
 
@@ -38,11 +42,19 @@ public class MailSenderService {
 		context.setVariables(mapper.toContext(event));
 
 		String html = templateEngine.process("booking-confirm", context);
+
 		helper.setTo(sendToEmail);
 		helper.setSubject("Подтверждение бронирования");
 		helper.setFrom(sendFrom);
 		helper.setText(html, true);
-		helper.addInline("rbs-logo", new ClassPathResource("resources/templates/logo.svg"));
+
+		ClassPathResource logo = new ClassPathResource(LOGO_PATH);
+
+		if (logo.exists()) {
+			helper.addInline(LOGO_CONTENT_ID, logo, LOGO_CONTENT_TYPE);
+		} else {
+			log.warn("Логотип письма не найден в classpath: {}. Письмо будет отправлено без inline-логотипа", LOGO_PATH);
+		}
 
 		mailSender.send(mimeMessage);
 
