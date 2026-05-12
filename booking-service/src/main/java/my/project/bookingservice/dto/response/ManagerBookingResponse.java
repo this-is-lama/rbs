@@ -8,28 +8,28 @@ import java.util.List;
 import java.util.UUID;
 
 public record ManagerBookingResponse(
-        UUID id,
-        UUID restaurantId,
-        UUID userId,
+		UUID id,
+		UUID restaurantId,
+		UUID userId,
 
-        Instant startAt,
-        Instant endAt,
+		Instant startAt,
+		Instant endAt,
 
-        BookingStatus status,
+		BookingStatus status,
 
-        Integer guests,
+		Integer guests,
 
-        String comment,
+		String comment,
 
-        BigDecimal totalAmount,
+		BigDecimal totalAmount,
 
-        Instant createdAt,
-        Instant cancelledAt,
+		Instant createdAt,
+		Instant cancelledAt,
+		String cancellationReason,
 
-        RestaurantResponse restaurant,
-        TableResponse table,
-        List<DishResponse> dishes,
+		RestaurantResponse restaurant,
+		TableResponse table,
+		List<DishResponse> dishes,
 
-        BookingUserResponse user
-) {
-}
+		BookingUserResponse user
+) {}

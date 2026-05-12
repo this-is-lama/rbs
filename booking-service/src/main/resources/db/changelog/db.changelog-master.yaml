@@ -8,3 +8,13 @@ databaseChangeLog:
             relativeToChangelogFile: false
             splitStatements: true
             stripComments: true
+
+  - changeSet:
+      id: 002-add-booking-cancellation-reason
+      author: you
+      changes:
+        - sqlFile:
+            path: db/changelog/changes/002_add_booking_cancellation_reason.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: true

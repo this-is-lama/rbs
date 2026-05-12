@@ -67,6 +67,9 @@ public class BookingEntity {
 	@Column(name = "cancelled_at")
 	private Instant cancelledAt;
 
+	@Column(name = "cancellation_reason", length = 500)
+	private String cancellationReason;
+
 	@OneToMany(
 			mappedBy = "booking",
 			cascade = CascadeType.ALL,
@@ -86,6 +89,10 @@ public class BookingEntity {
 	)
 	private RestaurantEntity restaurant;
 
+	@Version
+	@Column(name = "version", nullable = false)
+	private long version;
+
 	public void setRestaurant(RestaurantEntity restaurant) {
 		this.restaurant = restaurant;
 		if (restaurant != null) {
@@ -101,10 +108,6 @@ public class BookingEntity {
 			this.tableId = table.getTableId();
 		}
 	}
-
-	@Version
-	@Column(name = "version", nullable = false)
-	private long version;
 
 	@PrePersist
 	void prePersist() {
@@ -138,10 +141,11 @@ public class BookingEntity {
 		return status == BookingStatus.CANCELLED;
 	}
 
-	public void cancel(Instant now) {
+	public void cancel(Instant now, String cancellationReason) {
 		if (!isCancelled()) {
 			this.status = BookingStatus.CANCELLED;
 			this.cancelledAt = now;
+			this.cancellationReason = cancellationReason;
 		}
 	}
 }

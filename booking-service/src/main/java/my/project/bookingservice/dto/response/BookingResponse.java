@@ -24,8 +24,9 @@ public record BookingResponse(
 
 		BigDecimal totalAmount,
 
-        Instant createdAt,
+		Instant createdAt,
 		Instant cancelledAt,
+		String cancellationReason,
 
 		RestaurantResponse restaurant,
 		TableResponse table,

@@ -3,7 +3,10 @@ package my.project.bookingservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.bookingservice.client.RestaurantServiceClient;
+import my.project.bookingservice.client.UserServiceClient;
 import my.project.bookingservice.dto.client.BookingSnapshotRequest;
+import my.project.bookingservice.dto.client.UserBriefDto;
+import my.project.bookingservice.dto.request.CancelBookingRequest;
 import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.entity.BookingEntity;
@@ -11,6 +14,8 @@ import my.project.bookingservice.kafka.KafkaProducer;
 import my.project.bookingservice.mapper.BookingMapper;
 import my.project.bookingservice.repository.BookingRepository;
 import my.project.common.exception.ConflictException;
+import my.project.common.exception.NotFoundException;
+import my.project.common.exception.ValidationException;
 import my.project.common.security.AuthUtil;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
@@ -19,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -32,8 +38,8 @@ public class BookingService {
 	private final BookingHelper helper;
 
 	private final RestaurantServiceClient restaurantClient;
+	private final UserServiceClient userServiceClient;
 	private final KafkaProducer kafkaProducer;
-
 
 	public BookingResponse create(CreateBookingRequest req, Authentication auth) {
 		var userId = AuthUtil.id(auth);
@@ -44,7 +50,7 @@ public class BookingService {
 		var savedEntity = save(entity);
 
 		log.info("Бронирование успешно создано, bookingId={}, userId={}", savedEntity.getId(), userId);
-		sendBookingEvent(savedEntity, auth);
+		sendBookingCreatedEvent(savedEntity, auth);
 
 		return mapper.toResponse(savedEntity);
 	}
@@ -61,15 +67,15 @@ public class BookingService {
 					req.restaurantId(), req.tableId());
 			throw new ConflictException("booking.table.guest-more-capacity");
 		}
+
 		return helper.buildBookingEntity(req, userId, bookingSnapshot, quantities);
 	}
 
-	private void sendBookingEvent(BookingEntity entity, Authentication auth) {
+	private void sendBookingCreatedEvent(BookingEntity entity, Authentication auth) {
 		var email = AuthUtil.email(auth);
 		var username = AuthUtil.username(auth);
 		kafkaProducer.sendBookingCreated(mapper.toEvent(entity, email, username));
 	}
-
 
 	@Transactional
 	public BookingEntity save(BookingEntity booking) {
@@ -83,17 +89,50 @@ public class BookingService {
 		}
 	}
 
-
 	@Transactional
-	public void cancel(UUID id, Authentication auth) {
+	public void cancel(UUID id, CancelBookingRequest req, Authentication auth) {
 		var now = Instant.now();
 
 		log.info("Отмена бронирования, bookingId={}", id);
 
 		BookingEntity booking = readService.findByAuth(id, auth);
-		booking.cancel(now);
+
+		if (booking.isCancelled()) {
+			log.info("Бронирование уже было отменено ранее, bookingId={}", id);
+			return;
+		}
+
+		boolean cancelledByManagerOrAdmin = AuthUtil.isManager(auth) || AuthUtil.isAdmin(auth);
+		String reason = req.reason();
+
+		if (cancelledByManagerOrAdmin && reason == null) {
+			log.warn("Причина отмены бронирования менеджером или администратором не указана, bookingId={}", id);
+			throw new ValidationException("booking.cancel.reason-required");
+		}
+
+		booking.cancel(now, reason);
+		repository.saveAndFlush(booking);
 
 		log.info("Бронирование помечено как отменённое, bookingId={}", id);
+
+		if (cancelledByManagerOrAdmin) {
+			sendBookingCancelledEvent(booking, reason);
+		}
+	}
+
+	private void sendBookingCancelledEvent(BookingEntity booking, String reason) {
+		UserBriefDto user = userServiceClient.getBriefs(Set.of(booking.getUserId()))
+				.stream()
+				.findFirst()
+				.orElseThrow(() -> {
+					log.warn("Пользователь бронирования не найден, bookingId={}, userId={}",
+							booking.getId(), booking.getUserId());
+					return new NotFoundException("user.not-found-by-id", booking.getUserId());
+				});
+
+		String username = user.name() + " " + user.surname();
+
+		kafkaProducer.sendBookingCancelled(mapper.toCancelledEvent(booking, user.email(), username, reason));
 	}
 
 }

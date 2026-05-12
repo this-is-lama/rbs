@@ -3,6 +3,7 @@ package my.project.bookingservice.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.bookingservice.dto.request.CancelBookingRequest;
 import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.dto.response.ManagerBookingResponse;
@@ -49,9 +50,11 @@ public class BookingController {
 	}
 
 	@DeleteMapping("/{id}/cancel")
-	public ResponseEntity<Void> cancel(@PathVariable UUID id, Authentication auth) {
+	public ResponseEntity<Void> cancel(@PathVariable UUID id,
+									   @RequestBody(required = false) @Valid CancelBookingRequest req,
+									   Authentication auth) {
 		log.info("Получен запрос на отмену бронирования, bookingId={}", id);
-		bookingService.cancel(id, auth);
+		bookingService.cancel(id, req, auth);
 		log.info("Бронирование успешно отменено, bookingId={}", id);
 		return ResponseEntity.noContent().build();
 	}

@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.notificationservice.entity.MessageEntity;
 import my.project.notificationservice.entity.MessageStatus;
-import my.project.notificationservice.events.BookingCreatedEvent;
+import my.project.notificationservice.events.BookingNotificationEvent;
 import my.project.notificationservice.mapper.MessageJsonMapper;
 import my.project.notificationservice.repository.MessageRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -24,37 +25,45 @@ public class MessageStorageService {
     private final MessageRepository repository;
     private final MessageJsonMapper mapper;
 
-    @Transactional
-    public boolean save(BookingCreatedEvent event) {
-        UUID bookingId = event.bookingId();
+    public UUID messageId(BookingNotificationEvent event) {
+        String value = event.messageType().name() + ":" + event.bookingId();
+        return UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8));
+    }
 
-        if (repository.existsById(bookingId)) {
-            log.info("Сообщение уже было сохранено ранее, bookingId={}", bookingId);
+    @Transactional
+    public boolean save(BookingNotificationEvent event) {
+        UUID messageId = messageId(event);
+
+        if (repository.existsById(messageId)) {
+            log.info("Сообщение уже было сохранено ранее, messageId={}, bookingId={}, messageType={}",
+                    messageId, event.bookingId(), event.messageType());
             return false;
         }
 
         try {
-            MessageEntity message = new MessageEntity(bookingId, mapper.writeJson(event));
+            MessageEntity message = new MessageEntity(messageId, event.messageType(), mapper.writeJson(event));
             repository.saveAndFlush(message);
 
-            log.info("Сообщение сохранено в хранилище, bookingId={}", bookingId);
+            log.info("Сообщение сохранено в хранилище, messageId={}, bookingId={}, messageType={}",
+                    messageId, event.bookingId(), event.messageType());
             return true;
         } catch (DataIntegrityViolationException e) {
-            log.info("Сообщение уже было сохранено ранее, bookingId={}", bookingId);
+            log.info("Сообщение уже было сохранено ранее, messageId={}, bookingId={}, messageType={}",
+                    messageId, event.bookingId(), event.messageType());
             return false;
         }
     }
 
     @Transactional
-    public void markStatus(UUID bookingId, Consumer<MessageEntity> action) {
-        repository.findById(bookingId).ifPresentOrElse(message -> {
+    public void markStatus(UUID messageId, Consumer<MessageEntity> action) {
+        repository.findById(messageId).ifPresentOrElse(message -> {
             MessageStatus oldStatus = message.getStatus();
 
             action.accept(message);
 
-            log.info("Статус сообщения обновлён, bookingId={}, oldStatus={}, newStatus={}, attempts={}",
-                    bookingId, oldStatus, message.getStatus(), message.getAttempts());
-        }, () -> log.warn("Сообщение не найдено для обновления статуса, bookingId={}", bookingId));
+            log.info("Статус сообщения обновлён, messageId={}, oldStatus={}, newStatus={}, attempts={}",
+                    messageId, oldStatus, message.getStatus(), message.getAttempts());
+        }, () -> log.warn("Сообщение не найдено для обновления статуса, messageId={}", messageId));
     }
 
     @Transactional
