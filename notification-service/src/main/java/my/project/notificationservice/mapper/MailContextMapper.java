@@ -1,6 +1,7 @@
 package my.project.notificationservice.mapper;
 
-import my.project.notificationservice.events.BookingCreatedEvent;
+import my.project.notificationservice.events.BookingCancelledEvent;
+import my.project.notificationservice.events.BookingNotificationEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -9,7 +10,7 @@ import java.util.Map;
 @Component
 public class MailContextMapper {
 
-	public Map<String, Object> toContext(BookingCreatedEvent event) {
+	public Map<String, Object> toContext(BookingNotificationEvent event) {
 		Map<String, Object> context = new HashMap<>();
 
 		context.put("bookingId", event.bookingId());
@@ -30,6 +31,10 @@ public class MailContextMapper {
 		// table
 		context.put("tableNumber", event.tableNumber());
 		context.put("tableDescription", event.tableDescription());
+
+		if (event instanceof BookingCancelledEvent cancelledEvent) {
+			context.put("reason", cancelledEvent.reason());
+		}
 
 		return context;
 	}

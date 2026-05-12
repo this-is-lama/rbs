@@ -22,6 +22,10 @@ public class MessageEntity {
     private UUID messageId;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "message_type", length = 50)
+    private MessageType messageType;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MessageStatus status;
 
@@ -38,8 +42,9 @@ public class MessageEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public MessageEntity(UUID messageId, String jsonMessage) {
+    public MessageEntity(UUID messageId, MessageType messageType, String jsonMessage) {
         this.messageId = messageId;
+        this.messageType = messageType;
         this.jsonMessage = jsonMessage;
         this.status = MessageStatus.CREATED;
         this.attempts = 0;

@@ -40,7 +40,8 @@ spring:
 app:
   kafka:
     topics:
-      booking-created: booking-topic
+      booking-created: booking-created-topic
+      booking-cancelled: booking-cancelled-topic
 
 eureka:
   client:

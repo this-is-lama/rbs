@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-public record BookingCreatedEvent(
+public record BookingCancelledEvent(
 
 		UUID bookingId,
 
@@ -27,12 +27,14 @@ public record BookingCreatedEvent(
 
 		//table
 		Integer tableNumber,
-		String tableDescription
+		String tableDescription,
+
+		String reason
 
 ) implements BookingNotificationEvent {
 
 	@Override
 	public MessageType messageType() {
-		return MessageType.BOOKING_CREATED;
+		return MessageType.BOOKING_CANCELLED;
 	}
 }

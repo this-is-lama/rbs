@@ -1,12 +1,10 @@
-package my.project.notificationservice.events;
-
-import my.project.notificationservice.entity.MessageType;
+package my.project.bookingservice.dto.events;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-public record BookingCreatedEvent(
+public record BookingCancelledEvent(
 
 		UUID bookingId,
 
@@ -27,12 +25,8 @@ public record BookingCreatedEvent(
 
 		//table
 		Integer tableNumber,
-		String tableDescription
+		String tableDescription,
 
-) implements BookingNotificationEvent {
+		String reason
 
-	@Override
-	public MessageType messageType() {
-		return MessageType.BOOKING_CREATED;
-	}
-}
+) {}

@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.notificationservice.entity.MessageEntity;
+import my.project.notificationservice.entity.MessageType;
 import my.project.notificationservice.mapper.MessageJsonMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
@@ -38,23 +39,28 @@ public class NotificationRetryService {
 
 		for (var message : messages) {
 			try {
-				var event = mapper.readJson(message.getJsonMessage());
+				MessageType messageType = message.getMessageType() == null
+						? MessageType.BOOKING_CREATED
+						: message.getMessageType();
+
+				var event = mapper.readJson(messageType, message.getJsonMessage());
 
 				mailSenderService.sendMessage(event);
 				messageStorageService.markStatus(message.getMessageId(), MessageEntity::done);
 
-				log.info("Повторная отправка уведомления выполнена успешно, bookingId={}", message.getMessageId());
+				log.info("Повторная отправка уведомления выполнена успешно, messageId={}, bookingId={}, messageType={}",
+						message.getMessageId(), event.bookingId(), event.messageType());
 			} catch (MessagingException | MailException e) {
 				if (message.getAttempts() >= maxAttempts) {
 					messageStorageService.markStatus(message.getMessageId(), MessageEntity::fail);
 				}
 
-				log.error("Повторная отправка уведомления завершилась ошибкой, bookingId={}, attempts={}/{}",
+				log.error("Повторная отправка уведомления завершилась ошибкой, messageId={}, attempts={}/{}",
 						message.getMessageId(), message.getAttempts(), maxAttempts, e);
 			} catch (Exception e) {
 				messageStorageService.markStatus(message.getMessageId(), MessageEntity::fail);
 
-				log.error("Повторная обработка уведомления завершилась непредвиденной ошибкой, bookingId={}",
+				log.error("Повторная обработка уведомления завершилась непредвиденной ошибкой, messageId={}",
 						message.getMessageId(), e);
 			}
 		}

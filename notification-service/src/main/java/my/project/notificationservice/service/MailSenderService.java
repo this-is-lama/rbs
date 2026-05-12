@@ -4,7 +4,8 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import my.project.notificationservice.events.BookingCreatedEvent;
+import my.project.notificationservice.entity.MessageType;
+import my.project.notificationservice.events.BookingNotificationEvent;
 import my.project.notificationservice.mapper.MailContextMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -30,10 +31,11 @@ public class MailSenderService {
 	private final SpringTemplateEngine templateEngine;
 	private final MailContextMapper mapper;
 
-	public void sendMessage(BookingCreatedEvent event) throws MessagingException {
+	public void sendMessage(BookingNotificationEvent event) throws MessagingException {
 		String sendToEmail = event.email();
 
-		log.info("Подготовка email для отправки, bookingId={}, email={}", event.bookingId(), sendToEmail);
+		log.info("Подготовка email для отправки, bookingId={}, messageType={}, email={}",
+				event.bookingId(), event.messageType(), sendToEmail);
 
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 		var helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -41,10 +43,10 @@ public class MailSenderService {
 		Context context = new Context();
 		context.setVariables(mapper.toContext(event));
 
-		String html = templateEngine.process("booking-confirm", context);
+		String html = templateEngine.process(templateName(event.messageType()), context);
 
 		helper.setTo(sendToEmail);
-		helper.setSubject("Подтверждение бронирования");
+		helper.setSubject(subject(event.messageType()));
 		helper.setFrom(sendFrom);
 		helper.setText(html, true);
 
@@ -58,6 +60,21 @@ public class MailSenderService {
 
 		mailSender.send(mimeMessage);
 
-		log.info("Email успешно отправлен, bookingId={}, email={}", event.bookingId(), sendToEmail);
+		log.info("Email успешно отправлен, bookingId={}, messageType={}, email={}",
+				event.bookingId(), event.messageType(), sendToEmail);
+	}
+
+	private String templateName(MessageType messageType) {
+		return switch (messageType) {
+			case BOOKING_CREATED -> "booking-confirm";
+			case BOOKING_CANCELLED -> "booking-cancelled";
+		};
+	}
+
+	private String subject(MessageType messageType) {
+		return switch (messageType) {
+			case BOOKING_CREATED -> "Подтверждение бронирования";
+			case BOOKING_CANCELLED -> "Бронирование отменено";
+		};
 	}
 }
