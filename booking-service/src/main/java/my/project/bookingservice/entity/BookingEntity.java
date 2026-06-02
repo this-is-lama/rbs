@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,15 @@ public class BookingEntity {
 	@Column(name = "total_amount", precision = 12, scale = 2, nullable = false)
 	private BigDecimal totalAmount;
 
+	@Column(name = "pricing_offer_id", columnDefinition = "uuid")
+	private UUID pricingOfferId;
+
+	@Column(name = "preorder_amount", precision = 12, scale = 2, nullable = false)
+	private BigDecimal preorderAmount;
+
+	@Column(name = "pricing_charge", precision = 12, scale = 2, nullable = false)
+	private BigDecimal pricingCharge;
+
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
@@ -110,14 +120,25 @@ public class BookingEntity {
 	}
 
 	@PrePersist
-	void prePersist() {
+	public void prePersist() {
 		Instant now = Instant.now();
-		if (createdAt == null) createdAt = now;
-		if (status == null) status = BookingStatus.RESERVED;
+		if (createdAt == null) {
+			createdAt = now;
+		}
+		if (status == null) {
+			status = BookingStatus.RESERVED;
+		}
 		syncTableId();
-		this.totalAmount = dishes.stream()
-				.map(d -> d.getPrice().multiply(BigDecimal.valueOf(d.getQuantity())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		if (preorderAmount == null) {
+			preorderAmount = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+		}
+		if (pricingCharge == null) {
+			pricingCharge = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+		}
+		if (totalAmount == null) {
+			totalAmount = preorderAmount.add(pricingCharge).setScale(2, RoundingMode.HALF_UP);
+		}
 	}
 
 	@PreUpdate

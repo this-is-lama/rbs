@@ -35,7 +35,9 @@ public record CreateBookingRequest(
 
 		@Valid
 		@Size(max = 50)
-		List<BookingDishCreateRequest> dishes
+		List<BookingDishCreateRequest> dishes,
+
+		UUID pricingOfferId
 
 ) {
 

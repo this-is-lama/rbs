@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import my.project.restaurantservice.dto.restaurant.RestaurantActiveUpdateRequest;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
+import my.project.restaurantservice.dto.restaurant.RestaurantPricingSettingsRequest;
+import my.project.restaurantservice.dto.restaurant.RestaurantPricingSettingsResponse;
 import my.project.restaurantservice.service.restaurant.RestaurantService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -55,6 +57,25 @@ public class RestaurantController {
 		RestaurantDto response = restaurantService.setActive(id, req.active(), auth);
 		log.info("Активность ресторана успешно изменена, restId={}, active={}", id, req.active());
 		return ResponseEntity.ok(response);
+	}
+
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@GetMapping("/{id}/pricing-settings")
+	public ResponseEntity<RestaurantPricingSettingsResponse> getPricingSettings(@PathVariable UUID id,
+																			   Authentication auth) {
+		log.info("Received request to get restaurant pricing settings, restId={}", id);
+		return ResponseEntity.ok(restaurantService.getPricingSettings(id, auth));
+	}
+
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@PutMapping("/{id}/pricing-settings")
+	public ResponseEntity<RestaurantPricingSettingsResponse> updatePricingSettings(
+			@PathVariable UUID id,
+			@RequestBody @Valid RestaurantPricingSettingsRequest request,
+			Authentication auth
+	) {
+		log.info("Received request to update restaurant pricing settings, restId={}", id);
+		return ResponseEntity.ok(restaurantService.updatePricingSettings(id, request, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")

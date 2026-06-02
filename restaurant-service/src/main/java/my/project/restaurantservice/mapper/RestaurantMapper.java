@@ -32,6 +32,7 @@ public interface RestaurantMapper {
 	@Mapping(target = "dishes", ignore = true)
 	@Mapping(target = "tables", ignore = true)
 	@Mapping(target = "photos", ignore = true)
+	@Mapping(target = "managers", ignore = true)
 	RestaurantEntity toEntity(RestaurantDto dto);
 
 	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
@@ -43,6 +44,9 @@ public interface RestaurantMapper {
 	@Mapping(target = "dishes", ignore = true)
 	@Mapping(target = "tables", ignore = true)
 	@Mapping(target = "photos", ignore = true)
+	@Mapping(target = "minPricingCharge", ignore = true)
+	@Mapping(target = "maxPricingCharge", ignore = true)
+	@Mapping(target = "managers", ignore = true)
 	void updateEntity(@MappingTarget RestaurantEntity entity, RestaurantDto dto);
 
 

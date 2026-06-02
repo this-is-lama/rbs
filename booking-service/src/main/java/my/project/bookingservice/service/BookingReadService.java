@@ -41,6 +41,7 @@ public class BookingReadService {
 
 	private final RestaurantServiceClient restaurantClient;
 	private final UserServiceClient userServiceClient;
+	private static final List<BookingStatus> ACTIVE_STATUSES = List.of(BookingStatus.RESERVED);
 
 	public BookingResponse findById(UUID id, Authentication auth) {
 		log.info("Получение бронирования по id, bookingId={}", id);
@@ -111,10 +112,10 @@ public class BookingReadService {
 				restaurantId, tableId, date);
 
 		List<BookingEntity> bookings = repository
-				.findAllByRestaurantIdAndTableIdAndStatusAndStartAtLessThanAndEndAtGreaterThanOrderByStartAtAsc(
+				.findAllByRestaurantIdAndTableIdAndStatusInAndStartAtLessThanAndEndAtGreaterThanOrderByStartAtAsc(
 						restaurantId,
 						tableId,
-						BookingStatus.RESERVED,
+						ACTIVE_STATUSES,
 						helper.dayEnd(date),
 						helper.dayStart(date)
 				);

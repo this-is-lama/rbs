@@ -20,5 +20,7 @@ public interface TableRepository extends JpaRepository<TableEntity, UUID> {
 
 	List<TableEntity> findAllByRestaurantIdAndIdIn(UUID restId, Collection<UUID> ids);
 
+	long countByRestaurantIdAndActiveTrue(UUID restId);
+
 	void deleteByIdAndRestaurantId(UUID id, UUID restId);
 }
