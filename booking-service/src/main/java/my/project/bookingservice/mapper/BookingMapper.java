@@ -31,6 +31,9 @@ public interface BookingMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "totalAmount", ignore = true)
+    @Mapping(target = "preorderAmount", ignore = true)
+    @Mapping(target = "pricingCharge", ignore = true)
+    @Mapping(target = "pricingOfferId", ignore = true)
 
     @Mapping(target = "table", ignore = true)
     @Mapping(target = "restaurant", ignore = true)
@@ -51,6 +54,9 @@ public interface BookingMapper {
     @Mapping(target = "restaurantAddress", source = "entity.restaurant.address")
     @Mapping(target = "tableNumber", source = "entity.table.tableNumber")
     @Mapping(target = "tableDescription", source = "entity.table.description")
+    @Mapping(target = "totalAmount", source = "entity.totalAmount")
+    @Mapping(target = "preorderAmount", source = "entity.preorderAmount")
+    @Mapping(target = "pricingCharge", source = "entity.pricingCharge")
     BookingCreatedEvent toEvent(BookingEntity entity, String email, String username);
 
     @Mapping(target = "bookingId", source = "entity.id")
@@ -74,6 +80,9 @@ public interface BookingMapper {
     @Mapping(target = "guests", source = "entity.guests")
     @Mapping(target = "comment", source = "entity.comment")
     @Mapping(target = "totalAmount", source = "entity.totalAmount")
+    @Mapping(target = "preorderAmount", source = "entity.preorderAmount")
+    @Mapping(target = "pricingCharge", source = "entity.pricingCharge")
+    @Mapping(target = "pricingOfferId", source = "entity.pricingOfferId")
     @Mapping(target = "createdAt", source = "entity.createdAt")
     @Mapping(target = "cancelledAt", source = "entity.cancelledAt")
     @Mapping(target = "cancellationReason", source = "entity.cancellationReason")

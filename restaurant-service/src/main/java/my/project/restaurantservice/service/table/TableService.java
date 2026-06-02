@@ -177,4 +177,9 @@ public class TableService {
 
 		return mapper.toBookingDto(table);
 	}
+
+	@Transactional(readOnly = true)
+	public long countActiveRestaurantTables(UUID restId) {
+		return repository.countByRestaurantIdAndActiveTrue(restId);
+	}
 }

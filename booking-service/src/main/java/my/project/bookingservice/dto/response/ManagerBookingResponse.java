@@ -18,10 +18,13 @@ public record ManagerBookingResponse(
 		BookingStatus status,
 
 		Integer guests,
-
+		
 		String comment,
 
 		BigDecimal totalAmount,
+		BigDecimal preorderAmount,
+		BigDecimal pricingCharge,
+		UUID pricingOfferId,
 
 		Instant createdAt,
 		Instant cancelledAt,

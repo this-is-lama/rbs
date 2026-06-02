@@ -46,6 +46,14 @@ minio:
   secretKey: ${MINIO_ROOT_PASSWORD}
   publicBaseUrl: ${MINIO_PUBLIC_BASE_URL}
 
+pricing:
+  defaults:
+    min-pricing-charge: 100
+    max-pricing-charge: 1000
+  system-limits:
+    min-pricing-charge: 0
+    max-pricing-charge: 10000
+
 eureka:
   client:
     service-url:

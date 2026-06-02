@@ -1,21 +1,16 @@
 # booking-service
 
-Сервис управления бронированиями.
+Сервис управления бронированиями в RBS.
 
 ## Что делает сервис
 
-- Создает бронирование по ресторану, столу, интервалу времени и списку блюд.
-- Отдает бронирование по `id` и список бронирований текущего пользователя.
-- Позволяет отменить бронирование.
-- Отдает список бронирований ресторана для менеджера или администратора.
-- Публикует событие `BookingCreatedEvent` в Kafka.
-- Получает данные о ресторане из `restaurant-service` и краткие данные о пользователях из `user-service` через OpenFeign.
-
-## Порт
-
-```text
-8082
-```
+- Создает бронирования по ресторану, столу, временному интервалу и предзаказу блюд.
+- Рассчитывает динамический сервисный сбор для бронирований с предзаказом.
+- Хранит и проверяет pricing offer перед созданием бронирования.
+- Отдает бронирования пользователя и список бронирований ресторана для менеджера или администратора.
+- Позволяет отменять, подтверждать и завершать бронирования.
+- Публикует события создания и отмены бронирования в Kafka.
+- Получает данные ресторана, столов и блюд из `restaurant-service`, а краткие данные пользователей из `user-service`.
 
 ## REST API
 
@@ -25,95 +20,55 @@
 - `DELETE /api/v1/bookings/{id}/cancel`
 - `GET /api/v1/bookings/manager/restaurants/{restId}`
 - `GET /api/v1/bookings/public/restaurants/{restaurantId}/tables/{tableId}/availability?date=YYYY-MM-DD`
+- `POST /api/v1/bookings/pricing/offers`
 
 Публичным является только маршрут доступности столика:
 
 - `GET /api/v1/bookings/public/**`
 
-Все остальные маршруты требуют access token.
+Остальные маршруты требуют access token. Подтверждение и завершение бронирований доступны `ROLE_MANAGER` и `ROLE_ADMIN`; менеджер должен иметь доступ к ресторану бронирования.
 
-## Данные и модель
+## Статусы бронирования
 
-В сервисе есть собственная БД `bookingdb`.
+- `RESERVED` — бронирование создано пользователем и ожидает подтверждения рестораном.
+- `CANCELLED` — бронирование отменено и не участвует в исторической аналитике.
 
-Основные сущности текущей версии:
+## Динамический сервисный сбор
 
-- `BookingEntity`
-- `RestaurantEntity`
-- `TableEntity`
-- `DishEntity`
-
-Статусы бронирования:
-
-- `RESERVED`
-- `CANCELLED`
-
-При создании брони валидируется:
-
-- наличие `restaurantId` и `tableId`
-- интервал `startAt/endAt`
-- бронирование минимум за 1 час до начала
-- длительность минимум 1 час
-- число гостей от `1` до `50`
-- список блюд не больше `50` позиций
+- Без предзаказа `pricingCharge = 0`, `preorderAmount = 0`, `totalAmount = 0`.
+- С предзаказом сервисный сбор рассчитывается по модели спроса и ограничивается границами ресторана.
+- Сумма предзаказа не влияет на размер сервисного сбора.
+- Итоговая стоимость всегда считается как `totalAmount = preorderAmount + pricingCharge`.
+- Историческая аналитика строится только по бронированиям в статусе `RESERVED`; `CANCELLED` не участвует в истории.
+- Текущая загрузка столов считается по статусу `RESERVED`.
 
 ## Интеграции
 
 ### Kafka
 
-- property: `app.kafka.topics.booking-created`
-- текущее значение topic: `booking-topic`
+- `app.kafka.topics.booking-created`
+- `app.kafka.topics.booking-cancelled`
 
 ### Feign
 
 - `restaurant-service`
   - `GET /api/v1/restaurants/{restId}/manager-access`
   - `POST /api/v1/restaurants/{restId}/booking-snapshot`
+  - `GET /api/v1/restaurants/{restId}/booking-pricing-data`
+  - `GET /api/v1/restaurants/{restId}/booking-pricing-summary`
 - `user-service`
   - `POST /api/v1/users/briefs`
 
-## Конфигурация
-
-Обязательные переменные окружения:
-
-- `DB_HOST`
-- `DB_PORT`
-- `DB_USER`
-- `DB_PASS`
-- `JWT_SECRET`
-- `KAFKA_BOOTSTRAP`
-- `EUREKA_URL`
-
-Основные настройки лежат в `src/main/resources/application.yml`.
-
 ## Технологии
 
+- Java 17
 - Spring Boot
 - Spring Web
 - Spring Security OAuth2 Resource Server
 - Spring Data JPA
-- Spring Validation
 - Spring Cloud OpenFeign
-- Spring Cloud Netflix Eureka Client
 - Spring Kafka
 - PostgreSQL
 - Liquibase
+- Lombok
 - MapStruct
-- Springdoc OpenAPI
-- Java 17
-
-## Swagger и Actuator
-
-- Swagger UI: `http://localhost:8082/swagger-ui/index.html`
-- OpenAPI: `http://localhost:8082/v3/api-docs`
-
-Открыты actuator endpoints:
-
-- `health`
-- `info`
-- `metrics`
-- `prometheus`
-
-## Лицензия
-
-См. корневой `readme.md` и файл `LICENSE`.

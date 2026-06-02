@@ -3,11 +3,17 @@ package my.project.restaurantservice.service.restaurant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.NotFoundException;
+import my.project.common.exception.ValidationException;
 import my.project.common.security.AuthUtil;
+import my.project.restaurantservice.config.RestaurantPricingProperties;
 import my.project.restaurantservice.dto.client.BookingSnapshotRequest;
 import my.project.restaurantservice.dto.client.BookingSnapshotResponse;
+import my.project.restaurantservice.dto.client.RestaurantBookingPricingDataResponse;
+import my.project.restaurantservice.dto.client.RestaurantBookingPricingSummaryResponse;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
+import my.project.restaurantservice.dto.restaurant.RestaurantPricingSettingsRequest;
+import my.project.restaurantservice.dto.restaurant.RestaurantPricingSettingsResponse;
 import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.entity.RestaurantSpecifications;
 import my.project.restaurantservice.entity.enums.WeekDay;
@@ -27,6 +33,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -52,12 +59,14 @@ public class RestaurantService {
 
 	private final PhotoReadService photoReadService;
 	private final RestaurantReadService readService;
+	private final RestaurantPricingProperties pricingProperties;
 
 	@Transactional
 	public UUID save(RestaurantDto dto, Authentication auth) {
 		log.info("Создание ресторана, name={}", dto.getName());
 
 		RestaurantEntity restaurant = mapper.toEntity(dto);
+		applyPricingDefaults(restaurant);
 		var managerId = AuthUtil.id(auth);
 
 		contactMapper.toEntity(dto.getContacts()).forEach(restaurant::addContact);
@@ -224,6 +233,57 @@ public class RestaurantService {
 	}
 
 	@Transactional(readOnly = true)
+	public RestaurantPricingSettingsResponse getPricingSettings(UUID id, Authentication auth) {
+		log.info("Getting restaurant pricing settings, restId={}", id);
+		managerService.checkAccess(id, auth);
+		var restaurant = findRestaurantOrThrow(id);
+		return toPricingSettingsResponse(restaurant);
+	}
+
+	@Caching(evict = {
+			@CacheEvict(cacheNames = "publicRestaurantById", key = "#id"),
+			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id")
+	})
+	@Transactional
+	public RestaurantPricingSettingsResponse updatePricingSettings(UUID id,
+																   RestaurantPricingSettingsRequest request,
+																   Authentication auth) {
+		log.info("Updating restaurant pricing settings, restId={}", id);
+		managerService.checkAccess(id, auth);
+		validatePricingSettings(request.minPricingCharge(), request.maxPricingCharge());
+		var restaurant = findRestaurantOrThrow(id);
+		restaurant.setMinPricingCharge(request.minPricingCharge());
+		restaurant.setMaxPricingCharge(request.maxPricingCharge());
+		return toPricingSettingsResponse(restaurant);
+	}
+
+	@Transactional(readOnly = true)
+	public RestaurantBookingPricingDataResponse bookingPricingData(UUID restId, UUID tableId) {
+		var restaurant = findRestaurantOrThrow(restId);
+		tableService.findRestaurantBookingTable(restId, tableId);
+		long totalTables = tableService.countActiveRestaurantTables(restId);
+		return new RestaurantBookingPricingDataResponse(
+				restId,
+				tableId,
+				Math.toIntExact(totalTables),
+				restaurant.getMinPricingCharge(),
+				restaurant.getMaxPricingCharge()
+		);
+	}
+
+	@Transactional(readOnly = true)
+	public RestaurantBookingPricingSummaryResponse bookingPricingSummary(UUID restId) {
+		var restaurant = findRestaurantOrThrow(restId);
+		long totalTables = tableService.countActiveRestaurantTables(restId);
+		return new RestaurantBookingPricingSummaryResponse(
+				restId,
+				Math.toIntExact(totalTables),
+				restaurant.getMinPricingCharge(),
+				restaurant.getMaxPricingCharge()
+		);
+	}
+
+	@Transactional(readOnly = true)
 	public List<String> findAllCategories() {
 		log.info("Получение списка категорий ресторанов");
 
@@ -258,5 +318,55 @@ public class RestaurantService {
 
 		log.info("Поиск ресторанов завершён, найдено элементов: {}", restaurantsPage.getTotalElements());
 		return new PageImpl<>(cards, pageable, restaurantsPage.getTotalElements());
+	}
+
+	private RestaurantEntity findRestaurantOrThrow(UUID id) {
+		return repository.findById(id)
+				.orElseThrow(() -> new NotFoundException("restaurant.not-found", id));
+	}
+
+	private void applyPricingDefaults(RestaurantEntity restaurant) {
+		restaurant.setMinPricingCharge(firstNonNull(
+				restaurant.getMinPricingCharge(),
+				pricingProperties.getDefaults().getMinPricingCharge()
+		));
+		restaurant.setMaxPricingCharge(firstNonNull(
+				restaurant.getMaxPricingCharge(),
+				pricingProperties.getDefaults().getMaxPricingCharge()
+		));
+		validatePricingSettings(restaurant.getMinPricingCharge(), restaurant.getMaxPricingCharge());
+	}
+
+	private RestaurantPricingSettingsResponse toPricingSettingsResponse(RestaurantEntity restaurant) {
+		return new RestaurantPricingSettingsResponse(
+				restaurant.getMinPricingCharge(),
+				restaurant.getMaxPricingCharge()
+		);
+	}
+
+	private void validatePricingSettings(BigDecimal minPricingCharge, BigDecimal maxPricingCharge) {
+		if (minPricingCharge == null || maxPricingCharge == null) {
+			throw new ValidationException("restaurant.pricing-settings.required");
+		}
+		if (minPricingCharge.compareTo(BigDecimal.ZERO) < 0 || maxPricingCharge.compareTo(BigDecimal.ZERO) < 0) {
+			throw new ValidationException("restaurant.pricing-settings.negative");
+		}
+		if (minPricingCharge.compareTo(maxPricingCharge) > 0) {
+			throw new ValidationException("restaurant.pricing-settings.invalid-range");
+		}
+		if (minPricingCharge.compareTo(pricingProperties.getSystemLimits().getMinPricingCharge()) < 0
+				|| maxPricingCharge.compareTo(pricingProperties.getSystemLimits().getMaxPricingCharge()) > 0) {
+			throw new ValidationException("restaurant.pricing-settings.out-of-system-limits");
+		}
+	}
+
+	@SafeVarargs
+	private final <T> T firstNonNull(T... values) {
+		for (T value : values) {
+			if (value != null) {
+				return value;
+			}
+		}
+		throw new IllegalStateException("At least one fallback value must be non-null");
 	}
 }

@@ -14,6 +14,7 @@ import my.project.restaurantservice.dto.photo.PhotoDto;
 import my.project.restaurantservice.dto.table.TableDto;
 import my.project.restaurantservice.dto.workinghours.WorkingHoursDto;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,6 +40,10 @@ public class RestaurantDto {
 	String address;
 
 	Boolean active;
+
+	BigDecimal minPricingCharge;
+
+	BigDecimal maxPricingCharge;
 
 	@NotEmpty
 	@NotNull

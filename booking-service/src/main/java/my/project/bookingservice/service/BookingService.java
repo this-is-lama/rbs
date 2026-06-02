@@ -12,6 +12,12 @@ import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.entity.BookingEntity;
 import my.project.bookingservice.kafka.KafkaProducer;
 import my.project.bookingservice.mapper.BookingMapper;
+import my.project.bookingservice.pricing.context.PricingContext;
+import my.project.bookingservice.pricing.context.PricingContextFactory;
+import my.project.bookingservice.pricing.dto.request.PricingOfferRequest;
+import my.project.bookingservice.pricing.dto.request.PricingPreorderItemRequest;
+import my.project.bookingservice.pricing.offer.PricingOfferUsageService;
+import my.project.bookingservice.pricing.persistence.entity.PricingOfferEntity;
 import my.project.bookingservice.repository.BookingRepository;
 import my.project.common.exception.ConflictException;
 import my.project.common.exception.NotFoundException;
@@ -22,7 +28,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -40,7 +49,10 @@ public class BookingService {
 	private final RestaurantServiceClient restaurantClient;
 	private final UserServiceClient userServiceClient;
 	private final KafkaProducer kafkaProducer;
+	private final PricingContextFactory pricingContextFactory;
+	private final PricingOfferUsageService pricingOfferUsageService;
 
+	@Transactional
 	public BookingResponse create(CreateBookingRequest req, Authentication auth) {
 		var userId = AuthUtil.id(auth);
 
@@ -68,7 +80,55 @@ public class BookingService {
 			throw new ConflictException("booking.table.guest-more-capacity");
 		}
 
-		return helper.buildBookingEntity(req, userId, bookingSnapshot, quantities);
+		BookingEntity entity = helper.buildBookingEntity(req, userId, bookingSnapshot, quantities);
+		applyPricing(req, userId, entity);
+		return entity;
+	}
+
+	private void applyPricing(CreateBookingRequest req, UUID userId, BookingEntity entity) {
+		if (!hasPreorder(req)) {
+			entity.setPricingOfferId(null);
+			entity.setPreorderAmount(zeroMoney());
+			entity.setPricingCharge(zeroMoney());
+			entity.setTotalAmount(zeroMoney());
+			return;
+		}
+
+		if (req.pricingOfferId() == null) {
+			throw new ValidationException("pricing.offer.required");
+		}
+
+		PricingOfferRequest pricingRequest = toPricingOfferRequest(req);
+		PricingContext context = pricingContextFactory.create(userId, pricingRequest);
+		PricingOfferEntity offer = pricingOfferUsageService.validateAndUse(context, req.pricingOfferId());
+		entity.setPricingOfferId(offer.getId());
+		entity.setPreorderAmount(offer.getPreorderAmount());
+		entity.setPricingCharge(offer.getPricingCharge());
+		entity.setTotalAmount(offer.getTotalAmount());
+	}
+
+	private PricingOfferRequest toPricingOfferRequest(CreateBookingRequest req) {
+		List<PricingPreorderItemRequest> preorderItems = req.dishes() == null
+				? List.of()
+				: req.dishes().stream()
+				.map(item -> new PricingPreorderItemRequest(item.dishId(), item.quantity()))
+				.toList();
+
+		return new PricingOfferRequest(
+				req.restaurantId(),
+				req.tableId(),
+				req.startAt(),
+				req.endAt(),
+				preorderItems
+		);
+	}
+
+	private boolean hasPreorder(CreateBookingRequest req) {
+		return req.dishes() != null && !req.dishes().isEmpty();
+	}
+
+	private BigDecimal zeroMoney() {
+		return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 	}
 
 	private void sendBookingCreatedEvent(BookingEntity entity, Authentication auth) {
@@ -103,7 +163,7 @@ public class BookingService {
 		}
 
 		boolean cancelledByManagerOrAdmin = AuthUtil.isManager(auth) || AuthUtil.isAdmin(auth);
-		String reason = req.reason();
+		String reason = req == null ? null : req.reason();
 
 		if (cancelledByManagerOrAdmin && reason == null) {
 			log.warn("Причина отмены бронирования менеджером или администратором не указана, bookingId={}", id);
