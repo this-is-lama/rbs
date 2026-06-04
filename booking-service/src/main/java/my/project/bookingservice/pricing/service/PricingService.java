@@ -1,13 +1,13 @@
 package my.project.bookingservice.pricing.service;
 
 import lombok.RequiredArgsConstructor;
+import my.project.bookingservice.pricing.cache.PricingOfferCacheDto;
 import my.project.bookingservice.pricing.context.PricingContext;
 import my.project.bookingservice.pricing.context.PricingContextFactory;
 import my.project.bookingservice.pricing.dto.request.PricingOfferRequest;
 import my.project.bookingservice.pricing.dto.response.PricingOfferResponse;
 import my.project.bookingservice.pricing.mapper.PricingOfferMapper;
 import my.project.bookingservice.pricing.offer.PricingOfferService;
-import my.project.bookingservice.pricing.persistence.entity.PricingOfferEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -23,8 +23,7 @@ public class PricingService {
 	public PricingOfferResponse createOffer(UUID userId, PricingOfferRequest request) {
 		validationService.validate(request);
 		PricingContext context = contextFactory.create(userId, request);
-		PricingOfferEntity offer = offerService.getOrCreateOffer(context);
+		PricingOfferCacheDto offer = offerService.getOrCreateOffer(context);
 		return offerMapper.toResponse(offer);
 	}
 }
-

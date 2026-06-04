@@ -10,7 +10,7 @@ import my.project.bookingservice.pricing.parameters.ParameterCalculationResult;
 import my.project.bookingservice.pricing.parameters.PricingParameter;
 import my.project.bookingservice.pricing.settings.PricingProperties;
 import my.project.bookingservice.pricing.util.NormalizationUtils;
-import my.project.bookingservice.service.BookingHelper;
+import my.project.bookingservice.service.BookingTimeUtils;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -30,7 +30,7 @@ public class WeekdayDemandParameter implements PricingParameter {
 		if (successfulBookings < properties.getHistory().getMinBookingsForHistory()) {
 			return new ParameterCalculationResult(PricingParameterCode.WEEKDAY_DEMAND, properties.getDefaults().getWeekdayDemand(), PricingValueSource.DEFAULT);
 		}
-		DayOfWeek day = context.visitStart().atZone(BookingHelper.BUSINESS_ZONE).getDayOfWeek();
+		DayOfWeek day = context.visitStart().atZone(BookingTimeUtils.BUSINESS_ZONE).getDayOfWeek();
 		long count = historyService.countSuccessfulBookingsByWeekday(context.restaurantId(), day);
 		long max = historyService.maxSuccessfulBookingsByWeekday(context.restaurantId());
 		if (max <= 0) {
@@ -47,4 +47,5 @@ public class WeekdayDemandParameter implements PricingParameter {
 		return new ParameterCalculationResult(PricingParameterCode.WEEKDAY_DEMAND, value, PricingValueSource.HISTORICAL);
 	}
 }
+
 

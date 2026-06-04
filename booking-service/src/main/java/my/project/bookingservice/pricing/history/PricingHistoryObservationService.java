@@ -6,7 +6,7 @@ import my.project.bookingservice.pricing.history.model.PricingHistoryObservation
 import my.project.bookingservice.pricing.persistence.entity.PricingHistorySnapshotEntity;
 import my.project.bookingservice.pricing.persistence.repository.PricingHistorySnapshotRepository;
 import my.project.bookingservice.pricing.settings.PricingProperties;
-import my.project.bookingservice.service.BookingHelper;
+import my.project.bookingservice.service.BookingTimeUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -42,7 +42,7 @@ public class PricingHistoryObservationService {
 	private List<PricingHistoryObservation> getObservations(UUID restaurantId,
 															PricingHistoryObservationType observationType,
 															int minObservations) {
-		LocalDate to = LocalDate.now(BookingHelper.BUSINESS_ZONE);
+		LocalDate to = LocalDate.now(BookingTimeUtils.BUSINESS_ZONE);
 		LocalDate from = to.minusDays(properties.getHistory().getPeriodDays());
 		List<PricingHistorySnapshotEntity> snapshots = repository.findAllByRestaurantIdAndObservationTypeAndObservationDateBetween(
 				restaurantId,
@@ -73,4 +73,5 @@ public class PricingHistoryObservationService {
 				.toList();
 	}
 }
+
 

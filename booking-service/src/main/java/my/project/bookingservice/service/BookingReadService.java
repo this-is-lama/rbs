@@ -2,12 +2,10 @@ package my.project.bookingservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import my.project.bookingservice.client.RestaurantServiceClient;
-import my.project.bookingservice.client.UserServiceClient;
 import my.project.bookingservice.dto.response.BookingResponse;
-import my.project.bookingservice.dto.response.BookingUserResponse;
 import my.project.bookingservice.dto.response.ManagerBookingResponse;
 import my.project.bookingservice.dto.response.TableAvailabilityResponse;
+import my.project.bookingservice.dto.response.TableAvailabilitySlotResponse;
 import my.project.bookingservice.entity.BookingEntity;
 import my.project.bookingservice.entity.BookingStatus;
 import my.project.bookingservice.mapper.BookingMapper;
@@ -15,19 +13,15 @@ import my.project.bookingservice.repository.BookingRepository;
 import my.project.common.exception.ForbiddenException;
 import my.project.common.exception.NotFoundException;
 import my.project.common.security.AuthUtil;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -37,10 +31,8 @@ public class BookingReadService {
 
 	private final BookingRepository repository;
 	private final BookingMapper mapper;
-	private final BookingHelper helper;
-
-	private final RestaurantServiceClient restaurantClient;
-	private final UserServiceClient userServiceClient;
+	private final ManagerAccessService managerAccessService;
+	private final RestaurantBookingReadCacheService restaurantBookingReadCacheService;
 	private static final List<BookingStatus> ACTIVE_STATUSES = List.of(BookingStatus.RESERVED);
 
 	public BookingResponse findById(UUID id, Authentication auth) {
@@ -60,25 +52,13 @@ public class BookingReadService {
 	public List<ManagerBookingResponse> findAllByRestaurantId(UUID restId, Authentication auth) {
 		log.info("Получение списка бронирований ресторана, restId={}", restId);
 
-		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(restId))) {
+		UUID actorId = AuthUtil.id(auth);
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !managerAccessService.hasManagerAccess(actorId, restId))) {
 			log.warn("Доступ к списку бронирований ресторана запрещён, restId={}", restId);
 			throw new ForbiddenException("booking.forbidden.restaurant-bookings");
 		}
 
-		List<BookingEntity> bookings = repository.findAllByRestaurantIdOrderByCreatedAtDesc(restId);
-
-		Set<UUID> userIds = bookings.stream()
-				.map(BookingEntity::getUserId)
-				.filter(Objects::nonNull)
-				.collect(Collectors.toSet());
-
-		Map<UUID, BookingUserResponse> usersById = userServiceClient.getBriefs(userIds).stream()
-				.map(mapper::toBookingUserResponse)
-				.collect(Collectors.toMap(BookingUserResponse::id, Function.identity()));
-
-		return bookings.stream()
-				.map(booking -> mapper.toManagerResponse(booking, usersById.get(booking.getUserId())))
-				.toList();
+		return restaurantBookingReadCacheService.findRestaurantBookings(restId);
 	}
 
 	public BookingEntity findByAuth(UUID id, Authentication auth) {
@@ -98,7 +78,7 @@ public class BookingReadService {
 			return new NotFoundException("booking.not-found", id);
 		});
 
-		if (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(booking.getRestaurantId())) {
+		if (AuthUtil.isManager(auth) && !managerAccessService.hasManagerAccess(userId, booking.getRestaurantId())) {
 			log.warn("Менеджеру запрещён доступ к бронированию, bookingId={}, restId={}",
 					id, booking.getRestaurantId());
 			throw new ForbiddenException("booking.forbidden.booking-access");
@@ -107,6 +87,10 @@ public class BookingReadService {
 		return booking;
 	}
 
+	@Cacheable(
+			cacheNames = "bookingAvailability",
+			key = "#restaurantId + ':' + #tableId + ':' + #date"
+	)
 	public TableAvailabilityResponse getPublicTableAvailability(UUID restaurantId, UUID tableId, LocalDate date) {
 		log.info("Получение публичной занятости стола, restaurantId={}, tableId={}, date={}",
 				restaurantId, tableId, date);
@@ -116,10 +100,22 @@ public class BookingReadService {
 						restaurantId,
 						tableId,
 						ACTIVE_STATUSES,
-						helper.dayEnd(date),
-						helper.dayStart(date)
+						BookingTimeUtils.dayEnd(date),
+						BookingTimeUtils.dayStart(date)
 				);
 
-		return helper.buildAvailabilityResponse(restaurantId, tableId, date, bookings);
+		return createAvailabilityResponse(restaurantId, tableId, date, bookings);
+	}
+
+	private TableAvailabilityResponse createAvailabilityResponse(
+			UUID restaurantId,
+			UUID tableId,
+			LocalDate date,
+			List<BookingEntity> bookings
+	) {
+		List<TableAvailabilitySlotResponse> reservedSlots = bookings.stream()
+				.map(booking -> new TableAvailabilitySlotResponse(booking.getStartAt(), booking.getEndAt()))
+				.toList();
+		return new TableAvailabilityResponse(restaurantId, tableId, date, reservedSlots);
 	}
 }

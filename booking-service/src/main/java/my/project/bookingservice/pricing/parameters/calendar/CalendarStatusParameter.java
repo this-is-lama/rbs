@@ -11,7 +11,7 @@ import my.project.bookingservice.pricing.history.HistoricalTransitionService;
 import my.project.bookingservice.pricing.settings.PricingProperties;
 import my.project.bookingservice.pricing.settings.PricingCalendarCoefficientService;
 import my.project.bookingservice.pricing.util.NormalizationUtils;
-import my.project.bookingservice.service.BookingHelper;
+import my.project.bookingservice.service.BookingTimeUtils;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -27,7 +27,7 @@ public class CalendarStatusParameter implements PricingParameter {
 
 	@Override
 	public ParameterCalculationResult calculate(PricingContext context) {
-		CalendarMembership membership = calendarClassifier.classify(context.visitStart().atZone(BookingHelper.BUSINESS_ZONE).toLocalDate());
+		CalendarMembership membership = calendarClassifier.classify(context.visitStart().atZone(BookingTimeUtils.BUSINESS_ZONE).toLocalDate());
 		BigDecimal numerator = BigDecimal.ZERO;
 		BigDecimal denominator = BigDecimal.ZERO;
 		PricingValueSource source = PricingValueSource.DEFAULT;
@@ -59,4 +59,5 @@ public class CalendarStatusParameter implements PricingParameter {
 		return new ParameterCalculationResult(PricingParameterCode.CALENDAR_STATUS, NormalizationUtils.clamp01(value), source);
 	}
 }
+
 

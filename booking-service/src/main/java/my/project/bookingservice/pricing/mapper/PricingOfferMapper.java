@@ -1,24 +1,24 @@
 package my.project.bookingservice.pricing.mapper;
 
+import my.project.bookingservice.pricing.cache.PricingOfferCacheDto;
 import my.project.bookingservice.pricing.dto.response.PricingOfferResponse;
-import my.project.bookingservice.pricing.persistence.entity.PricingOfferEntity;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PricingOfferMapper {
-	public PricingOfferResponse toResponse(PricingOfferEntity entity) {
+	public PricingOfferResponse toResponse(PricingOfferCacheDto dto) {
 		return new PricingOfferResponse(
-				entity.getId(),
-				entity.getRestaurantId(),
-				entity.getTableId(),
-				entity.getPreorderAmount(),
-				entity.getPricingCharge(),
-				entity.getTotalAmount(),
-				entity.getCurrency(),
-				entity.getStatus(),
-				entity.getCalculatedAt(),
-				entity.getExpiresAt()
+				dto.offerId(),
+				dto.restaurantId(),
+				dto.tableId(),
+				dto.preorderAmount(),
+				dto.pricingCharge(),
+				dto.totalAmount(),
+				dto.currency(),
+				dto.status(),
+				dto.calculatedAt(),
+				dto.expiresAt()
 		);
 	}
-}
 
+}

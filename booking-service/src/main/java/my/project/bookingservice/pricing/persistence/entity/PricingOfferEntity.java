@@ -16,6 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+// Active temporary pricing offers are stored in Redis. This entity is kept for existing migrations and future audit history.
 @Table(name = "pricing_offer")
 public class PricingOfferEntity {
 	@Id

@@ -7,6 +7,7 @@ import my.project.bookingservice.pricing.history.HistoricalTransitionService;
 import my.project.bookingservice.pricing.history.PricingHistoryService;
 import my.project.bookingservice.pricing.persistence.repository.PricingWeightRepository;
 import my.project.bookingservice.pricing.settings.PricingProperties;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ public class PricingWeightService implements PricingWeightProvider {
 	private final HistoricalTransitionService transitionService;
 
 	@Override
+	@Cacheable(cacheNames = "pricingWeights", key = "#restaurantId + ':' + #code")
 	public BigDecimal getWeight(UUID restaurantId, PricingWeightCode code) {
 		return repository.findByRestaurantIdAndWeightCode(restaurantId, code)
 				.map(entity -> {

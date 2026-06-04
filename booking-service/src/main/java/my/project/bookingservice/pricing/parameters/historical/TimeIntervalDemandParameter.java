@@ -11,7 +11,7 @@ import my.project.bookingservice.pricing.parameters.PricingParameter;
 import my.project.bookingservice.pricing.settings.PricingProperties;
 import my.project.bookingservice.pricing.util.NormalizationUtils;
 import my.project.bookingservice.pricing.util.TimeIntervalUtils;
-import my.project.bookingservice.service.BookingHelper;
+import my.project.bookingservice.service.BookingTimeUtils;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -35,8 +35,8 @@ public class TimeIntervalDemandParameter implements PricingParameter {
 		if (max <= 0) {
 			return new ParameterCalculationResult(PricingParameterCode.TIME_INTERVAL_DEMAND, defaultValue, PricingValueSource.DEFAULT);
 		}
-		var start = context.visitStart().atZone(BookingHelper.BUSINESS_ZONE).toLocalTime();
-		var end = context.visitEnd().atZone(BookingHelper.BUSINESS_ZONE).toLocalTime();
+		var start = context.visitStart().atZone(BookingTimeUtils.BUSINESS_ZONE).toLocalTime();
+		var end = context.visitEnd().atZone(BookingTimeUtils.BUSINESS_ZONE).toLocalTime();
 		Map<String, BigDecimal> shares = TimeIntervalUtils.resolveIntervalShares(start, end);
 		if (shares.isEmpty()) {
 			String interval = TimeIntervalUtils.resolveTimeIntervalCode(start);
@@ -66,4 +66,5 @@ public class TimeIntervalDemandParameter implements PricingParameter {
 		);
 	}
 }
+
 

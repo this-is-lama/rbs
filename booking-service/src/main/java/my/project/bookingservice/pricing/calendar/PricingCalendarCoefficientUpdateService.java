@@ -11,7 +11,7 @@ import my.project.bookingservice.pricing.persistence.repository.PricingCalendarC
 import my.project.bookingservice.pricing.persistence.repository.PricingHistorySnapshotRepository;
 import my.project.bookingservice.pricing.settings.PricingProperties;
 import my.project.bookingservice.pricing.util.NormalizationUtils;
-import my.project.bookingservice.service.BookingHelper;
+import my.project.bookingservice.service.BookingTimeUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,10 +31,11 @@ public class PricingCalendarCoefficientUpdateService {
 	private final PricingCalendarCoefficientRepository coefficientRepository;
 	private final CalendarClassifier calendarClassifier;
 	private final PricingProperties properties;
+	private final PricingCalendarCoefficientCacheEvictService coefficientCacheEvictService;
 
 	@Transactional
 	public int update(UUID restaurantId) {
-		LocalDate to = LocalDate.now(BookingHelper.BUSINESS_ZONE);
+		LocalDate to = LocalDate.now(BookingTimeUtils.BUSINESS_ZONE);
 		LocalDate from = to.minusDays(properties.getHistory().getPeriodDays());
 		List<PricingHistorySnapshotEntity> snapshots = snapshotRepository.findAllByRestaurantIdAndObservationTypeAndObservationDateBetween(
 				restaurantId,
@@ -96,6 +97,7 @@ public class PricingCalendarCoefficientUpdateService {
 			entity.setSource(PricingValueSource.HISTORICAL);
 			entity.setUpdatedAt(Instant.now());
 			coefficientRepository.save(entity);
+			coefficientCacheEvictService.evict(restaurantId, entry.getKey());
 			updated++;
 		}
 		return updated;
@@ -111,4 +113,5 @@ public class PricingCalendarCoefficientUpdateService {
 		}
 	}
 }
+
 

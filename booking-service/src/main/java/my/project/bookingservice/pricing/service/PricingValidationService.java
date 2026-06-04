@@ -10,17 +10,17 @@ import java.time.Instant;
 @Service
 public class PricingValidationService {
 	public void validate(PricingOfferRequest request) {
-		if (request == null) throw new PricingValidationException("Pricing request must not be null");
-		if (request.restaurantId() == null) throw new PricingValidationException("restaurantId must not be null");
-		if (request.tableId() == null) throw new PricingValidationException("tableId must not be null");
-		if (request.startAt() == null) throw new PricingValidationException("startAt must not be null");
-		if (request.endAt() == null) throw new PricingValidationException("endAt must not be null");
-		if (!request.startAt().isAfter(Instant.now())) throw new PricingValidationException("startAt must be in the future");
-		if (!request.endAt().isAfter(request.startAt())) throw new PricingValidationException("endAt must be after startAt");
+		if (request == null) throw new PricingValidationException("pricing.request.required");
+		if (request.restaurantId() == null) throw new PricingValidationException("pricing.restaurant.required");
+		if (request.tableId() == null) throw new PricingValidationException("pricing.table.required");
+		if (request.startAt() == null) throw new PricingValidationException("pricing.start.required");
+		if (request.endAt() == null) throw new PricingValidationException("pricing.end.required");
+		if (!request.startAt().isAfter(Instant.now())) throw new PricingValidationException("pricing.start.future");
+		if (!request.endAt().isAfter(request.startAt())) throw new PricingValidationException("pricing.end.after-start");
 		if (request.preorderItems() != null) {
 			for (PricingPreorderItemRequest item : request.preorderItems()) {
-				if (item.dishId() == null) throw new PricingValidationException("dishId must not be null");
-				if (item.quantity() == null || item.quantity() <= 0) throw new PricingValidationException("quantity must be positive");
+				if (item.dishId() == null) throw new PricingValidationException("pricing.dish.required");
+				if (item.quantity() == null || item.quantity() <= 0) throw new PricingValidationException("pricing.quantity.positive");
 			}
 		}
 	}

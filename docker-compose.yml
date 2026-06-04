@@ -165,10 +165,13 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     networks: [rbs-net]
     depends_on:
       - eureka-server
       - postgres
+      - redis
 
   notification-service:
     build:
