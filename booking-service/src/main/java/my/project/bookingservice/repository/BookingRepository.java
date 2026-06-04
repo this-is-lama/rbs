@@ -2,6 +2,8 @@ package my.project.bookingservice.repository;
 
 import my.project.bookingservice.entity.BookingEntity;
 import my.project.bookingservice.entity.BookingStatus;
+import my.project.bookingservice.repository.projection.BookingStartAtProjection;
+import my.project.bookingservice.repository.projection.CountByKeyProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,17 +47,67 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
             @Param("endAt") Instant endAt
     );
 
-    List<BookingEntity> findAllByRestaurantIdAndStatusAndStartAtGreaterThanEqual(
-            UUID restaurantId,
-            BookingStatus status,
-            Instant from
-    );
-
     List<BookingEntity> findAllByRestaurantIdAndStatusAndStartAtGreaterThanEqualAndStartAtLessThan(
             UUID restaurantId,
             BookingStatus status,
             Instant from,
             Instant to
+    );
+
+    long countByRestaurantIdAndStatusAndStartAtGreaterThanEqualAndStartAtLessThan(
+            UUID restaurantId,
+            BookingStatus status,
+            Instant from,
+            Instant to
+    );
+
+    @Query(value = """
+            select cast(extract(isodow from b.start_at at time zone 'Europe/Moscow') as text) as key,
+                   count(*) as count
+            from bookings b
+            where b.restaurant_id = :restaurantId
+              and b.status = :status
+              and b.start_at >= :from
+              and b.start_at < :to
+            group by extract(isodow from b.start_at at time zone 'Europe/Moscow')
+            """, nativeQuery = true)
+    List<CountByKeyProjection> countSuccessfulBookingsByWeekday(
+            @Param("restaurantId") UUID restaurantId,
+            @Param("status") String status,
+            @Param("from") Instant from,
+            @Param("to") Instant to
+    );
+
+    @Query(value = """
+            select cast(b.table_id as text) as key,
+                   count(*) as count
+            from bookings b
+            where b.restaurant_id = :restaurantId
+              and b.status = :status
+              and b.start_at >= :from
+              and b.start_at < :to
+            group by b.table_id
+            """, nativeQuery = true)
+    List<CountByKeyProjection> countSuccessfulBookingsByTable(
+            @Param("restaurantId") UUID restaurantId,
+            @Param("status") String status,
+            @Param("from") Instant from,
+            @Param("to") Instant to
+    );
+
+    @Query("""
+            select b.startAt as startAt
+            from BookingEntity b
+            where b.restaurantId = :restaurantId
+              and b.status = :status
+              and b.startAt >= :from
+              and b.startAt < :to
+            """)
+    List<BookingStartAtProjection> findSuccessfulBookingStartTimes(
+            @Param("restaurantId") UUID restaurantId,
+            @Param("status") BookingStatus status,
+            @Param("from") Instant from,
+            @Param("to") Instant to
     );
 
     @Query("""
@@ -66,15 +118,6 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
               and b.startAt < :to
             """)
     List<UUID> findRestaurantIdsWithBookingsBetween(BookingStatus status, Instant from, Instant to);
-
-    @Query("""
-            select distinct b.restaurantId
-            from BookingEntity b
-            where b.status = :status
-            group by b.restaurantId
-            having count(b) >= :minBookings
-            """)
-    List<UUID> findRestaurantIdsWithAtLeastSuccessfulBookings(BookingStatus status, long minBookings);
 
     @Query("""
             select b.restaurantId

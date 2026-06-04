@@ -5,6 +5,7 @@ import my.project.bookingservice.pricing.enums.CalendarDayType;
 import my.project.bookingservice.pricing.enums.PricingValueSource;
 import my.project.bookingservice.pricing.persistence.repository.PricingCalendarCoefficientRepository;
 import my.project.bookingservice.pricing.util.NormalizationUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ public class PricingCalendarCoefficientService {
 		return getCalendarCoefficientValue(restaurantId, dayType).value();
 	}
 
+	@Cacheable(cacheNames = "calendarCoefficients", key = "#restaurantId + ':' + #dayType")
 	public CalendarCoefficientValue getCalendarCoefficientValue(UUID restaurantId, CalendarDayType dayType) {
 		return calendarCoefficientRepository.findByRestaurantIdAndCalendarDayType(restaurantId, dayType)
 				.map(entity -> new CalendarCoefficientValue(

@@ -6,7 +6,7 @@ import my.project.bookingservice.entity.BookingStatus;
 import my.project.bookingservice.pricing.settings.PricingProperties;
 import my.project.bookingservice.pricing.weights.PricingWeightCalculationService;
 import my.project.bookingservice.repository.BookingRepository;
-import my.project.bookingservice.service.BookingHelper;
+import my.project.bookingservice.service.BookingTimeUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,9 +23,9 @@ public class PricingWeightsUpdateScheduler {
 
 	@Scheduled(cron = "${pricing.scheduler.weights-update-cron:0 0 3 * * *}")
 	public void updateWeights() {
-		LocalDate today = LocalDate.now(BookingHelper.BUSINESS_ZONE);
+		LocalDate today = LocalDate.now(BookingTimeUtils.BUSINESS_ZONE);
 		LocalDate fromDate = today.minusDays(properties.getHistory().getPeriodDays());
-		Instant from = fromDate.atStartOfDay(BookingHelper.BUSINESS_ZONE).toInstant();
+		Instant from = fromDate.atStartOfDay(BookingTimeUtils.BUSINESS_ZONE).toInstant();
 		Instant to = Instant.now();
 
 		var restaurantIds = bookingRepository.findRestaurantIdsWithAtLeastSuccessfulBookingsBetween(
@@ -56,4 +56,3 @@ public class PricingWeightsUpdateScheduler {
 				restaurantIds.size(), successCount, errorCount);
 	}
 }
-

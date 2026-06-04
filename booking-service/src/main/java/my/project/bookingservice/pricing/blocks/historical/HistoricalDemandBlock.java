@@ -9,31 +9,35 @@ import my.project.bookingservice.pricing.enums.PricingWeightCode;
 import my.project.bookingservice.pricing.parameters.historical.TableDemandParameter;
 import my.project.bookingservice.pricing.parameters.historical.TimeIntervalDemandParameter;
 import my.project.bookingservice.pricing.parameters.historical.WeekdayDemandParameter;
-import my.project.bookingservice.pricing.settings.PricingProperties;
 import my.project.bookingservice.pricing.util.NormalizationUtils;
-import my.project.bookingservice.pricing.weights.PricingWeightProvider;
+import my.project.bookingservice.pricing.weights.PricingWeightResolver;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class HistoricalDemandBlock implements PricingBlock {
+	private static final List<PricingWeightCode> WEIGHTS = List.of(
+			PricingWeightCode.WEEKDAY_DEMAND_PARAMETER,
+			PricingWeightCode.TIME_INTERVAL_DEMAND_PARAMETER,
+			PricingWeightCode.TABLE_DEMAND_PARAMETER
+	);
+
 	private final WeekdayDemandParameter weekdayDemandParameter;
 	private final TimeIntervalDemandParameter timeIntervalDemandParameter;
 	private final TableDemandParameter tableDemandParameter;
-	private final PricingWeightProvider weightProvider;
-	private final PricingProperties properties;
+	private final PricingWeightResolver weightResolver;
 
 	@Override
 	public BlockCalculationResult calculate(PricingContext context) {
 		BigDecimal weekday = weekdayDemandParameter.calculate(context).value();
 		BigDecimal timeInterval = timeIntervalDemandParameter.calculate(context).value();
 		BigDecimal table = tableDemandParameter.calculate(context).value();
-		Map<PricingWeightCode, BigDecimal> weights = normalizedWeights(context);
+		Map<PricingWeightCode, BigDecimal> weights = weightResolver.resolveNormalized(context.restaurantId(), WEIGHTS);
 		BigDecimal value = weights.get(PricingWeightCode.WEEKDAY_DEMAND_PARAMETER).multiply(weekday)
 				.add(weights.get(PricingWeightCode.TIME_INTERVAL_DEMAND_PARAMETER).multiply(timeInterval))
 				.add(weights.get(PricingWeightCode.TABLE_DEMAND_PARAMETER).multiply(table));
@@ -43,29 +47,4 @@ public class HistoricalDemandBlock implements PricingBlock {
 		details.put("tableDemand", table);
 		return new BlockCalculationResult(PricingBlockCode.HISTORICAL_DEMAND, NormalizationUtils.clamp01(value), details);
 	}
-
-	private Map<PricingWeightCode, BigDecimal> normalizedWeights(PricingContext context) {
-		Map<PricingWeightCode, BigDecimal> source = new EnumMap<>(PricingWeightCode.class);
-		source.put(PricingWeightCode.WEEKDAY_DEMAND_PARAMETER, weightProvider.getWeight(context.restaurantId(), PricingWeightCode.WEEKDAY_DEMAND_PARAMETER));
-		source.put(PricingWeightCode.TIME_INTERVAL_DEMAND_PARAMETER, weightProvider.getWeight(context.restaurantId(), PricingWeightCode.TIME_INTERVAL_DEMAND_PARAMETER));
-		source.put(PricingWeightCode.TABLE_DEMAND_PARAMETER, weightProvider.getWeight(context.restaurantId(), PricingWeightCode.TABLE_DEMAND_PARAMETER));
-		if (positiveSum(source).compareTo(BigDecimal.ZERO) <= 0) {
-			source = new EnumMap<>(PricingWeightCode.class);
-			source.put(PricingWeightCode.WEEKDAY_DEMAND_PARAMETER, defaultWeight(PricingWeightCode.WEEKDAY_DEMAND_PARAMETER));
-			source.put(PricingWeightCode.TIME_INTERVAL_DEMAND_PARAMETER, defaultWeight(PricingWeightCode.TIME_INTERVAL_DEMAND_PARAMETER));
-			source.put(PricingWeightCode.TABLE_DEMAND_PARAMETER, defaultWeight(PricingWeightCode.TABLE_DEMAND_PARAMETER));
-		}
-		return NormalizationUtils.normalizeWeights(source);
-	}
-
-	private BigDecimal positiveSum(Map<PricingWeightCode, BigDecimal> source) {
-		return source.values().stream()
-				.filter(value -> value != null && value.compareTo(BigDecimal.ZERO) > 0)
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
-
-	private BigDecimal defaultWeight(PricingWeightCode code) {
-		return properties.getDefaults().getWeights().getOrDefault(code.name(), BigDecimal.ZERO);
-	}
 }
-

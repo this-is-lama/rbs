@@ -68,8 +68,6 @@ public class PricingProperties {
 	@Getter
 	@Setter
 	public static class Calendar {
-		private String countryCode = "ru";
-		private List<LocalDate> holidays = new ArrayList<>();
 		private List<LocalDate> peakHolidays = new ArrayList<>();
 	}
 

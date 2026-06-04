@@ -18,24 +18,11 @@ public interface PricingHistorySnapshotRepository extends JpaRepository<PricingH
 			LocalDate to
 	);
 
-	boolean existsByRestaurantIdAndObservationDateAndTimeIntervalCode(
-			UUID restaurantId,
-			LocalDate observationDate,
-			String timeIntervalCode
-	);
-
 	boolean existsByRestaurantIdAndObservationDateAndTimeIntervalCodeAndObservationType(
 			UUID restaurantId,
 			LocalDate observationDate,
 			String timeIntervalCode,
 			PricingHistoryObservationType observationType
-	);
-
-	boolean existsByRestaurantIdAndObservationDateAndTimeIntervalCodeAndTableId(
-			UUID restaurantId,
-			LocalDate observationDate,
-			String timeIntervalCode,
-			UUID tableId
 	);
 
 	boolean existsByRestaurantIdAndObservationDateAndTimeIntervalCodeAndTableIdAndObservationType(
