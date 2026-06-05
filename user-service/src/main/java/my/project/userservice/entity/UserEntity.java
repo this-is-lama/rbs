@@ -15,7 +15,15 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "users")
+@Table(
+		name = "users",
+		indexes = {
+				@Index(
+						name = "idx_users_enabled_role",
+						columnList = "enabled, role"
+				)
+		}
+)
 public class UserEntity {
 
 	@Id

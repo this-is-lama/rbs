@@ -17,7 +17,22 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "pricing_calendar_coefficient", uniqueConstraints = @UniqueConstraint(columnNames = {"restaurant_id", "calendar_day_type"}))
+@Table(
+		name = "pricing_calendar_coefficient",
+		uniqueConstraints = @UniqueConstraint(
+				name = "uk_pricing_calendar_coefficient_restaurant_type",
+				columnNames = {
+						"restaurant_id",
+						"calendar_day_type"
+				}
+		),
+		indexes = {
+				@Index(
+						name = "idx_pricing_calendar_coefficient_restaurant",
+						columnList = "restaurant_id"
+				)
+		}
+)
 public class PricingCalendarCoefficientEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,9 +47,13 @@ public class PricingCalendarCoefficientEntity {
 
 	@Column(precision = 10, scale = 6)
 	private BigDecimal coefficientValue;
+
 	private Integer observationsCount;
+
 	@Enumerated(EnumType.STRING)
 	private PricingValueSource source;
+
 	private Instant updatedAt;
+
 }
 

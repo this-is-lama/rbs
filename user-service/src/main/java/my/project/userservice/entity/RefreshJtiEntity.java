@@ -15,7 +15,14 @@ import java.util.UUID;
 @Table(
 		name = "refresh_jtis",
 		indexes = {
-				@Index(name = "idx_refresh_tokens_user_id", columnList = "user_id")
+				@Index(
+						name = "idx_refresh_jtis_user_active",
+						columnList = "user_id, active"
+				),
+				@Index(
+						name = "idx_refresh_jtis_active_expires",
+						columnList = "active, expires_at"
+				)
 		}
 )
 public class RefreshJtiEntity {

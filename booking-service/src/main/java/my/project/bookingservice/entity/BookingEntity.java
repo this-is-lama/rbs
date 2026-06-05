@@ -18,12 +18,26 @@ import java.util.UUID;
 @Table(
 		name = "bookings",
 		indexes = {
-				@Index(name = "idx_bookings_table_id", columnList = "table_id"),
-				@Index(name = "idx_bookings_restaurant_id", columnList = "restaurant_id"),
-				@Index(name = "idx_bookings_user_id", columnList = "user_id"),
-				@Index(name = "idx_bookings_status", columnList = "status"),
-				@Index(name = "idx_bookings_start_at", columnList = "start_at"),
-				@Index(name = "idx_bookings_end_at", columnList = "end_at")
+				@Index(
+						name = "idx_bookings_user_created_at",
+						columnList = "user_id, created_at"
+				),
+				@Index(
+						name = "idx_bookings_restaurant_created_at",
+						columnList = "restaurant_id, created_at"
+				),
+				@Index(
+						name = "idx_bookings_restaurant_status_start_at",
+						columnList = "restaurant_id, status, start_at"
+				),
+				@Index(
+						name = "idx_bookings_restaurant_table_status_time",
+						columnList = "restaurant_id, table_id, status, start_at, end_at"
+				),
+				@Index(
+						name = "idx_bookings_pricing_offer_id",
+						columnList = "pricing_offer_id"
+				)
 		}
 )
 public class BookingEntity {

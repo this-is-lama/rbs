@@ -17,7 +17,22 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "pricing_weight", uniqueConstraints = @UniqueConstraint(columnNames = {"restaurant_id", "weight_code"}))
+@Table(
+		name = "pricing_weight",
+		uniqueConstraints = @UniqueConstraint(
+				name = "uk_pricing_weight_restaurant_code",
+				columnNames = {
+						"restaurant_id",
+						"weight_code"
+				}
+		),
+		indexes = {
+				@Index(
+						name = "idx_pricing_weight_restaurant_id",
+						columnList = "restaurant_id"
+				)
+		}
+)
 public class PricingWeightEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
