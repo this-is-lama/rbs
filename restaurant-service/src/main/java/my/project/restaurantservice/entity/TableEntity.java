@@ -13,18 +13,24 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(
-    name = "restaurant_tables",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uk_restaurant_tables_restaurant_id_table_number",
-        columnNames = {
-                "restaurant_id",
-                "table_number"
+        name = "restaurant_tables",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_restaurant_tables_restaurant_id_table_number",
+                columnNames = {
+                        "restaurant_id",
+                        "table_number"
+                }
+        ),
+        indexes = {
+                @Index(
+                        name = "idx_restaurant_tables_restaurant_id",
+                        columnList = "restaurant_id"
+                ),
+                @Index(
+                        name = "idx_restaurant_tables_restaurant_active",
+                        columnList = "restaurant_id, is_active"
+                )
         }
-    ),
-    indexes = @Index(
-            name = "idx_restaurant_tables_restaurant_id",
-            columnList = "restaurant_id"
-    )
 )
 public class TableEntity {
 

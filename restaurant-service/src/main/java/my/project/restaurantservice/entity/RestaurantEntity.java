@@ -23,7 +23,17 @@ import java.util.UUID;
                         "name",
                         "address"
                 }
-        )
+        ),
+        indexes = {
+                @Index(
+                        name = "idx_restaurants_is_active_created_at",
+                        columnList = "is_active, created_at"
+                ),
+                @Index(
+                        name = "idx_restaurants_category_is_active",
+                        columnList = "category, is_active"
+                )
+        }
 )
 public class RestaurantEntity implements PhotoContainer {
 

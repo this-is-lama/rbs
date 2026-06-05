@@ -14,7 +14,23 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "processed_messages")
+@Table(
+        name = "processed_messages",
+        indexes = {
+                @Index(
+                        name = "idx_processed_messages_status_updated_at",
+                        columnList = "status, updated_at"
+                ),
+                @Index(
+                        name = "idx_processed_messages_status_attempts_updated_at",
+                        columnList = "status, attempts, updated_at"
+                ),
+                @Index(
+                        name = "idx_processed_messages_type_created_at",
+                        columnList = "message_type, created_at"
+                )
+        }
+)
 public class MessageEntity {
 
     @Id

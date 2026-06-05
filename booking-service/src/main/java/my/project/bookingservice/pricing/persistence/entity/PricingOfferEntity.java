@@ -16,8 +16,23 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-// Active temporary pricing offers are stored in Redis. This entity is kept for existing migrations and future audit history.
-@Table(name = "pricing_offer")
+@Table(
+		name = "pricing_offer",
+		indexes = {
+				@Index(
+						name = "idx_pricing_offer_user_cart_expires",
+						columnList = "user_id, cart_hash, expires_at"
+				),
+				@Index(
+						name = "idx_pricing_offer_restaurant_table_time",
+						columnList = "restaurant_id, table_id, visit_start, visit_end"
+				),
+				@Index(
+						name = "idx_pricing_offer_status_expires",
+						columnList = "status, expires_at"
+				)
+		}
+)
 public class PricingOfferEntity {
 	@Id
 	@Column(columnDefinition = "uuid")
@@ -32,35 +47,41 @@ public class PricingOfferEntity {
 	@Column(name = "table_id", nullable = false, columnDefinition = "uuid")
 	private UUID tableId;
 
-	@Column(nullable = false, length = 128)
+	@Column(name = "cart_hash", nullable = false, length = 128)
 	private String cartHash;
 
-	@Column(name = "visit_start", nullable = false)
-	private Instant visitStart;
-
-	@Column(name = "visit_end", nullable = false)
-	private Instant visitEnd;
-
-	@Column(precision = 19, scale = 2)
+	@Column(name = "preorder_amount", precision = 19, scale = 2)
 	private BigDecimal preorderAmount;
-	@Column(precision = 19, scale = 2)
+
+	@Column(name = "pricing_charge", precision = 19, scale = 2)
 	private BigDecimal pricingCharge;
-	@Column(precision = 19, scale = 2)
+
+	@Column(name = "total_amount", precision = 19, scale = 2)
 	private BigDecimal totalAmount;
-	@Column(precision = 10, scale = 6)
-	private BigDecimal demandIndex;
-	@Column(precision = 10, scale = 6)
+
+	@Column(name = "demand_index_value", precision = 10, scale = 6)
+	private BigDecimal demandIndexValue;
+
+	@Column(name = "load_block_value", precision = 10, scale = 6)
 	private BigDecimal loadBlockValue;
-	@Column(precision = 10, scale = 6)
+
+	@Column(name = "historical_demand_block_value", precision = 10, scale = 6)
 	private BigDecimal historicalDemandBlockValue;
-	@Column(precision = 10, scale = 6)
+
+	@Column(name = "calendar_context_block_value", precision = 10, scale = 6)
 	private BigDecimal calendarContextBlockValue;
-	private String currency;
+
 	@Enumerated(EnumType.STRING)
+	@Column(name = "status", nullable = false, length = 20)
 	private PricingOfferStatus status;
-	private Instant calculatedAt;
+
+	@Column(name = "expires_at", nullable = false)
 	private Instant expiresAt;
+
+	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
+
+	@Column(name = "updated_at", nullable = false)
 	private Instant updatedAt;
 
 	@Version

@@ -14,11 +14,21 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(
-    name = "dishes",
-    indexes = @Index(
-            name = "idx_dishes_restaurant_id",
-            columnList = "restaurant_id"
-    )
+        name = "dishes",
+        indexes = {
+                @Index(
+                        name = "idx_dishes_restaurant_id",
+                        columnList = "restaurant_id"
+                ),
+                @Index(
+                        name = "idx_dishes_restaurant_available",
+                        columnList = "restaurant_id, is_available"
+                ),
+                @Index(
+                        name = "idx_dishes_restaurant_category",
+                        columnList = "restaurant_id, category"
+                )
+        }
 )
 public class DishEntity implements PhotoContainer {
 
