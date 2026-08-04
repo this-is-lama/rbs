@@ -1,0 +1,171 @@
+{
+    "metrics": {
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 10461.734844999999,
+            "avg": 2794.134155799998,
+            "min": 91.5016,
+            "med": 707.9815,
+            "max": 11974.3141,
+            "p(90)": 8638.02339
+        },
+        "http_req_sending": {
+            "avg": 0.48459022222222237,
+            "min": 0,
+            "med": 0,
+            "max": 62.8547,
+            "p(90)": 0.9962799999999999,
+            "p(95)": 1.0196699999999987
+        },
+        "http_req_tls_handshaking": {
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0
+        },
+        "http_reqs": {
+            "count": 900,
+            "rate": 6.0829868356453
+        },
+        "http_req_receiving": {
+            "avg": 11.966713555555556,
+            "min": 0,
+            "med": 0.55605,
+            "max": 224.3881,
+            "p(90)": 32.94379,
+            "p(95)": 100.14101999999993
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_connecting": {
+            "min": 0,
+            "med": 0,
+            "max": 106.0856,
+            "p(90)": 0.9928,
+            "p(95)": 2.56581999999998,
+            "avg": 0.6110107777777776
+        },
+        "data_sent": {
+            "count": 260200,
+            "rate": 1758.6590829276743
+        },
+        "http_req_failed": {
+            "passes": 400,
+            "fails": 500,
+            "thresholds": {
+                "rate<0.15": true
+            },
+            "value": 0.4444444444444444
+        },
+        "data_received": {
+            "count": 1704197,
+            "rate": 11518.45324038468
+        },
+        "iteration_duration": {
+            "max": 85444.3412,
+            "p(90)": 85393.7118,
+            "p(95)": 85409.73700499999,
+            "avg": 73415.09983949995,
+            "min": 62214.3657,
+            "med": 73566.68085
+        },
+        "iterations": {
+            "count": 200,
+            "rate": 1.3517748523656221
+        },
+        "vus": {
+            "value": 7,
+            "min": 7,
+            "max": 100
+        },
+        "http_req_blocked": {
+            "avg": 14.105087555555553,
+            "min": 0,
+            "med": 0,
+            "max": 201.0064,
+            "p(90)": 99.25596000000003,
+            "p(95)": 130.15599
+        },
+        "http_req_waiting": {
+            "max": 37642.9292,
+            "p(90)": 33836.66101,
+            "p(95)": 34215.693004999994,
+            "avg": 16059.05056733332,
+            "min": 88.49,
+            "med": 8630.96515
+        },
+        "http_req_duration": {
+            "p(95)": 34253.54365,
+            "avg": 16071.501871111108,
+            "min": 91.5016,
+            "med": 8638.27215,
+            "max": 37685.6243,
+            "p(90)": 33862.71897,
+            "thresholds": {
+                "p(95)<9000": true
+            }
+        },
+        "checks": {
+            "fails": 600,
+            "passes": 500,
+            "thresholds": {
+                "rate>0.8": true
+            },
+            "value": 0.45454545454545453
+        }
+    },
+    "root_group": {
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "login status is 200": {
+                    "id": "baba87e761865dc93085ee0c1fe25f4c",
+                    "passes": 100,
+                    "fails": 0,
+                    "name": "login status is 200",
+                    "path": "::login status is 200"
+                },
+                "mixed restaurants list status is 200": {
+                    "path": "::mixed restaurants list status is 200",
+                    "id": "a15372308940a00f90e91d1c2269b51d",
+                    "passes": 200,
+                    "fails": 0,
+                    "name": "mixed restaurants list status is 200"
+                },
+                "mixed restaurant details status is 200": {
+                    "fails": 0,
+                    "name": "mixed restaurant details status is 200",
+                    "path": "::mixed restaurant details status is 200",
+                    "id": "675a80a41779bfe88db1689ff0ed1640",
+                    "passes": 200
+                },
+                "mixed availability status is 200": {
+                    "id": "b1f24f4aa6c8ba801ad11699426c22fe",
+                    "passes": 0,
+                    "fails": 200,
+                    "name": "mixed availability status is 200",
+                    "path": "::mixed availability status is 200"
+                },
+                "pricing offer status is 200": {
+                    "name": "pricing offer status is 200",
+                    "path": "::pricing offer status is 200",
+                    "id": "3adf307d620fe8a85bd8272589d8e9eb",
+                    "passes": 0,
+                    "fails": 200
+                },
+                "pricing offer has id": {
+                    "name": "pricing offer has id",
+                    "path": "::pricing offer has id",
+                    "id": "d9f925bd10e670ba5b43e59775a1fd24",
+                    "passes": 0,
+                    "fails": 200
+                }
+            },
+        "name": "",
+        "path": ""
+    }
+}
