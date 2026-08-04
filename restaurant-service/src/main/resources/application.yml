@@ -8,16 +8,28 @@ jwt:
 spring:
   application:
     name: restaurant-service
+  profiles:
+    default: dev
 
+  cloud:
+    loadbalancer:
+      cache:
+        enabled: true
+        caffeine:
+          spec: maximumSize=1000,expireAfterWrite=30s
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/restaurantdb
+    url: jdbc:postgresql://${RESTAURANT_DB_HOST}:${RESTAURANT_DB_PORT}/restaurantdb
     username: ${DB_USER}
     password: ${DB_PASS}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 3
-      minimum-idle: 1
+      maximum-pool-size: ${MAX_POOL_SIZE:25}
+      minimum-idle: ${MIN_IDLE:5}
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+
 
   jpa:
     open-in-view: false
@@ -26,7 +38,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    show-sql: true
 
   data:
     redis:
@@ -71,11 +82,73 @@ management:
       exposure:
         include: health,info,metrics,prometheus
 
+---
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
 logging:
   level:
     root: INFO
     my.project.restaurantservice: DEBUG
     org.springframework.security: INFO
     org.hibernate.SQL: INFO
+    org.springframework.cache: INFO
+    org.springframework.data.redis: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: test
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+logging:
+  level:
+    root: WARN
+    my.project.restaurantservice: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+    org.springframework.cache: WARN
+    org.springframework.data.redis: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+logging:
+  level:
+    root: INFO
+    my.project.restaurantservice: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+    org.springframework.cache: WARN
+    org.springframework.data.redis: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"

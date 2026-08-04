@@ -1,0 +1,150 @@
+{
+    "metrics": {
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "max": 27.0444,
+            "p(90)": 4.9973,
+            "p(95)": 7.2984,
+            "avg": 1.25138,
+            "min": 0
+        },
+        "http_req_receiving": {
+            "avg": 4.5812972000000025,
+            "min": 0,
+            "med": 0,
+            "max": 562.6001,
+            "p(90)": 3.1611600000000073,
+            "p(95)": 12.357159999999983
+        },
+        "iteration_duration": {
+            "p(90)": 43300.04825,
+            "p(95)": 43324.149945000005,
+            "avg": 36677.21366974998,
+            "min": 31514.8919,
+            "med": 35543.7528,
+            "max": 43352.0355
+        },
+        "data_sent": {
+            "count": 330600,
+            "rate": 2246.165809231483
+        },
+        "http_reqs": {
+            "count": 500,
+            "rate": 3.3971049746392663
+        },
+        "http_req_duration": {
+            "max": 37097.6046,
+            "p(90)": 36057.18758,
+            "p(95)": 37030.541125,
+            "avg": 28483.47828839999,
+            "min": 3837.6453,
+            "med": 34189.839550000004,
+            "thresholds": {
+                "p(95)<9000": true
+            }
+        },
+        "http_req_failed": {
+            "passes": 400,
+            "fails": 100,
+            "thresholds": {
+                "rate<0.15": true
+            },
+            "value": 0.8
+        },
+        "http_req_sending": {
+            "p(90)": 1.00202,
+            "p(95)": 1.5512049999999886,
+            "avg": 0.9837775999999999,
+            "min": 0,
+            "med": 0,
+            "max": 107.477
+        },
+        "http_req_waiting": {
+            "p(90)": 36048.69558,
+            "p(95)": 37017.456635,
+            "avg": 28477.913213599986,
+            "min": 3275.0452,
+            "med": 34182.13175,
+            "max": 37089.5983
+        },
+        "checks": {
+            "passes": 100,
+            "fails": 800,
+            "thresholds": {
+                "rate>0.8": true
+            },
+            "value": 0.1111111111111111
+        },
+        "http_req_blocked": {
+            "max": 110.9273,
+            "p(90)": 89.09742,
+            "p(95)": 101.2814,
+            "avg": 17.9351542,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_tls_handshaking": {
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 6229.577053999999,
+            "min": 3837.6453,
+            "med": 6132.70335,
+            "max": 8072.6002,
+            "p(90)": 7967.12625,
+            "p(95)": 7988.46735
+        },
+        "data_received": {
+            "count": 332400,
+            "rate": 2258.395387140184
+        },
+        "vus": {
+            "value": 85,
+            "min": 85,
+            "max": 100
+        },
+        "iterations": {
+            "count": 400,
+            "rate": 2.717683979711413
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "login status is 200": {
+                    "fails": 0,
+                    "name": "login status is 200",
+                    "path": "::login status is 200",
+                    "id": "baba87e761865dc93085ee0c1fe25f4c",
+                    "passes": 100
+                },
+                "pricing offer status is 200": {
+                    "passes": 0,
+                    "fails": 400,
+                    "name": "pricing offer status is 200",
+                    "path": "::pricing offer status is 200",
+                    "id": "3adf307d620fe8a85bd8272589d8e9eb"
+                },
+                "pricing offer has id": {
+                    "id": "d9f925bd10e670ba5b43e59775a1fd24",
+                    "passes": 0,
+                    "fails": 400,
+                    "name": "pricing offer has id",
+                    "path": "::pricing offer has id"
+                }
+            }
+    }
+}
