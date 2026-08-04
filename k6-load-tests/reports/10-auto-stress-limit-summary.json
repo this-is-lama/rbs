@@ -1,0 +1,209 @@
+{
+    "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "stress public flow restaurants list status is 200": {
+                    "name": "stress public flow restaurants list status is 200",
+                    "path": "::stress public flow restaurants list status is 200",
+                    "id": "ec421edb59753019be273d1a842d936b",
+                    "passes": 178,
+                    "fails": 0
+                },
+                "stress public flow restaurants list duration < 3000 ms": {
+                    "id": "02f3fae7263312e59f27631a4eb2dcae",
+                    "passes": 178,
+                    "fails": 0,
+                    "name": "stress public flow restaurants list duration < 3000 ms",
+                    "path": "::stress public flow restaurants list duration < 3000 ms"
+                },
+                "stress public flow restaurant details status is 200": {
+                    "name": "stress public flow restaurant details status is 200",
+                    "path": "::stress public flow restaurant details status is 200",
+                    "id": "fcd5c435b0b71fe7579bc1502cea9521",
+                    "passes": 178,
+                    "fails": 0
+                },
+                "stress public flow restaurant details duration < 3000 ms": {
+                    "name": "stress public flow restaurant details duration < 3000 ms",
+                    "path": "::stress public flow restaurant details duration < 3000 ms",
+                    "id": "d49193790382fc0825b602ec94ee731d",
+                    "passes": 178,
+                    "fails": 0
+                },
+                "stress public flow availability status is 200": {
+                    "name": "stress public flow availability status is 200",
+                    "path": "::stress public flow availability status is 200",
+                    "id": "6c04286fdc05ccc30b571e60167ca562",
+                    "passes": 0,
+                    "fails": 1
+                },
+                "stress public flow availability duration < 4000 ms": {
+                    "passes": 0,
+                    "fails": 1,
+                    "name": "stress public flow availability duration < 4000 ms",
+                    "path": "::stress public flow availability duration < 4000 ms",
+                    "id": "03a547286d78a97b7604c444027c8b6c"
+                }
+            },
+        "name": ""
+    },
+    "metrics": {
+        "stress_scenario_success_rate": {
+            "passes": 0,
+            "fails": 1,
+            "thresholds": {
+                "rate>0.70": true
+            },
+            "value": 0
+        },
+        "stress_active_vus": {
+            "max": 179,
+            "value": 179,
+            "min": 1
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 195.73871910112354,
+            "min": 39.3417,
+            "med": 117.3244,
+            "max": 2346.6816,
+            "p(90)": 363.2497,
+            "p(95)": 582.6034
+        },
+        "checks": {
+            "passes": 712,
+            "fails": 2,
+            "thresholds": {
+                "rate>0.70": false
+            },
+            "value": 0.9971988795518207
+        },
+        "stress_availability_bad_response_rate": {
+            "passes": 1,
+            "fails": 0,
+            "value": 1
+        },
+        "stress_bad_responses": {
+            "count": 1,
+            "rate": 0.01856179220904819
+        },
+        "http_req_duration": {
+            "med": 117.3943,
+            "max": 30332.0802,
+            "p(90)": 364.08368,
+            "p(95)": 585.6427199999999,
+            "avg": 280.15424145658255,
+            "min": 39.3417
+        },
+        "stress_restaurant_details_bad_response_rate": {
+            "passes": 0,
+            "fails": 178,
+            "value": 0
+        },
+        "http_req_sending": {
+            "min": 0,
+            "med": 0,
+            "max": 4.0059,
+            "p(90)": 0.99424,
+            "p(95)": 1.00238,
+            "avg": 0.1712504201680672
+        },
+        "http_req_waiting": {
+            "avg": 278.85249299719874,
+            "min": 36.355,
+            "med": 115.1258,
+            "max": 30322.0919,
+            "p(90)": 363.76316,
+            "p(95)": 584.6380599999999
+        },
+        "http_req_connecting": {
+            "avg": 0.9415876750700276,
+            "min": 0,
+            "med": 0,
+            "max": 46.2558,
+            "p(90)": 2.0153000000000003,
+            "p(95)": 3.00732
+        },
+        "http_req_failed": {
+            "passes": 1,
+            "fails": 356,
+            "thresholds": {
+                "rate<0.20": false
+            },
+            "value": 0.0028011204481792717
+        },
+        "vus_max": {
+            "min": 1000,
+            "max": 1000,
+            "value": 1000
+        },
+        "stress_restaurants_list_bad_response_rate": {
+            "passes": 0,
+            "fails": 178,
+            "value": 0
+        },
+        "data_sent": {
+            "count": 76094,
+            "rate": 1412.441016355313
+        },
+        "stress_bad_response_rate": {
+            "passes": 1,
+            "fails": 356,
+            "thresholds": {
+                "rate<0.20": false
+            },
+            "value": 0.0028011204481792717
+        },
+        "http_reqs": {
+            "count": 357,
+            "rate": 6.626559818630204
+        },
+        "vus": {
+            "max": 179,
+            "value": 179,
+            "min": 3
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "data_received": {
+            "count": 1203554,
+            "rate": 22340.119260368785
+        },
+        "stress_server_error_rate": {
+            "passes": 1,
+            "fails": 356,
+            "thresholds": {
+                "rate<0.10": false
+            },
+            "value": 0.0028011204481792717
+        },
+        "stress_failed_at_vus": {
+            "min": 75,
+            "max": 75,
+            "value": 75
+        },
+        "http_req_blocked": {
+            "avg": 1.345261624649859,
+            "min": 0,
+            "med": 0.2905,
+            "max": 54.1169,
+            "p(90)": 2.9916199999999997,
+            "p(95)": 4.0026399999999995
+        },
+        "http_req_receiving": {
+            "avg": 1.130498039215686,
+            "min": 0,
+            "med": 0.993,
+            "max": 14.1326,
+            "p(90)": 2.158180000000002,
+            "p(95)": 4.0011
+        }
+    }
+}

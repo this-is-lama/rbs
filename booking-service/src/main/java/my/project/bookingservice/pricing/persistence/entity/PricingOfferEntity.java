@@ -24,8 +24,8 @@ import java.util.UUID;
 						columnList = "user_id, cart_hash, expires_at"
 				),
 				@Index(
-						name = "idx_pricing_offer_restaurant_table_time",
-						columnList = "restaurant_id, table_id, visit_start, visit_end"
+						name = "idx_pricing_offer_restaurant_table_expires",
+						columnList = "restaurant_id, table_id, expires_at"
 				),
 				@Index(
 						name = "idx_pricing_offer_status_expires",
@@ -87,5 +87,26 @@ public class PricingOfferEntity {
 	@Version
 	@Column(nullable = false)
 	private Long version;
-}
 
+	@PrePersist
+	private void prePersist() {
+		Instant now = Instant.now();
+
+		if (id == null) {
+			id = UUID.randomUUID();
+		}
+
+		if (createdAt == null) {
+			createdAt = now;
+		}
+
+		if (updatedAt == null) {
+			updatedAt = now;
+		}
+	}
+
+	@PreUpdate
+	private void preUpdate() {
+		updatedAt = Instant.now();
+	}
+}

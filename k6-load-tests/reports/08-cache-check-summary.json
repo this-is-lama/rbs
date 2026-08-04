@@ -1,0 +1,157 @@
+{
+    "metrics": {
+        "http_req_sending": {
+            "med": 0,
+            "max": 785.9617,
+            "p(90)": 1.0057,
+            "p(95)": 2.5434849999999876,
+            "avg": 5.609424399999997,
+            "min": 0
+        },
+        "http_req_waiting": {
+            "avg": 26027.512197399974,
+            "min": 1397.9713,
+            "med": 30828.89495,
+            "max": 33671.9668,
+            "p(90)": 32765.28328,
+            "p(95)": 33035.20053
+        },
+        "checks": {
+            "passes": 100,
+            "fails": 600,
+            "thresholds": {
+                "rate>0.85": true
+            },
+            "value": 0.14285714285714285
+        },
+        "data_received": {
+            "rate": 2495.520158428953,
+            "count": 332400
+        },
+        "http_req_connecting": {
+            "max": 7.0126,
+            "p(90)": 1.1068900000000221,
+            "p(95)": 4.001,
+            "avg": 0.44824859999999983,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_tls_handshaking": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0
+        },
+        "iteration_duration": {
+            "min": 61748.7909,
+            "med": 66594.8388,
+            "max": 69659.8736,
+            "p(90)": 69652.1793,
+            "p(95)": 69655.1582,
+            "avg": 66295.04226849996
+        },
+        "iterations": {
+            "count": 200,
+            "rate": 1.5015163408116443
+        },
+        "http_reqs": {
+            "count": 500,
+            "rate": 3.753790852029111
+        },
+        "data_sent": {
+            "rate": 2482.0065113616483,
+            "count": 330600
+        },
+        "vus": {
+            "value": 54,
+            "min": 54,
+            "max": 100
+        },
+        "http_req_receiving": {
+            "med": 0,
+            "max": 789.2168,
+            "p(90)": 139.59247000000002,
+            "p(95)": 521.5463249999992,
+            "avg": 48.169829999999976,
+            "min": 0
+        },
+        "http_req_failed": {
+            "passes": 400,
+            "fails": 100,
+            "thresholds": {
+                "rate<0.1": true
+            },
+            "value": 0.8
+        },
+        "http_req_blocked": {
+            "avg": 22.786257399999997,
+            "min": 0,
+            "med": 0,
+            "max": 119.6898,
+            "p(90)": 113.691,
+            "p(95)": 115.6979
+        },
+        "http_req_duration": {
+            "avg": 26081.291451799974,
+            "min": 1397.9713,
+            "med": 30939.757599999997,
+            "max": 33677.1968,
+            "p(90)": 32765.33494,
+            "p(95)": 33038.502109999994,
+            "thresholds": {
+                "p(95)<6000": true
+            }
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 4284.056928,
+            "min": 1397.9713,
+            "med": 4748.75425,
+            "max": 5769.3394,
+            "p(90)": 5224.117899999999,
+            "p(95)": 5438.76779
+        }
+    },
+    "root_group": {
+        "checks": {
+            "login status is 200": {
+                "path": "::login status is 200",
+                "id": "baba87e761865dc93085ee0c1fe25f4c",
+                "passes": 100,
+                "fails": 0,
+                "name": "login status is 200"
+            },
+            "cache first pricing status is 200": {
+                "path": "::cache first pricing status is 200",
+                "id": "0124df611d5863e7ff0c948c9f61c191",
+                "passes": 0,
+                "fails": 200,
+                "name": "cache first pricing status is 200"
+            },
+            "cache second pricing status is 200": {
+                "fails": 200,
+                "name": "cache second pricing status is 200",
+                "path": "::cache second pricing status is 200",
+                "id": "70ec108225cc821ca22e00c83c61ad11",
+                "passes": 0
+            },
+            "cache second duration below 5 sec": {
+                "path": "::cache second duration below 5 sec",
+                "id": "b704d5b3a6ac022412c3e2c24f704970",
+                "passes": 0,
+                "fails": 200,
+                "name": "cache second duration below 5 sec"
+            }
+        },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {}
+    }
+}

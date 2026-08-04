@@ -5,11 +5,22 @@ jwt:
   access-secret: ${JWT_SECRET}
   issuer: user-service
 
+app:
+  cors:
+    allowed-origin: ${CORS_ALLOWED_ORIGIN}
+
 spring:
   application:
     name: api-gateway
+  profiles:
+    default: dev
 
   cloud:
+    loadbalancer:
+      cache:
+        enabled: true
+        caffeine:
+          spec: maximumSize=1000,expireAfterWrite=30s
     gateway:
       discovery:
         locator:
@@ -73,6 +84,12 @@ management:
       exposure:
         include: health,info,metrics,prometheus
 
+---
+
+spring:
+  config:
+    activate:
+      on-profile: dev
 
 logging:
   level:
@@ -81,5 +98,39 @@ logging:
     org.springframework.security: INFO
     org.springframework.cloud.gateway: INFO
     reactor.netty.http.client: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: test
+
+logging:
+  level:
+    root: WARN
+    my.project.apigateway: WARN
+    org.springframework.security: WARN
+    org.springframework.cloud.gateway: WARN
+    reactor.netty.http.client: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: INFO
+    my.project.apigateway: INFO
+    org.springframework.security: WARN
+    org.springframework.cloud.gateway: WARN
+    reactor.netty.http.client: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
