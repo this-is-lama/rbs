@@ -9,10 +9,9 @@ import my.project.common.security.AuthUtil;
 import my.project.userservice.dto.ChangePasswordRequest;
 import my.project.userservice.dto.ChangeRoleByIdRequest;
 import my.project.userservice.dto.UpdateUserRequest;
-import my.project.userservice.dto.UserBriefDto;
 import my.project.userservice.dto.UserDto;
-import my.project.userservice.dto.UserLookupDto;
-import my.project.userservice.service.UserService;
+import my.project.userservice.service.user.UserReadService;
+import my.project.userservice.service.user.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -29,12 +28,13 @@ import java.util.UUID;
 public class UserController {
 
 	private final UserService userService;
+	private final UserReadService userReadService;
 
 	@GetMapping("/me")
 	public ResponseEntity<UserDto> getMe(Authentication auth) {
 		UUID userId = AuthUtil.id(auth);
 		log.info("Получен запрос на профиль текущего пользователя, userId={}", userId);
-		return ResponseEntity.ok(userService.getMe(auth));
+		return ResponseEntity.ok(userReadService.getMe(auth));
 	}
 
 	@PutMapping("/me")
@@ -68,23 +68,24 @@ public class UserController {
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@GetMapping("/lookup")
-	public ResponseEntity<UserLookupDto> lookupByEmail(@RequestParam @NotBlank @Email String email) {
-		log.info("Получен запрос на lookup пользователя по email={}", email);
-		return ResponseEntity.ok(userService.lookupByEmail(email));
+	@GetMapping("/email")
+	public ResponseEntity<UserDto> getUserByEmail(@RequestParam @NotBlank @Email String email) {
+		log.info("Получен запрос на информацию об пользователе по email={}", email);
+		return ResponseEntity.ok(userReadService.getUserByEmail(email));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PostMapping("/summaries")
-	public ResponseEntity<List<UserLookupDto>> summaries(@RequestBody Set<UUID> ids) {
-		log.info("Получен запрос на summaries пользователей, count={}", ids == null ? 0 : ids.size());
-		return ResponseEntity.ok(userService.getSummaries(ids));
+	@GetMapping("/{id}")
+	public ResponseEntity<UserDto> getUserById(@PathVariable UUID id) {
+		log.info("Получен запрос на информацию об пользователе по id={}", id);
+		return ResponseEntity.ok(userReadService.getUserById(id));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PostMapping("/briefs")
-	public ResponseEntity<List<UserBriefDto>> briefs(@RequestBody Set<UUID> ids) {
-		log.info("Получен запрос на краткую информацию о пользователях, count={}", ids == null ? 0 : ids.size());
-		return ResponseEntity.ok(userService.getBriefs(ids));
+	@PostMapping()
+	public ResponseEntity<List<UserDto>> getUsersByIds(@RequestBody Set<UUID> ids) {
+		log.info("Получен запрос на информацию об пользователях, count={}", ids == null ? 0 : ids.size());
+		return ResponseEntity.ok(userReadService.getUsersByIds(ids));
 	}
+
 }

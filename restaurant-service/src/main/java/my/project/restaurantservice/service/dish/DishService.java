@@ -10,7 +10,7 @@ import my.project.restaurantservice.entity.RestaurantEntity;
 import my.project.restaurantservice.mapper.DishMapper;
 import my.project.restaurantservice.repository.DishRepository;
 import my.project.restaurantservice.repository.RestaurantRepository;
-import my.project.restaurantservice.service.manager.ManagerService;
+import my.project.restaurantservice.service.manager.ManagerAccessService;
 import my.project.restaurantservice.service.photo.PhotoReadService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
@@ -31,9 +31,10 @@ public class DishService {
 	private final DishRepository repository;
 	private final RestaurantRepository restaurantRepository;
 	private final DishMapper mapper;
+
 	private final DishReadService readService;
 	private final PhotoReadService photoReadService;
-	private final ManagerService managerService;
+	private final ManagerAccessService managerAccessService;
 
 	@Caching(evict = {
 			@CacheEvict(cacheNames = "publicDishesByRestaurantId", key = "#restId"),
@@ -42,7 +43,7 @@ public class DishService {
 	@Transactional
 	public UUID save(DishDto dto, UUID restId, Authentication auth) {
 		log.info("Создание блюда, restId={}, name={}", restId, dto.getName());
-		managerService.checkAccess(restId, auth);
+		managerAccessService.checkAccess(restId, auth);
 
 		DishEntity dish = mapper.toEntity(dto);
 		RestaurantEntity restaurant = restaurantRepository.getReferenceById(restId);
@@ -62,7 +63,7 @@ public class DishService {
 	@Transactional
 	public DishDto update(UUID restId, UUID id, DishDto dto, Authentication auth) {
 		log.info("Обновление блюда, restId={}, dishId={}", restId, id);
-		managerService.checkAccess(restId, auth);
+		managerAccessService.checkAccess(restId, auth);
 
 		var dish = repository.findByIdAndRestaurantId(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.dish.not-found", id));
@@ -81,7 +82,7 @@ public class DishService {
 	@Transactional
 	public void delete(UUID restId, UUID id, Authentication auth) {
 		log.info("Удаление блюда, restId={}, dishId={}", restId, id);
-		managerService.checkAccess(restId, auth);
+		managerAccessService.checkAccess(restId, auth);
 		repository.deleteByIdAndRestaurantId(id, restId);
 		log.info("Блюдо успешно удалено, restId={}, dishId={}", restId, id);
 	}
@@ -90,7 +91,7 @@ public class DishService {
 	public DishDto findById(UUID restId, UUID id, Authentication auth) {
 		log.info("Получение блюда, restId={}, dishId={}", restId, id);
 
-		var dish = managerService.onlyPublic(restId, auth)
+		var dish = managerAccessService.onlyPublic(restId, auth)
 				? readService.getPublicById(restId, id)
 				: readService.getPrivateById(restId, id);
 
@@ -109,7 +110,7 @@ public class DishService {
 	public List<DishDto> findAllByRestaurantId(UUID restId, Authentication auth) {
 		log.info("Получение списка блюд ресторана, restId={}", restId);
 
-		var dishes = managerService.onlyPublic(restId, auth)
+		var dishes = managerAccessService.onlyPublic(restId, auth)
 				? readService.findAllPublicByRestaurantId(restId)
 				: readService.findAllPrivateByRestaurantId(restId);
 

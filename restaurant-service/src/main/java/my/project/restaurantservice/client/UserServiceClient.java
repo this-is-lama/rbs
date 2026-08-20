@@ -1,7 +1,7 @@
 package my.project.restaurantservice.client;
 
 import my.project.restaurantservice.config.FeignConfig;
-import my.project.restaurantservice.dto.client.UserLookupDto;
+import my.project.restaurantservice.dto.client.UserDto;
 import my.project.restaurantservice.dto.manager.ChangeRoleByIdRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +20,6 @@ public interface UserServiceClient {
     @PostMapping("/api/v1/users/change-role-by-id")
     UUID changeRoleById(@RequestBody ChangeRoleByIdRequest req);
 
-    @PostMapping("/api/v1/users/summaries")
-    List<UserLookupDto> getSummaries(@RequestBody Set<UUID> ids);
+    @PostMapping("/api/v1/users")
+    List<UserDto> getUsersByIds(@RequestBody Set<UUID> ids);
 }

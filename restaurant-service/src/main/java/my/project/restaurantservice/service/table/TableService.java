@@ -12,7 +12,7 @@ import my.project.restaurantservice.entity.TableEntity;
 import my.project.restaurantservice.mapper.TableMapper;
 import my.project.restaurantservice.repository.RestaurantRepository;
 import my.project.restaurantservice.repository.TableRepository;
-import my.project.restaurantservice.service.manager.ManagerService;
+import my.project.restaurantservice.service.manager.ManagerAccessService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -32,7 +32,7 @@ public class TableService {
 	private final RestaurantRepository restaurantRepository;
 	private final TableMapper mapper;
 	private final TableReadService readService;
-	private final ManagerService managerService;
+	private final ManagerAccessService managerAccessService;
 
 	@Caching(evict = {
 			@CacheEvict(cacheNames = "publicTablesByRestaurantId", key = "#restId"),
@@ -41,7 +41,7 @@ public class TableService {
 	@Transactional
 	public UUID save(TableDto dto, UUID restId, Authentication auth) {
 		log.info("Создание стола, restId={}, tableNumber={}", restId, dto.tableNumber());
-		managerService.checkAccess(restId, auth);
+		managerAccessService.checkAccess(restId, auth);
 
 		TableEntity table = mapper.toEntity(dto);
 		RestaurantEntity restaurant = restaurantRepository.getReferenceById(restId);
@@ -59,7 +59,7 @@ public class TableService {
 	@Transactional
 	public List<UUID> saveAll(List<TableDto> dtos, UUID restId, Authentication auth) {
 		log.info("Массовое создание столов, restId={}, count={}", restId, dtos.size());
-		managerService.checkAccess(restId, auth);
+		managerAccessService.checkAccess(restId, auth);
 
 		RestaurantEntity restaurant = restaurantRepository.getReferenceById(restId);
 		List<UUID> ids = new ArrayList<>();
@@ -84,7 +84,7 @@ public class TableService {
 	@Transactional
 	public TableDto update(UUID restId, UUID id, TableDto dto, Authentication auth) {
 		log.info("Обновление стола, restId={}, tableId={}", restId, id);
-		managerService.checkAccess(restId, auth);
+		managerAccessService.checkAccess(restId, auth);
 
 		TableEntity entity = repository.findByIdAndRestaurantId(id, restId)
 				.orElseThrow(() -> new NotFoundException("restaurant.table.not-found", id));
@@ -105,7 +105,7 @@ public class TableService {
 	@Transactional
 	public List<TableDto> updateLayout(UUID restId, TableLayoutUpdateRequest req, Authentication auth) {
 		log.info("Обновление layout столов, restId={}, count={}", restId, req.tables().size());
-		managerService.checkAccess(restId, auth);
+		managerAccessService.checkAccess(restId, auth);
 
 		Set<UUID> ids = req.tables().stream()
 				.map(TableLayoutItemRequest::id)
@@ -146,7 +146,7 @@ public class TableService {
 	@Transactional
 	public void delete(UUID restId, UUID id, Authentication auth) {
 		log.info("Удаление стола, restId={}, tableId={}", restId, id);
-		managerService.checkAccess(restId, auth);
+		managerAccessService.checkAccess(restId, auth);
 		repository.deleteByIdAndRestaurantId(id, restId);
 		log.info("Стол успешно удалён, restId={}, tableId={}", restId, id);
 	}
@@ -154,7 +154,7 @@ public class TableService {
 	@Transactional(readOnly = true)
 	public TableDto findById(UUID restId, UUID id, Authentication auth) {
 		log.info("Получение стола, restId={}, tableId={}", restId, id);
-		return managerService.onlyPublic(restId, auth)
+		return managerAccessService.onlyPublic(restId, auth)
 				? readService.getPublicById(restId, id)
 				: readService.getPrivateById(restId, id);
 	}
@@ -162,7 +162,7 @@ public class TableService {
 	@Transactional(readOnly = true)
 	public List<TableDto> findAllByRestaurantId(UUID restId, Authentication auth) {
 		log.info("Получение списка столов ресторана, restId={}", restId);
-		return managerService.onlyPublic(restId, auth)
+		return managerAccessService.onlyPublic(restId, auth)
 				? readService.findAllPublicByRestaurantId(restId)
 				: readService.findAllPrivateByRestaurantId(restId);
 	}

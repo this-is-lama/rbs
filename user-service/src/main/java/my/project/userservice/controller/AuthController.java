@@ -7,7 +7,7 @@ import my.project.userservice.dto.AuthRequest;
 import my.project.userservice.dto.AuthTokens;
 import my.project.userservice.dto.RefreshTokenDto;
 import my.project.userservice.dto.RegistrationRequest;
-import my.project.userservice.service.AuthService;
+import my.project.userservice.service.auth.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,5 +1,6 @@
 package my.project.bookingservice.dto.response;
 
+import my.project.bookingservice.dto.client.UserDto;
 import my.project.bookingservice.entity.BookingStatus;
 
 import java.math.BigDecimal;
@@ -34,5 +35,5 @@ public record ManagerBookingResponse(
 		TableResponse table,
 		List<DishResponse> dishes,
 
-		BookingUserResponse user
+		UserDto user
 ) {}
