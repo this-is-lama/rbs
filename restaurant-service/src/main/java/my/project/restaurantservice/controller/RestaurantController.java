@@ -59,24 +59,6 @@ public class RestaurantController {
 		return ResponseEntity.ok(response);
 	}
 
-	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@GetMapping("/{id}/pricing-settings")
-	public ResponseEntity<RestaurantPricingSettingsResponse> getPricingSettings(@PathVariable UUID id,
-																			   Authentication auth) {
-		log.info("Received request to get restaurant pricing settings, restId={}", id);
-		return ResponseEntity.ok(restaurantService.getPricingSettings(id, auth));
-	}
-
-	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PutMapping("/{id}/pricing-settings")
-	public ResponseEntity<RestaurantPricingSettingsResponse> updatePricingSettings(
-			@PathVariable UUID id,
-			@RequestBody @Valid RestaurantPricingSettingsRequest request,
-			Authentication auth
-	) {
-		log.info("Received request to update restaurant pricing settings, restId={}", id);
-		return ResponseEntity.ok(restaurantService.updatePricingSettings(id, request, auth));
-	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@GetMapping("/my")

@@ -76,9 +76,6 @@ public class BookingEntity {
 	@Column(name = "total_amount", precision = 12, scale = 2, nullable = false)
 	private BigDecimal totalAmount;
 
-	@Column(name = "pricing_offer_id", columnDefinition = "uuid")
-	private UUID pricingOfferId;
-
 	@Column(name = "preorder_amount", precision = 12, scale = 2, nullable = false)
 	private BigDecimal preorderAmount;
 

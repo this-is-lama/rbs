@@ -1,11 +1,10 @@
 package my.project.bookingservice.mapper;
 
-import my.project.bookingservice.dto.client.UserBriefDto;
+import my.project.bookingservice.dto.client.UserDto;
 import my.project.bookingservice.dto.events.BookingCancelledEvent;
 import my.project.bookingservice.dto.events.BookingCreatedEvent;
 import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
-import my.project.bookingservice.dto.response.BookingUserResponse;
 import my.project.bookingservice.dto.response.ManagerBookingResponse;
 import my.project.bookingservice.entity.BookingEntity;
 import org.mapstruct.Mapper;
@@ -68,9 +67,6 @@ public interface BookingMapper {
     @Mapping(target = "reason", source = "reason")
     BookingCancelledEvent toCancelledEvent(BookingEntity entity, String email, String username, String reason);
 
-    @Mapping(target = "active", source = "enabled")
-    BookingUserResponse toBookingUserResponse(UserBriefDto dto);
-
     @Mapping(target = "id", source = "entity.id")
     @Mapping(target = "restaurantId", source = "entity.restaurantId")
     @Mapping(target = "userId", source = "entity.userId")
@@ -90,5 +86,5 @@ public interface BookingMapper {
     @Mapping(target = "table", source = "entity.table")
     @Mapping(target = "dishes", source = "entity.dishes")
     @Mapping(target = "user", source = "user")
-    ManagerBookingResponse toManagerResponse(BookingEntity entity, BookingUserResponse user);
+    ManagerBookingResponse toManagerResponse(BookingEntity entity, UserDto user);
 }

@@ -1,4 +1,4 @@
-package my.project.userservice.dto;
+package my.project.bookingservice.dto.client;
 
 import java.time.LocalDate;
 import java.util.UUID;

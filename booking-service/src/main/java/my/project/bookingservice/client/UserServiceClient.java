@@ -1,8 +1,10 @@
 package my.project.bookingservice.client;
 
 import my.project.bookingservice.config.FeignConfig;
-import my.project.bookingservice.dto.client.UserBriefDto;
+import my.project.bookingservice.dto.client.UserDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -16,6 +18,9 @@ import java.util.UUID;
 )
 public interface UserServiceClient {
 
-    @PostMapping("/api/v1/users/briefs")
-    List<UserBriefDto> getBriefs(@RequestBody Set<UUID> ids);
+    @PostMapping("/api/v1/users/{id}")
+    UserDto getUserById(@PathVariable UUID id);
+
+    @PostMapping()
+    List<UserDto> getUsersByIds(@RequestBody Set<UUID> ids);
 }

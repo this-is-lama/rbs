@@ -8,8 +8,8 @@ import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.dto.response.ManagerBookingResponse;
 import my.project.bookingservice.dto.response.TableAvailabilityResponse;
+import my.project.bookingservice.service.BookingFacadeService;
 import my.project.bookingservice.service.BookingReadService;
-import my.project.bookingservice.service.BookingService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,27 +26,27 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookingController {
 
-	private final BookingService bookingService;
-	private final BookingReadService bookingReadService;
+	private final BookingReadService bookingReadServiceImpl;
+	private final BookingFacadeService bookingFacadeServiceImpl;
 
 	@PostMapping
 	public ResponseEntity<BookingResponse> create(@RequestBody @Valid CreateBookingRequest req,
 												  Authentication auth) {
 		log.info("Получен запрос на создание бронирования, restaurantId={}, tableId={}",
 				req.restaurantId(), req.tableId());
-		return ResponseEntity.ok(bookingService.create(req, auth));
+		return ResponseEntity.ok(bookingFacadeServiceImpl.create(req, auth));
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<BookingResponse> findById(@PathVariable UUID id, Authentication auth) {
 		log.info("Получен запрос на получение бронирования, bookingId={}", id);
-		return ResponseEntity.ok(bookingReadService.findById(id, auth));
+		return ResponseEntity.ok(bookingReadServiceImpl.findById(id, auth));
 	}
 
 	@GetMapping("/me")
 	public ResponseEntity<List<BookingResponse>> findUserBookings(Authentication auth) {
 		log.info("Получен запрос на получение списка бронирований текущего пользователя");
-		return ResponseEntity.ok(bookingReadService.findUserBookings(auth));
+		return ResponseEntity.ok(bookingReadServiceImpl.findUserBookings(auth));
 	}
 
 	@DeleteMapping("/{id}/cancel")
@@ -54,7 +54,7 @@ public class BookingController {
 									   @RequestBody(required = false) @Valid CancelBookingRequest req,
 									   Authentication auth) {
 		log.info("Получен запрос на отмену бронирования, bookingId={}", id);
-		bookingService.cancel(id, req, auth);
+		bookingFacadeServiceImpl.cancel(id, req, auth);
 		log.info("Бронирование успешно отменено, bookingId={}", id);
 		return ResponseEntity.noContent().build();
 	}
@@ -64,7 +64,7 @@ public class BookingController {
 	public ResponseEntity<List<ManagerBookingResponse>> restaurantBookings(@PathVariable UUID restId,
 																		   Authentication auth) {
 		log.info("Получен запрос на список бронирований ресторана для менеджера, restId={}", restId);
-		return ResponseEntity.ok(bookingReadService.findAllByRestaurantId(restId, auth));
+		return ResponseEntity.ok(bookingReadServiceImpl.findAllByRestaurantId(restId, auth));
 	}
 
 	@GetMapping("/public/restaurants/{restaurantId}/tables/{tableId}/availability")
@@ -75,6 +75,6 @@ public class BookingController {
 																				LocalDate date) {
 		log.info("Получен запрос на публичную занятость стола, restaurantId={}, tableId={}, date={}",
 				restaurantId, tableId, date);
-		return ResponseEntity.ok(bookingReadService.getPublicTableAvailability(restaurantId, tableId, date));
+		return ResponseEntity.ok(bookingFacadeServiceImpl.getPublicTableAvailability(restaurantId, tableId, date));
 	}
 }

@@ -3,6 +3,7 @@ package my.project.restaurantservice.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.restaurantservice.dto.manager.RestaurantManagerDto;
+import my.project.restaurantservice.service.manager.ManagerReadService;
 import my.project.restaurantservice.service.manager.ManagerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class ManagerController {
 
 	private final ManagerService managerService;
+	private final ManagerReadService readService;
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@PostMapping("/{restId}/managers/{managerId}")
@@ -36,7 +38,7 @@ public class ManagerController {
 	public ResponseEntity<List<RestaurantManagerDto>> findAll(@PathVariable UUID restId,
 															  Authentication auth) {
 		log.info("Получен запрос на список менеджеров ресторана, restId={}", restId);
-		return ResponseEntity.ok(managerService.findAllByRestaurantId(restId, auth));
+		return ResponseEntity.ok(readService.findAllManagersByRestaurantId(restId, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")

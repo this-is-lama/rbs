@@ -11,7 +11,7 @@ import my.project.restaurantservice.dto.photo.PhotoConfirmResponse;
 import my.project.restaurantservice.dto.photo.PhotoUploadRequest;
 import my.project.restaurantservice.entity.PhotoEntity;
 import my.project.restaurantservice.mapper.PhotoMapper;
-import my.project.restaurantservice.service.manager.ManagerService;
+import my.project.restaurantservice.service.manager.ManagerAccessService;
 import my.project.restaurantservice.service.photo.provider.ContainerType;
 import my.project.restaurantservice.service.photo.provider.PhotoContainerProvider;
 import my.project.restaurantservice.service.photo.provider.ProviderContext;
@@ -31,7 +31,7 @@ public class UploadService {
     private static final int SECONDS_DURATION = 120;
 
     private final StorageService storageService;
-    private final ManagerService managerService;
+    private final ManagerAccessService managerAccessService;
     private final PhotoService photoService;
     private final PhotoReadService photoReadService;
     private final PhotoMapper photoMapper;
@@ -131,7 +131,7 @@ public class UploadService {
 
     private ProviderContext checkAccessAndGetContext(ContainerType type, UUID containerId, Authentication auth) {
         ProviderContext context = provider(type).context(containerId);
-        managerService.checkAccess(context.accessContainerId(), auth);
+        managerAccessService.checkAccess(context.accessContainerId(), auth);
         return context;
     }
 

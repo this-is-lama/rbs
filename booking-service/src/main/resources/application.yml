@@ -46,14 +46,6 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
-  cache:
-    type: redis
-    redis:
-      time-to-live: 10m
-      cache-null-values: false
-      use-key-prefix: true
-      key-prefix: "booking-service::"
-
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP}
     producer:

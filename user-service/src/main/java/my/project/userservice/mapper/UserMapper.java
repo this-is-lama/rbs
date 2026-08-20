@@ -2,9 +2,7 @@ package my.project.userservice.mapper;
 
 import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.dto.UpdateUserRequest;
-import my.project.userservice.dto.UserBriefDto;
 import my.project.userservice.dto.UserDto;
-import my.project.userservice.dto.UserLookupDto;
 import my.project.userservice.entity.UserEntity;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -35,12 +33,6 @@ public interface UserMapper {
     @Mapping(target = "role", expression = "java(user.getRole().name())")
     UserDto toDto(UserEntity user);
 
-    @Mapping(target = "role", expression = "java(user.getRole().name())")
-    UserLookupDto toLookupDto(UserEntity user);
+    List<UserDto> toDto(List<UserEntity> users);
 
-    List<UserLookupDto> toLookupDto(List<UserEntity> users);
-
-    UserBriefDto toBriefDto(UserEntity user);
-
-    List<UserBriefDto> toBriefDto(List<UserEntity> users);
 }
