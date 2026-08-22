@@ -20,7 +20,7 @@ public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
                status = 'CREATED'
                or (status = 'PROCESSING' and updated_at < (now() - (:stuckMinutes || ' minutes')::interval))
           )
-        order by updated_at asc
+        order by updated_at
         for update skip locked
         limit 500
         """, nativeQuery = true)

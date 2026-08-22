@@ -1,4 +1,4 @@
-package my.project.notificationservice.service;
+package my.project.notificationservice.service.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import my.project.notificationservice.entity.MessageType;
 import my.project.notificationservice.events.BookingNotificationEvent;
 import my.project.notificationservice.mapper.MailContextMapper;
+import my.project.notificationservice.service.SenderService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,7 +19,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MailSenderService {
+public class MailSenderServiceImpl implements SenderService {
 
 	private static final String LOGO_PATH = "templates/logo.svg";
 	private static final String LOGO_CONTENT_ID = "rbs-logo";
@@ -32,20 +33,27 @@ public class MailSenderService {
 	private final MailContextMapper mapper;
 
 	public void sendMessage(BookingNotificationEvent event) throws MessagingException {
-		String sendToEmail = event.email();
-
 		log.info("Подготовка email для отправки, bookingId={}, messageType={}, email={}",
-				event.bookingId(), event.messageType(), sendToEmail);
+				event.bookingId(), event.messageType(), event.email());
 
-		MimeMessage mimeMessage = mailSender.createMimeMessage();
-		var helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+		var message = createMessage(event);
+		mailSender.send(message);
+
+		log.info("Email успешно отправлен, bookingId={}, messageType={}, email={}",
+				event.bookingId(), event.messageType(), event.email());
+	}
+
+	private MimeMessage createMessage(BookingNotificationEvent event) throws MessagingException {
+		MimeMessage message = mailSender.createMimeMessage();
+		var helper = new MimeMessageHelper(message, true, "UTF-8");
 
 		Context context = new Context();
-		context.setVariables(mapper.toContext(event));
+		var variables = mapper.toContext(event);
+		context.setVariables(variables);
 
 		String html = templateEngine.process(templateName(event.messageType()), context);
 
-		helper.setTo(sendToEmail);
+		helper.setTo(event.email());
 		helper.setSubject(subject(event.messageType()));
 		helper.setFrom(sendFrom);
 		helper.setText(html, true);
@@ -58,10 +66,7 @@ public class MailSenderService {
 			log.warn("Логотип письма не найден в classpath: {}. Письмо будет отправлено без inline-логотипа", LOGO_PATH);
 		}
 
-		mailSender.send(mimeMessage);
-
-		log.info("Email успешно отправлен, bookingId={}, messageType={}, email={}",
-				event.bookingId(), event.messageType(), sendToEmail);
+		return message;
 	}
 
 	private String templateName(MessageType messageType) {
