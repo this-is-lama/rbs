@@ -61,67 +61,7 @@ app:
       booking-cancelled: booking-cancelled-topic
 
 pricing:
-  offer-ttl-minutes: 10
-  currency: RUB
-
-  sigmoid:
-    k: 8
-    center: 0.5
-
-  history:
-    period-days: 90
-    min-bookings-for-history: 50
-    full-bookings-for-history: 150
-    min-bookings-for-table-history: 50
-    full-bookings-for-table-history: 150
-    min-observations-for-calendar-class: 5
-    full-observations-for-calendar-class: 20
-    min-bookings-for-weight-history: 50
-    full-bookings-for-weight-history: 150
-    weight-update-rate: 0.1
-    urgency-scale-hours: 24
-
-  calendar:
-    is-day-off-url: https://isdayoff.ru
-    peak-holidays:
-      - "2026-12-31"
-      - "2026-02-14"
-      - "2026-03-08"
-
-  system-limits:
-    min-pricing-charge: 0
-    max-pricing-charge: 10000
-
-  defaults:
-    restaurant-min-pricing-charge: 100
-    restaurant-max-pricing-charge: 1000
-    weekday-demand: 0.5
-    time-interval-demand: 0.5
-    table-demand: 0.5
-    neutral-calendar-context: 0.5
-
-    weights:
-      LOAD_BLOCK: 0.5
-      HISTORICAL_DEMAND_BLOCK: 0.5
-      CALENDAR_CONTEXT_BLOCK: 0.5
-      OCCUPANCY_PARAMETER: 0.5
-      URGENCY_PARAMETER: 0.5
-      OCCUPANCY_URGENCY_INTERACTION: 0.5
-      WEEKDAY_DEMAND_PARAMETER: 0.5
-      TIME_INTERVAL_DEMAND_PARAMETER: 0.5
-      TABLE_DEMAND_PARAMETER: 0.5
-
-    calendar-coefficients:
-      WORKDAY: 0.5
-      WEEKEND: 0.5
-      HOLIDAY: 0.5
-      PEAK_HOLIDAY: 0.5
-
-  scheduler:
-    weights-update-cron: "0 0 3 * * *"
-    calendar-sync-cron: "0 0 4 */14 * *"
-    calendar-coefficients-update-cron: "0 20 3 * * *"
-    history-snapshot-cron: "0 30 2 * * *"
+  charge-coefficient: 0.1
 
 eureka:
   client:

@@ -3,12 +3,8 @@ package my.project.userservice.service.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.NotFoundException;
-import my.project.userservice.dto.RegistrationRequest;
 import my.project.userservice.entity.UserEntity;
-import my.project.userservice.mapper.UserMapper;
 import my.project.userservice.repository.UserRepository;
-import my.project.userservice.service.jwt.RefreshJtiService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,9 +18,6 @@ import java.util.UUID;
 public class UserPersistenceService {
 
 	private final UserRepository repository;
-
-	private final UserMapper mapper;
-	private final PasswordEncoder passwordEncoder;
 
 	@Transactional(readOnly = true)
 	public boolean existsByEmail(String email) {

@@ -26,27 +26,27 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BookingController {
 
-	private final BookingReadService bookingReadServiceImpl;
-	private final BookingFacadeService bookingFacadeServiceImpl;
+	private final BookingReadService bookingReadService;
+	private final BookingFacadeService bookingFacadeService;
 
 	@PostMapping
 	public ResponseEntity<BookingResponse> create(@RequestBody @Valid CreateBookingRequest req,
 												  Authentication auth) {
 		log.info("Получен запрос на создание бронирования, restaurantId={}, tableId={}",
 				req.restaurantId(), req.tableId());
-		return ResponseEntity.ok(bookingFacadeServiceImpl.create(req, auth));
+		return ResponseEntity.ok(bookingFacadeService.create(req, auth));
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<BookingResponse> findById(@PathVariable UUID id, Authentication auth) {
 		log.info("Получен запрос на получение бронирования, bookingId={}", id);
-		return ResponseEntity.ok(bookingReadServiceImpl.findById(id, auth));
+		return ResponseEntity.ok(bookingReadService.findById(id, auth));
 	}
 
 	@GetMapping("/me")
 	public ResponseEntity<List<BookingResponse>> findUserBookings(Authentication auth) {
 		log.info("Получен запрос на получение списка бронирований текущего пользователя");
-		return ResponseEntity.ok(bookingReadServiceImpl.findUserBookings(auth));
+		return ResponseEntity.ok(bookingReadService.findUserBookings(auth));
 	}
 
 	@DeleteMapping("/{id}/cancel")
@@ -54,7 +54,7 @@ public class BookingController {
 									   @RequestBody(required = false) @Valid CancelBookingRequest req,
 									   Authentication auth) {
 		log.info("Получен запрос на отмену бронирования, bookingId={}", id);
-		bookingFacadeServiceImpl.cancel(id, req, auth);
+		bookingFacadeService.cancel(id, req, auth);
 		log.info("Бронирование успешно отменено, bookingId={}", id);
 		return ResponseEntity.noContent().build();
 	}
@@ -64,7 +64,7 @@ public class BookingController {
 	public ResponseEntity<List<ManagerBookingResponse>> restaurantBookings(@PathVariable UUID restId,
 																		   Authentication auth) {
 		log.info("Получен запрос на список бронирований ресторана для менеджера, restId={}", restId);
-		return ResponseEntity.ok(bookingReadServiceImpl.findAllByRestaurantId(restId, auth));
+		return ResponseEntity.ok(bookingReadService.findAllByRestaurantId(restId, auth));
 	}
 
 	@GetMapping("/public/restaurants/{restaurantId}/tables/{tableId}/availability")
@@ -75,6 +75,6 @@ public class BookingController {
 																				LocalDate date) {
 		log.info("Получен запрос на публичную занятость стола, restaurantId={}, tableId={}, date={}",
 				restaurantId, tableId, date);
-		return ResponseEntity.ok(bookingFacadeServiceImpl.getPublicTableAvailability(restaurantId, tableId, date));
+		return ResponseEntity.ok(bookingFacadeService.getPublicTableAvailability(restaurantId, tableId, date));
 	}
 }

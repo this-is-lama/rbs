@@ -32,7 +32,6 @@ public interface BookingMapper {
     @Mapping(target = "totalAmount", ignore = true)
     @Mapping(target = "preorderAmount", ignore = true)
     @Mapping(target = "pricingCharge", ignore = true)
-    @Mapping(target = "pricingOfferId", ignore = true)
 
     @Mapping(target = "table", ignore = true)
     @Mapping(target = "restaurant", ignore = true)
@@ -78,7 +77,6 @@ public interface BookingMapper {
     @Mapping(target = "totalAmount", source = "entity.totalAmount")
     @Mapping(target = "preorderAmount", source = "entity.preorderAmount")
     @Mapping(target = "pricingCharge", source = "entity.pricingCharge")
-    @Mapping(target = "pricingOfferId", source = "entity.pricingOfferId")
     @Mapping(target = "createdAt", source = "entity.createdAt")
     @Mapping(target = "cancelledAt", source = "entity.cancelledAt")
     @Mapping(target = "cancellationReason", source = "entity.cancellationReason")

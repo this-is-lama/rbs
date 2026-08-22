@@ -1,11 +1,13 @@
 package my.project.bookingservice.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,6 +132,16 @@ public class BookingEntity {
 		}
 	}
 
+	public void addDish(DishEntity dish) {
+		dishes.add(dish);
+		dish.setBooking(this);
+	}
+
+	public void setPricing(BigDecimal preorderAmount, double coefficient) {
+		pricingCharge = preorderAmount.multiply(BigDecimal.valueOf(coefficient));
+		totalAmount = preorderAmount.add(pricingCharge);
+	}
+
 	@PrePersist
 	public void prePersist() {
 		Instant now = Instant.now();
@@ -141,15 +153,7 @@ public class BookingEntity {
 		}
 		syncTableId();
 
-		if (preorderAmount == null) {
-			preorderAmount = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-		}
-		if (pricingCharge == null) {
-			pricingCharge = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-		}
-		if (totalAmount == null) {
-			totalAmount = preorderAmount.add(pricingCharge).setScale(2, RoundingMode.HALF_UP);
-		}
+
 	}
 
 	@PreUpdate
@@ -159,15 +163,7 @@ public class BookingEntity {
 		}
 	}
 
-	public void addDish(DishEntity dish) {
-		dishes.add(dish);
-		dish.setBooking(this);
-	}
 
-	public void removeDish(DishEntity dish) {
-		dishes.remove(dish);
-		dish.setBooking(null);
-	}
 
 	public boolean isCancelled() {
 		return status == BookingStatus.CANCELLED;
