@@ -18,9 +18,11 @@ import my.project.bookingservice.service.BookingPersistenceService;
 import my.project.bookingservice.service.usecase.BookingCreateUseCase;
 import my.project.common.exception.ConflictException;
 import my.project.common.security.AuthUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,6 +30,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class BookingCreateUseCaseImpl implements BookingCreateUseCase {
+
+	@Value("${pricing.charge-coefficient}")
+	private double chargeCoefficient;
 
 	private final BookingMapper mapper;
 	private final RestaurantMapper restaurantMapper;
@@ -80,13 +85,18 @@ public class BookingCreateUseCaseImpl implements BookingCreateUseCase {
 
 		entity.setRestaurant(restaurantMapper.toEntity(bookingSnapshot.restaurant()));
 		entity.setTable(tableMapper.toEntity(bookingSnapshot.table()));
+
+		BigDecimal preorderAmount = BigDecimal.ZERO;
 		if (bookingSnapshot.dishes() != null && !bookingSnapshot.dishes().isEmpty()) {
-			bookingSnapshot.dishes().forEach(dishDto -> {
+			for (var dishDto : bookingSnapshot.dishes()) {
 				DishEntity dishEntity = dishMapper.toEntity(dishDto);
 				dishEntity.setQuantity(quantities.getOrDefault(dishEntity.getDishId(), 1));
 				entity.addDish(dishEntity);
-			});
+				preorderAmount = preorderAmount.add(dishDto.price());
+			}
 		}
+		entity.setPricing(preorderAmount, chargeCoefficient);
+
 		return entity;
 	}
 }

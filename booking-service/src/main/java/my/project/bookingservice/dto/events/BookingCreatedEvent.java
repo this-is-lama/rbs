@@ -14,11 +14,13 @@ public record BookingCreatedEvent(
 		Instant startAt,
 		Instant endAt,
 
-	Integer guests,
-	String comment,
-	BigDecimal totalAmount,
-	BigDecimal preorderAmount,
-	BigDecimal pricingCharge,
+		Integer guests,
+		String comment,
+
+		//pricing
+		BigDecimal totalAmount,
+		BigDecimal preorderAmount,
+		BigDecimal pricingCharge,
 
 		//restaurant
 		String restaurantName,
