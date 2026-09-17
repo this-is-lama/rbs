@@ -42,3 +42,4 @@ bin/
 .env.*
 /.gitignore
 /*.iml
+/roadmap/

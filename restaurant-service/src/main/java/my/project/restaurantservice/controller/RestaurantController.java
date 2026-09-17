@@ -6,8 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import my.project.restaurantservice.dto.restaurant.RestaurantActiveUpdateRequest;
 import my.project.restaurantservice.dto.restaurant.RestaurantCardDto;
 import my.project.restaurantservice.dto.restaurant.RestaurantDto;
-import my.project.restaurantservice.dto.restaurant.RestaurantPricingSettingsRequest;
-import my.project.restaurantservice.dto.restaurant.RestaurantPricingSettingsResponse;
 import my.project.restaurantservice.service.restaurant.RestaurantService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
