@@ -31,6 +31,7 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine")
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 

@@ -51,7 +51,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .pathMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .pathMatchers(
+                                "/actuator/health",
+                                "/actuator/info",
+                                "/actuator/prometheus"
+                        ).permitAll()
                         .pathMatchers("/api/v1/auth/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/v1/restaurants/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/v1/bookings/public/**").permitAll()
