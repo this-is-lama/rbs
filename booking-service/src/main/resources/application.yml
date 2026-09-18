@@ -77,6 +77,10 @@ management:
       exposure:
         include: health,info,metrics,prometheus
 
+  endpoint:
+    health:
+      show-details: always
+
 ---
 
 spring:

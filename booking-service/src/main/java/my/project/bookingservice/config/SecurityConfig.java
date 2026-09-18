@@ -40,7 +40,10 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/actuator/prometheus"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/bookings/public/**").permitAll()
                         .anyRequest().authenticated()
                 )
