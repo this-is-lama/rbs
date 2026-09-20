@@ -72,7 +72,7 @@
 - Spring Cloud Netflix Eureka Client
 - JJWT
 - Spring Boot Actuator
-- Java 17
+- Java 21
 
 ## Лицензия
 

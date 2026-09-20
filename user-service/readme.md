@@ -138,7 +138,7 @@
 - Liquibase
 - MapStruct
 - Springdoc OpenAPI
-- Java 17
+- Java 21
 
 ## Swagger и Actuator
 

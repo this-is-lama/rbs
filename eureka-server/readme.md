@@ -33,7 +33,7 @@
 - Spring Boot
 - Spring Cloud Netflix Eureka Server
 - Spring Boot Actuator
-- Java 17
+- Java 21
 
 ## Actuator
 

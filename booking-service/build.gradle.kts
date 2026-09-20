@@ -36,7 +36,7 @@ dependencies {
     testImplementation("org.springframework.kafka:spring-kafka-test")
     implementation("com.fasterxml.jackson.core:jackson-databind")
 
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
 
 
 
@@ -57,8 +57,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstruct")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
 }
 
 tasks.test { useJUnitPlatform() }
