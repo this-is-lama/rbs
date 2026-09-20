@@ -24,6 +24,7 @@
 - `/api/v1/auth/** -> user-service`
 - `/api/v1/users/** -> user-service`
 - `/api/v1/restaurants/** -> restaurant-service`
+- `/api/v1/dishes/** -> restaurant-service`
 - `/api/v1/bookings/** -> booking-service`
 - `/api/v1/notifications/** -> notification-service`
 
@@ -34,6 +35,7 @@
 - `OPTIONS /**`
 - `/actuator/health`
 - `/actuator/info`
+- `/actuator/prometheus`
 - `/api/v1/auth/**`
 - `GET /api/v1/restaurants/**`
 - `GET /api/v1/bookings/public/**`

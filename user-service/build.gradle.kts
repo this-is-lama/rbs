@@ -22,6 +22,8 @@ dependencies {
 
     runtimeOnly("org.postgresql:postgresql")
 
+    implementation("org.liquibase:liquibase-core")
+
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("com.github.ben-manes.caffeine:caffeine")
 

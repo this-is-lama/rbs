@@ -10,7 +10,7 @@
 - Делает logout через деактивацию refresh JTI.
 - Отдает и обновляет профиль текущего пользователя.
 - Меняет пароль текущего пользователя.
-- Позволяет менеджеру или администратору менять роли и запрашивать краткие данные пользователей.
+- Позволяет менеджеру или администратору менять роли, искать пользователя по email/id и получать пользователей batch-запросом по списку id.
 - Периодически очищает неактивные и просроченные refresh JTI.
 
 ## Порт
@@ -33,10 +33,10 @@
 - `GET /api/v1/users/me`
 - `PUT /api/v1/users/me`
 - `PATCH /api/v1/users/me/password`
-- `POST /api/v1/users/change-role-by-id`
-- `GET /api/v1/users/lookup`
-- `POST /api/v1/users/summaries`
-- `POST /api/v1/users/briefs`
+- `POST /api/v1/users/change-role-by-id` (`ROLE_MANAGER`/`ROLE_ADMIN`)
+- `GET /api/v1/users/email?email=` (`ROLE_MANAGER`/`ROLE_ADMIN`)
+- `GET /api/v1/users/{id}` (`ROLE_MANAGER`/`ROLE_ADMIN`)
+- `POST /api/v1/users` (`ROLE_MANAGER`/`ROLE_ADMIN`; batch-получение по списку id в теле запроса)
 
 Публичными являются только `/api/v1/auth/**` и `/actuator/health`.
 
@@ -79,7 +79,7 @@
 
 ## Данные
 
-Собственная БД: `userdb`.
+Собственная БД: `userdb`, схема версионируется через Liquibase (`db/changelog/db.changelog-master.yaml`); Hibernate работает в режиме `ddl-auto: validate`. Для локального запуска Liquibase CLI есть git-игнорируемый `liquibase.properties` (подключается к `jdbc:postgresql://localhost:5433/userdb`).
 
 Основные таблицы:
 
@@ -105,12 +105,11 @@
 
 Сервис не использует внешние REST-клиенты, но предоставляет внутренние endpoints для других модулей:
 
-- `POST /api/v1/users/change-role-by-id`
-- `GET /api/v1/users/lookup`
-- `POST /api/v1/users/summaries`
-- `POST /api/v1/users/briefs`
+- `POST /api/v1/users/change-role-by-id` — использует `restaurant-service`.
+- `GET /api/v1/users/{id}` — использует `booking-service`.
+- `POST /api/v1/users` (batch по списку id) — используют `restaurant-service` и `booking-service`.
 
-Их используют `restaurant-service` и `booking-service`.
+Ответ всех этих эндпоинтов — единый `UserDto` (отдельных DTO для «summary»/«brief» нет).
 
 ## Конфигурация
 
@@ -136,6 +135,7 @@
 - Spring Cloud Netflix Eureka Client
 - JJWT
 - PostgreSQL
+- Liquibase
 - MapStruct
 - Springdoc OpenAPI
 - Java 17

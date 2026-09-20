@@ -27,17 +27,21 @@ spring:
       max-lifetime: 1800000
 
 
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
 
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     properties:
@@ -47,6 +51,8 @@ spring:
           starttls:
             enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
             required: ${MAIL_SMTP_STARTTLS_REQUIRED:true}
+          ssl:
+            enable: ${MAIL_SMTP_SSL_ENABLE:false}
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000

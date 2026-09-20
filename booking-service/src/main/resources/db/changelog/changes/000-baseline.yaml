@@ -1,0 +1,184 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-bookings-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: bookings
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: bookings_pkey, nullable: false } }
+              - column: { name: restaurant_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: user_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: table_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: start_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: end_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(20), constraints: { nullable: false } }
+              - column: { name: guests, type: INT, constraints: { nullable: false } }
+              - column: { name: comment, type: VARCHAR(500) }
+              - column: { name: total_amount, type: "NUMERIC(12,2)", constraints: { nullable: false } }
+              - column: { name: preorder_amount, type: "NUMERIC(12,2)", constraints: { nullable: false } }
+              - column: { name: pricing_charge, type: "NUMERIC(12,2)", constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: cancelled_at, type: TIMESTAMP WITH TIME ZONE }
+              - column: { name: cancellation_reason, type: VARCHAR(500) }
+              - column: { name: version, type: BIGINT, constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: bookings }
+
+  - changeSet:
+      id: 002-add-bookings-user-created-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: bookings
+            indexName: idx_bookings_user_created_at
+            columns: [ { column: { name: user_id } }, { column: { name: created_at } } ]
+      rollback:
+        - dropIndex: { tableName: bookings, indexName: idx_bookings_user_created_at }
+
+  - changeSet:
+      id: 003-add-bookings-restaurant-created-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: bookings
+            indexName: idx_bookings_restaurant_created_at
+            columns: [ { column: { name: restaurant_id } }, { column: { name: created_at } } ]
+      rollback:
+        - dropIndex: { tableName: bookings, indexName: idx_bookings_restaurant_created_at }
+
+  - changeSet:
+      id: 004-add-bookings-restaurant-status-start-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: bookings
+            indexName: idx_bookings_restaurant_status_start_at
+            columns: [ { column: { name: restaurant_id } }, { column: { name: status } }, { column: { name: start_at } } ]
+      rollback:
+        - dropIndex: { tableName: bookings, indexName: idx_bookings_restaurant_status_start_at }
+
+  - changeSet:
+      id: 005-add-bookings-restaurant-table-status-time-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: bookings
+            indexName: idx_bookings_restaurant_table_status_time
+            columns:
+              - column: { name: restaurant_id }
+              - column: { name: table_id }
+              - column: { name: status }
+              - column: { name: start_at }
+              - column: { name: end_at }
+      rollback:
+        - dropIndex: { tableName: bookings, indexName: idx_bookings_restaurant_table_status_time }
+
+  - changeSet:
+      id: 006-create-booking-dishes-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: booking_dishes
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: booking_dishes_pkey, nullable: false } }
+              - column: { name: booking_id, type: UUID, constraints: { nullable: false, foreignKeyName: fk_booking_dishes_booking, references: bookings(id) } }
+              - column: { name: dish_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: name, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: price, type: "NUMERIC(12,2)", constraints: { nullable: false } }
+              - column: { name: quantity, type: INT, constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: booking_dishes }
+
+  - changeSet:
+      id: 007-add-booking-dishes-indexes
+      author: islam
+      changes:
+        - createIndex: { tableName: booking_dishes, indexName: idx_booking_dishes_booking_id, columns: [ { column: { name: booking_id } } ] }
+      rollback:
+        - dropIndex: { tableName: booking_dishes, indexName: idx_booking_dishes_booking_id }
+
+  - changeSet:
+      id: 008-add-booking-dishes-dish-index
+      author: islam
+      changes:
+        - createIndex: { tableName: booking_dishes, indexName: idx_booking_dishes_dish_id, columns: [ { column: { name: dish_id } } ] }
+      rollback:
+        - dropIndex: { tableName: booking_dishes, indexName: idx_booking_dishes_dish_id }
+
+  - changeSet:
+      id: 009-create-booking-restaurant-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: booking_restaurant
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: booking_restaurant_pkey, nullable: false } }
+              - column: { name: booking_id, type: UUID, constraints: { nullable: false, unique: true, foreignKeyName: fk_booking_restaurant_booking, references: bookings(id) } }
+              - column: { name: restaurant_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: name, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: category, type: VARCHAR(100), constraints: { nullable: false } }
+              - column: { name: description, type: TEXT }
+              - column: { name: address, type: VARCHAR(255), constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: booking_restaurant }
+
+  - changeSet:
+      id: 010-add-booking-restaurant-index
+      author: islam
+      changes:
+        - createIndex: { tableName: booking_restaurant, indexName: idx_booking_restaurant_restaurant_id, columns: [ { column: { name: restaurant_id } } ] }
+      rollback:
+        - dropIndex: { tableName: booking_restaurant, indexName: idx_booking_restaurant_restaurant_id }
+
+  - changeSet:
+      id: 011-create-booking-table-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: booking_table
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: booking_table_pkey, nullable: false } }
+              - column: { name: booking_id, type: UUID, constraints: { nullable: false, unique: true, foreignKeyName: fk_booking_table_booking, references: bookings(id) } }
+              - column: { name: table_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: table_number, type: INT, constraints: { nullable: false } }
+              - column: { name: capacity, type: INT, constraints: { nullable: false } }
+              - column: { name: description, type: VARCHAR(255) }
+      rollback:
+        - dropTable: { tableName: booking_table }
+
+  - changeSet:
+      id: 012-add-booking-table-index
+      author: islam
+      changes:
+        - createIndex: { tableName: booking_table, indexName: idx_booking_table_table_id, columns: [ { column: { name: table_id } } ] }
+      rollback:
+        - dropIndex: { tableName: booking_table, indexName: idx_booking_table_table_id }
+
+  # --- Задание: запрет пересекающихся броней на один стол ---
+  - changeSet:
+      id: 013-enable-btree-gist-extension
+      author: islam
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS btree_gist;
+      rollback:
+        - sql:
+            sql: -- extension намеренно не дропаем при rollback (может использоваться другими constraint'ами)
+
+  - changeSet:
+      id: 014-add-bookings-no-overlap-exclusion-constraint
+      author: islam
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE bookings
+                ADD CONSTRAINT excl_bookings_table_time_overlap
+                EXCLUDE USING gist (
+                  table_id WITH =,
+                  tstzrange(start_at, end_at, '[)') WITH &&
+                )
+                WHERE (status <> 'CANCELLED');
+      rollback:
+        - sql:
+            sql: ALTER TABLE bookings DROP CONSTRAINT excl_bookings_table_time_overlap;

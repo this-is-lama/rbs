@@ -35,10 +35,6 @@ import java.util.UUID;
 				@Index(
 						name = "idx_bookings_restaurant_table_status_time",
 						columnList = "restaurant_id, table_id, status, start_at, end_at"
-				),
-				@Index(
-						name = "idx_bookings_pricing_offer_id",
-						columnList = "pricing_offer_id"
 				)
 		}
 )

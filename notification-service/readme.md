@@ -4,10 +4,10 @@
 
 ## Что делает сервис
 
-- Слушает Kafka topic с событиями бронирований.
-- Дедуплицирует сообщения по `bookingId`.
+- Слушает Kafka-топики с событиями создания и отмены бронирований.
+- Дедуплицирует сообщения по паре (тип события, `bookingId`).
 - Сохраняет состояние обработки в собственной БД.
-- Отправляет HTML-письмо через SMTP и Thymeleaf.
+- Отправляет HTML-письмо через SMTP и Thymeleaf: подтверждение бронирования или уведомление об отмене.
 - Повторяет неуспешные отправки по расписанию.
 - Чистит старые `DONE`-сообщения по расписанию.
 
@@ -24,8 +24,8 @@
 ## Kafka
 
 - consumer group: `my-consumer`
-- property topic: `app.kafka.topics.booking-created`
-- текущее значение topic: `booking-topic`
+- `app.kafka.topics.booking-created` → `booking-created-topic` (слушатель `listenBookingCreated`)
+- `app.kafka.topics.booking-cancelled` → `booking-cancelled-topic` (слушатель `listenBookingCancelled`)
 
 ## Статусы сообщений
 
@@ -33,6 +33,8 @@
 - `PROCESSING`
 - `FAILED`
 - `DONE`
+
+Тип сообщения (`MessageType`): `BOOKING_CREATED`, `BOOKING_CANCELLED` — участвует в ключе дедупликации.
 
 ## Планировщики
 
@@ -47,17 +49,17 @@
 ## Email
 
 - используется `Spring Mail`
-- шаблон письма: `src/main/resources/templates/booking-confirm.html`
+- шаблоны писем: `src/main/resources/templates/booking-confirm.html` (создание) и `booking-cancelled.html` (отмена)
 - встроенный логотип: `src/main/resources/templates/logo.svg`
-- SMTP сейчас настроен под Gmail (`smtp.gmail.com:587`)
+- SMTP-хост/порт и шифрование (STARTTLS/SSL) задаются переменными окружения без изменения `application.yml`; локально — Mailpit, в проде по умолчанию — Gmail (`smtp.gmail.com:587`)
 
 ## База данных
 
-Собственная БД: `notificationdb`.
+Собственная БД: `notificationdb`, схема версионируется через Liquibase (`db/changelog/db.changelog-master.yaml`); Hibernate работает в режиме `ddl-auto: validate`.
 
 Основная сущность:
 
-- `MessageEntity`
+- `MessageEntity` (таблица `processed_messages`)
 
 ## Конфигурация
 
@@ -83,6 +85,7 @@
 - Thymeleaf
 - Spring Cloud Netflix Eureka Client
 - PostgreSQL
+- Liquibase
 - MapStruct
 - Java 17
 
