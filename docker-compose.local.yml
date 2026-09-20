@@ -307,6 +307,8 @@ services:
         condition: service_started
       notification-service:
         condition: service_started
+      redis:
+        condition: service_healthy
     networks: [rbs-net]
 
 networks:

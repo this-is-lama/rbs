@@ -7,7 +7,7 @@ COPY . .
 
 ARG MODULE
 
-RUN --mount=type=cache,target=/home/gradle/.gradle \
+RUN --mount=type=cache,target=/home/gradle/.gradle,sharing=locked \
     gradle :${MODULE}:bootJar -x test --no-daemon
 
 # ---------- RUN ----------

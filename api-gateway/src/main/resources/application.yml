@@ -15,6 +15,12 @@ spring:
   profiles:
     default: dev
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+
   cloud:
     loadbalancer:
       cache:
@@ -28,11 +34,26 @@ spring:
             locator:
               enabled: false
 
+          default-filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@rateLimiterKeyResolver}"
+
           routes:
             - id: user-auth-route
               uri: lb://user-service
               predicates:
                 - Path=/api/v1/auth/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 5
+                    redis-rate-limiter.burstCapacity: 10
+                    redis-rate-limiter.requestedTokens: 1
+                    key-resolver: "#{@rateLimiterKeyResolver}"
 
             - id: user-route
               uri: lb://user-service
@@ -74,6 +95,7 @@ spring:
                 allowedHeaders:
                   - "*"
                 allowCredentials: true
+
 
 eureka:
   client:
