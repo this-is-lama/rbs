@@ -63,7 +63,7 @@
 
 ## Технологии
 
-- Java 17
+- Java 21
 - Spring Boot
 - Spring Web
 - Spring Security OAuth2 Resource Server

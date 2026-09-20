@@ -1,5 +1,5 @@
 # ---------- BUILD ----------
-FROM gradle:8.8-jdk17 AS builder
+FROM gradle:8.14.5-jdk21 AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle \
     gradle :${MODULE}:bootJar -x test --no-daemon
 
 # ---------- RUN ----------
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 

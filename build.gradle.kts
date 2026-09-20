@@ -2,9 +2,10 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 
+
 plugins {
-    id("org.springframework.boot") version "3.4.1" apply false
-    id("io.spring.dependency-management") version "1.1.6" apply false
+    id("org.springframework.boot") version "4.0.8" apply false
+    id("io.spring.dependency-management") version "1.1.7" apply false
 }
 
 allprojects {
@@ -21,13 +22,13 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
 
     extensions.configure<JavaPluginExtension> {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     }
 
     the<DependencyManagementExtension>().apply {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.4.1")
-            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.8")
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:2025.1.3")
         }
     }
 

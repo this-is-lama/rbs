@@ -1,8 +1,8 @@
 # RBS — Restaurant Booking System
 
-![Java](https://img.shields.io/badge/Java-17-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.1-brightgreen)
-![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2024.0.0-blue)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.8-brightgreen)
+![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.3-blue)
 ![Build](https://img.shields.io/badge/build-Gradle-02303A)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
@@ -71,8 +71,8 @@
 
 | Категория | Технологии |
 |---|---|
-| Язык / платформа | Java 17, Gradle (multi-module, Kotlin DSL) |
-| Web / API | Spring Boot 3.4.1, Spring Web, Spring Cloud Gateway |
+| Язык / платформа | Java 21, Gradle (multi-module, Kotlin DSL) |
+| Web / API | Spring Boot 4.0.8, Spring Web, Spring Cloud Gateway |
 | Service discovery | Spring Cloud Netflix Eureka (Server/Client) |
 | Межсервисное взаимодействие | Spring Cloud OpenFeign, Apache Kafka (Spring Kafka) |
 | Безопасность | Spring Security, OAuth2 Resource Server (JWT/HS256), BCrypt |
@@ -90,7 +90,7 @@
 
 ### Требования
 
-Docker и Docker Compose для запуска всего стека; JDK 17 — для локальной сборки/запуска отдельных сервисов через Gradle.
+Docker и Docker Compose для запуска всего стека; JDK 21 — для локальной сборки/запуска отдельных сервисов через Gradle.
 
 ### Полный стек в Docker
 
@@ -108,7 +108,7 @@ docker compose -f docker-compose.local.yml up --build
 - Prometheus, Grafana, Loki, Grafana Alloy — стек мониторинга и логирования (см. [Наблюдаемость](#наблюдаемость));
 - все сервисы приложения (`eureka-server`, `api-gateway`, `user-service`, `restaurant-service`, `booking-service`, `notification-service`).
 
-Для продакшен-конфигурации используется `docker-compose.prod.yml` (переменные — из `.env.prod`). Каждый сервис собирается общим `Dockerfile` с build-аргументом `MODULE` (multi-stage сборка на `gradle:8.8-jdk17`, рантайм — `eclipse-temurin:17-jre-jammy`).
+Для продакшен-конфигурации используется `docker-compose.prod.yml` (переменные — из `.env.prod`). Каждый сервис собирается общим `Dockerfile` с build-аргументом `MODULE` (multi-stage сборка на `gradle:8.14.5-jdk21`, рантайм — `eclipse-temurin:21-jre-jammy`).
 
 ### Только инфраструктура
 

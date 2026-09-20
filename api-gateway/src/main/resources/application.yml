@@ -22,56 +22,58 @@ spring:
         caffeine:
           spec: maximumSize=1000,expireAfterWrite=30s
     gateway:
-      discovery:
-        locator:
-          enabled: false
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: false
 
-      routes:
-        - id: user-auth-route
-          uri: lb://user-service
-          predicates:
-            - Path=/api/v1/auth/**
+          routes:
+            - id: user-auth-route
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/auth/**
 
-        - id: user-route
-          uri: lb://user-service
-          predicates:
-            - Path=/api/v1/users/**
+            - id: user-route
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/users/**
 
-        - id: restaurant-route
-          uri: lb://restaurant-service
-          predicates:
-            - Path=/api/v1/restaurants/**
+            - id: restaurant-route
+              uri: lb://restaurant-service
+              predicates:
+                - Path=/api/v1/restaurants/**
 
-        - id: dish-photo-route
-          uri: lb://restaurant-service
-          predicates:
-            - Path=/api/v1/dishes/**
+            - id: dish-photo-route
+              uri: lb://restaurant-service
+              predicates:
+                - Path=/api/v1/dishes/**
 
-        - id: booking-route
-          uri: lb://booking-service
-          predicates:
-            - Path=/api/v1/bookings/**
+            - id: booking-route
+              uri: lb://booking-service
+              predicates:
+                - Path=/api/v1/bookings/**
 
-        - id: notification-route
-          uri: lb://notification-service
-          predicates:
-            - Path=/api/v1/notifications/**
+            - id: notification-route
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/v1/notifications/**
 
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:5173"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - PATCH
-              - DELETE
-              - OPTIONS
-            allowedHeaders:
-              - "*"
-            allowCredentials: true
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:5173"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                allowCredentials: true
 
 eureka:
   client:
