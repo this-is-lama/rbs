@@ -1,0 +1,113 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-users-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: users_pkey, nullable: false } }
+              - column: { name: name, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: surname, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: email, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: password_hash, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: phone, type: VARCHAR(12) }
+              - column: { name: date_of_birth, type: DATE }
+              - column: { name: role, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: enabled, type: BOOLEAN, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+      rollback:
+        - dropTable:
+            tableName: users
+
+  - changeSet:
+      id: 002-add-users-email-unique-constraint
+      author: islam
+      changes:
+        - addUniqueConstraint:
+            tableName: users
+            columnNames: email
+            constraintName: uk_users_email
+      rollback:
+        - dropUniqueConstraint:
+            tableName: users
+            constraintName: uk_users_email
+
+  - changeSet:
+      id: 003-add-users-enabled-role-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: users
+            indexName: idx_users_enabled_role
+            using: btree
+            columns:
+              - column: { name: enabled }
+              - column: { name: role }
+      rollback:
+        - dropIndex:
+            tableName: users
+            indexName: idx_users_enabled_role
+
+  - changeSet:
+      id: 004-create-refresh-jtis-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: refresh_jtis
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: refresh_jtis_pkey, nullable: false } }
+              - column: { name: user_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: jti_hash, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: active, type: BOOLEAN, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: expires_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+      rollback:
+        - dropTable:
+            tableName: refresh_jtis
+
+  - changeSet:
+      id: 005-add-refresh-jtis-jti-hash-unique-constraint
+      author: islam
+      changes:
+        - addUniqueConstraint:
+            tableName: refresh_jtis
+            columnNames: jti_hash
+            constraintName: uk_refresh_jtis_jti_hash
+      rollback:
+        - dropUniqueConstraint:
+            tableName: refresh_jtis
+            constraintName: uk_refresh_jtis_jti_hash
+
+  - changeSet:
+      id: 006-add-refresh-jtis-user-active-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: refresh_jtis
+            indexName: idx_refresh_jtis_user_active
+            using: btree
+            columns:
+              - column: { name: user_id }
+              - column: { name: active }
+      rollback:
+        - dropIndex:
+            tableName: refresh_jtis
+            indexName: idx_refresh_jtis_user_active
+
+  - changeSet:
+      id: 007-add-refresh-jtis-active-expires-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: refresh_jtis
+            indexName: idx_refresh_jtis_active_expires
+            using: btree
+            columns:
+              - column: { name: active }
+              - column: { name: expires_at }
+      rollback:
+        - dropIndex:
+            tableName: refresh_jtis
+            indexName: idx_refresh_jtis_active_expires

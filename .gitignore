@@ -43,3 +43,4 @@ bin/
 /.gitignore
 /*.iml
 /roadmap/
+liquibase.properties

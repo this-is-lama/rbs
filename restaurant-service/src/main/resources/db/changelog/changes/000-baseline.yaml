@@ -1,0 +1,337 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-restaurants-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: restaurants
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: restaurants_pkey, nullable: false } }
+              - column: { name: name, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: category, type: VARCHAR(100), constraints: { nullable: false } }
+              - column: { name: description, type: TEXT }
+              - column: { name: address, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: is_active, type: BOOLEAN, constraints: { nullable: false } }
+              - column: { name: min_pricing_charge, type: "NUMERIC(19,2)", constraints: { nullable: false } }
+              - column: { name: max_pricing_charge, type: "NUMERIC(19,2)", constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: restaurants }
+
+  - changeSet:
+      id: 002-add-restaurants-name-address-unique
+      author: islam
+      changes:
+        - addUniqueConstraint: { tableName: restaurants, columnNames: "name,address", constraintName: uk_restaurant_name_restaurant_address }
+      rollback:
+        - dropUniqueConstraint: { tableName: restaurants, constraintName: uk_restaurant_name_restaurant_address }
+
+  - changeSet:
+      id: 003-add-restaurants-active-created-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: restaurants
+            indexName: idx_restaurants_is_active_created_at
+            columns:
+              - column: { name: is_active }
+              - column: { name: created_at }
+      rollback:
+        - dropIndex: { tableName: restaurants, indexName: idx_restaurants_is_active_created_at }
+
+  - changeSet:
+      id: 004-add-restaurants-category-active-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: restaurants
+            indexName: idx_restaurants_category_is_active
+            columns:
+              - column: { name: category }
+              - column: { name: is_active }
+      rollback:
+        - dropIndex: { tableName: restaurants, indexName: idx_restaurants_category_is_active }
+
+  - changeSet:
+      id: 005-create-restaurant-contacts-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: restaurant_contacts
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: restaurant_contacts_pkey, nullable: false } }
+              - column: { name: restaurant_id, type: UUID, constraints: { nullable: false, foreignKeyName: fk_restaurant_contacts_restaurant, references: restaurants(id) } }
+              - column: { name: type, type: VARCHAR(50), constraints: { nullable: false } }
+              - column: { name: value, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: restaurant_contacts }
+
+  - changeSet:
+      id: 006-add-restaurant-contacts-restaurant-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: restaurant_contacts
+            indexName: idx_restaurant_contacts_restaurant_id
+            columns:
+              - column: { name: restaurant_id }
+      rollback:
+        - dropIndex: { tableName: restaurant_contacts, indexName: idx_restaurant_contacts_restaurant_id }
+
+  - changeSet:
+      id: 007-create-dishes-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: dishes
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: dishes_pkey, nullable: false } }
+              - column: { name: restaurant_id, type: UUID, constraints: { nullable: false, foreignKeyName: fk_dishes_restaurant, references: restaurants(id) } }
+              - column: { name: name, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: category, type: VARCHAR(100), constraints: { nullable: false } }
+              - column: { name: description, type: TEXT }
+              - column: { name: price, type: "NUMERIC(12,2)", constraints: { nullable: false } }
+              - column: { name: weight, type: INT, constraints: { nullable: false } }
+              - column: { name: is_available, type: BOOLEAN, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: dishes }
+
+  - changeSet:
+      id: 008-add-dishes-indexes
+      author: islam
+      changes:
+        - createIndex: { tableName: dishes, indexName: idx_dishes_restaurant_id, columns: [ { column: { name: restaurant_id } } ] }
+      rollback:
+        - dropIndex: { tableName: dishes, indexName: idx_dishes_restaurant_id }
+
+  - changeSet:
+      id: 009-add-dishes-restaurant-available-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: dishes
+            indexName: idx_dishes_restaurant_available
+            columns:
+              - column: { name: restaurant_id }
+              - column: { name: is_available }
+      rollback:
+        - dropIndex: { tableName: dishes, indexName: idx_dishes_restaurant_available }
+
+  - changeSet:
+      id: 010-add-dishes-restaurant-category-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: dishes
+            indexName: idx_dishes_restaurant_category
+            columns:
+              - column: { name: restaurant_id }
+              - column: { name: category }
+      rollback:
+        - dropIndex: { tableName: dishes, indexName: idx_dishes_restaurant_category }
+
+  - changeSet:
+      id: 011-create-restaurant-tables-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: restaurant_tables
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: restaurant_tables_pkey, nullable: false } }
+              - column: { name: restaurant_id, type: UUID, constraints: { nullable: false, foreignKeyName: fk_restaurant_tables_restaurant, references: restaurants(id) } }
+              - column: { name: table_number, type: INT, constraints: { nullable: false } }
+              - column: { name: description, type: VARCHAR(255) }
+              - column: { name: capacity, type: INT, constraints: { nullable: false } }
+              - column: { name: is_active, type: BOOLEAN, constraints: { nullable: false } }
+              - column: { name: position_x, type: DOUBLE }
+              - column: { name: position_y, type: DOUBLE }
+              - column: { name: marker_size, type: INT }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: restaurant_tables }
+
+  - changeSet:
+      id: 012-add-restaurant-tables-unique
+      author: islam
+      changes:
+        - addUniqueConstraint:
+            tableName: restaurant_tables
+            columnNames: restaurant_id, table_number
+            constraintName: uk_restaurant_tables_restaurant_id_table_number
+      rollback:
+        - dropUniqueConstraint: { tableName: restaurant_tables, constraintName: uk_restaurant_tables_restaurant_id_table_number }
+
+  - changeSet:
+      id: 013-add-restaurant-tables-indexes
+      author: islam
+      changes:
+        - createIndex: { tableName: restaurant_tables, indexName: idx_restaurant_tables_restaurant_id, columns: [ { column: { name: restaurant_id } } ] }
+      rollback:
+        - dropIndex: { tableName: restaurant_tables, indexName: idx_restaurant_tables_restaurant_id }
+
+  - changeSet:
+      id: 014-add-restaurant-tables-active-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: restaurant_tables
+            indexName: idx_restaurant_tables_restaurant_active
+            columns:
+              - column: { name: restaurant_id }
+              - column: { name: is_active }
+      rollback:
+        - dropIndex: { tableName: restaurant_tables, indexName: idx_restaurant_tables_restaurant_active }
+
+  - changeSet:
+      id: 015-create-restaurant-working-hours-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: restaurant_working_hours
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: restaurant_working_hours_pkey, nullable: false } }
+              - column: { name: restaurant_id, type: UUID, constraints: { nullable: false, foreignKeyName: fk_working_hours_restaurant, references: restaurants(id) } }
+              - column: { name: day_of_week, type: VARCHAR(10), constraints: { nullable: false } }
+              - column: { name: open_time, type: TIME }
+              - column: { name: close_time, type: TIME }
+              - column: { name: is_closed, type: BOOLEAN, constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: restaurant_working_hours }
+
+  - changeSet:
+      id: 016-add-working-hours-unique
+      author: islam
+      changes:
+        - addUniqueConstraint:
+            tableName: restaurant_working_hours
+            columnNames: restaurant_id, day_of_week
+            constraintName: uk_restaurant_working_hours_restaurant_day
+      rollback:
+        - dropUniqueConstraint: { tableName: restaurant_working_hours, constraintName: uk_restaurant_working_hours_restaurant_day }
+
+  - changeSet:
+      id: 017-add-working-hours-index
+      author: islam
+      changes:
+        - createIndex: { tableName: restaurant_working_hours, indexName: idx_working_hours_restaurant_id, columns: [ { column: { name: restaurant_id } } ] }
+      rollback:
+        - dropIndex: { tableName: restaurant_working_hours, indexName: idx_working_hours_restaurant_id }
+
+  - changeSet:
+      id: 018-create-photos-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: photos
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: photos_pkey, nullable: false } }
+              - column: { name: bucket, type: VARCHAR(64), constraints: { nullable: false } }
+              - column: { name: object_key, type: VARCHAR(512), constraints: { nullable: false } }
+              - column: { name: content_type, type: VARCHAR(32), constraints: { nullable: false } }
+              - column: { name: category, type: VARCHAR(32) }
+              - column: { name: sort_order, type: INT, constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(16), constraints: { nullable: false } }
+              - column: { name: uploaded_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: confirmed_at, type: TIMESTAMP WITH TIME ZONE }
+              - column: { name: restaurant_id, type: UUID, constraints: { foreignKeyName: fk_photos_restaurant, references: restaurants(id) } }
+              - column: { name: dish_id, type: UUID, constraints: { foreignKeyName: fk_photos_dish, references: dishes(id) } }
+      rollback:
+        - dropTable: { tableName: photos }
+
+  - changeSet:
+      id: 019-add-photos-object-key-unique
+      author: islam
+      changes:
+        - addUniqueConstraint: { tableName: photos, columnNames: object_key, constraintName: uk_photos_object_key }
+      rollback:
+        - dropUniqueConstraint: { tableName: photos, constraintName: uk_photos_object_key }
+
+  - changeSet:
+      id: 020-add-photos-restaurant-status-sort-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: photos
+            indexName: idx_photos_restaurant_status_sort
+            columns:
+              - column: { name: restaurant_id }
+              - column: { name: status }
+              - column: { name: sort_order }
+      rollback:
+        - dropIndex: { tableName: photos, indexName: idx_photos_restaurant_status_sort }
+
+  - changeSet:
+      id: 021-add-photos-dish-status-sort-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: photos
+            indexName: idx_photos_dish_status_sort
+            columns:
+              - column: { name: dish_id }
+              - column: { name: status }
+              - column: { name: sort_order }
+      rollback:
+        - dropIndex: { tableName: photos, indexName: idx_photos_dish_status_sort }
+
+  - changeSet:
+      id: 022-add-photos-status-uploaded-at-index
+      author: islam
+      changes:
+        - createIndex:
+            tableName: photos
+            indexName: idx_photos_status_uploaded_at
+            columns:
+              - column: { name: status }
+              - column: { name: uploaded_at }
+      rollback:
+        - dropIndex: { tableName: photos, indexName: idx_photos_status_uploaded_at }
+
+  - changeSet:
+      id: 023-create-restaurant-managers-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: restaurant_managers
+            columns:
+              - column: { name: restaurant_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: manager_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+        - addPrimaryKey:
+            tableName: restaurant_managers
+            columnNames: restaurant_id, manager_id
+            constraintName: restaurant_managers_pkey
+      rollback:
+        - dropTable: { tableName: restaurant_managers }
+
+  - changeSet:
+      id: 024-add-restaurant-managers-unique
+      author: islam
+      changes:
+        - addUniqueConstraint:
+            tableName: restaurant_managers
+            columnNames: restaurant_id, manager_id
+            constraintName: uk_restaurant_manager
+      rollback:
+        - dropUniqueConstraint: { tableName: restaurant_managers, constraintName: uk_restaurant_manager }
+
+  - changeSet:
+      id: 025-add-restaurant-managers-indexes
+      author: islam
+      changes:
+        - createIndex: { tableName: restaurant_managers, indexName: idx_rm_restaurant, columns: [ { column: { name: restaurant_id } } ] }
+      rollback:
+        - dropIndex: { tableName: restaurant_managers, indexName: idx_rm_restaurant }
+
+  - changeSet:
+      id: 026-add-restaurant-managers-manager-index
+      author: islam
+      changes:
+        - createIndex: { tableName: restaurant_managers, indexName: idx_rm_manager, columns: [ { column: { name: manager_id } } ] }
+      rollback:
+        - dropIndex: { tableName: restaurant_managers, indexName: idx_rm_manager }

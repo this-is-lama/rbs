@@ -76,7 +76,7 @@
 
 ## Данные
 
-Собственная БД: `restaurantdb`.
+Собственная БД: `restaurantdb`, схема версионируется через Liquibase (`db/changelog/db.changelog-master.yaml`); Hibernate работает в режиме `ddl-auto: validate`.
 
 Ключевые сущности:
 
@@ -138,7 +138,7 @@
 - Redis для кэша
 - `user-service` через OpenFeign:
   - `POST /api/v1/users/change-role-by-id`
-  - `POST /api/v1/users/summaries`
+  - `POST /api/v1/users` (batch-получение по списку id)
 
 При добавлении менеджера сервис переводит пользователя в `ROLE_MANAGER`. Если после удаления связей менеджер больше не прикреплен ни к одному ресторану, роль переводится обратно в `ROLE_USER`.
 
@@ -173,6 +173,7 @@
 - Spring Cloud OpenFeign
 - Spring Cloud Netflix Eureka Client
 - MinIO Java SDK
+- Liquibase
 - MapStruct
 - Springdoc OpenAPI
 - Java 17
