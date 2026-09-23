@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import my.project.notificationservice.entity.MessageEntity;
 import my.project.notificationservice.entity.MessageStatus;
 import my.project.notificationservice.events.BookingNotificationEvent;
-import my.project.notificationservice.mapper.JsonMapper;
 import my.project.notificationservice.repository.MessageRepository;
 import my.project.notificationservice.service.MessageStorageService;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,7 +23,6 @@ import java.util.function.Consumer;
 public class MessageStorageServiceImpl implements MessageStorageService {
 
     private final MessageRepository repository;
-    private final JsonMapper mapper;
 
 	@Transactional
     public boolean save(BookingNotificationEvent event) {
@@ -37,7 +35,7 @@ public class MessageStorageServiceImpl implements MessageStorageService {
         }
 
         try {
-            MessageEntity message = new MessageEntity(messageId, event.messageType(), mapper.writeJson(event));
+            MessageEntity message = new MessageEntity(messageId, event);
             repository.saveAndFlush(message);
 
             log.info("Сообщение сохранено в хранилище, messageId={}, bookingId={}, messageType={}",

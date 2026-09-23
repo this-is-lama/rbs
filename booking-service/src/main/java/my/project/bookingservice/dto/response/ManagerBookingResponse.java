@@ -24,8 +24,6 @@ public record ManagerBookingResponse(
 
 		BigDecimal totalAmount,
 		BigDecimal preorderAmount,
-		BigDecimal pricingCharge,
-		UUID pricingOfferId,
 
 		Instant createdAt,
 		Instant cancelledAt,

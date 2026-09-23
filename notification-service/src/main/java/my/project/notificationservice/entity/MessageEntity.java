@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import my.project.notificationservice.events.BookingNotificationEvent;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -45,9 +48,9 @@ public class MessageEntity {
     @Column(nullable = false)
     private MessageStatus status;
 
-    @Lob
-    @Column(name = "json_message", nullable = false, columnDefinition = "text")
-    private String jsonMessage;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "json_message", nullable = false)
+    private BookingNotificationEvent jsonMessage;
 
     @Column(nullable = false)
     private int attempts;
@@ -58,10 +61,10 @@ public class MessageEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public MessageEntity(UUID messageId, MessageType messageType, String jsonMessage) {
+    public MessageEntity(UUID messageId, BookingNotificationEvent event) {
         this.messageId = messageId;
-        this.messageType = messageType;
-        this.jsonMessage = jsonMessage;
+        this.messageType = event.messageType();
+        this.jsonMessage = event;
         this.status = MessageStatus.CREATED;
         this.attempts = 0;
     }

@@ -31,7 +31,6 @@ public interface BookingMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "totalAmount", ignore = true)
     @Mapping(target = "preorderAmount", ignore = true)
-    @Mapping(target = "pricingCharge", ignore = true)
 
     @Mapping(target = "table", ignore = true)
     @Mapping(target = "restaurant", ignore = true)
@@ -54,7 +53,6 @@ public interface BookingMapper {
     @Mapping(target = "tableDescription", source = "booking.table.description")
     @Mapping(target = "totalAmount", source = "booking.totalAmount")
     @Mapping(target = "preorderAmount", source = "booking.preorderAmount")
-    @Mapping(target = "pricingCharge", source = "booking.pricingCharge")
     BookingCreatedEvent toEvent(BookingResponse booking, String email, String username);
 
     @Mapping(target = "bookingId", source = "booking.id")
@@ -76,7 +74,6 @@ public interface BookingMapper {
     @Mapping(target = "comment", source = "booking.comment")
     @Mapping(target = "totalAmount", source = "booking.totalAmount")
     @Mapping(target = "preorderAmount", source = "booking.preorderAmount")
-    @Mapping(target = "pricingCharge", source = "booking.pricingCharge")
     @Mapping(target = "createdAt", source = "booking.createdAt")
     @Mapping(target = "cancelledAt", source = "booking.cancelledAt")
     @Mapping(target = "cancellationReason", source = "booking.cancellationReason")

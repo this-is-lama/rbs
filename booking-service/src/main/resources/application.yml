@@ -64,9 +64,6 @@ app:
       booking-created: booking-created-topic
       booking-cancelled: booking-cancelled-topic
 
-pricing:
-  charge-coefficient: 0.1
-
 eureka:
   client:
     service-url:

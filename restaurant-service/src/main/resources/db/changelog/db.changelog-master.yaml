@@ -2,3 +2,6 @@ databaseChangeLog:
   - include:
       file: changes/000-baseline.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/001-drop-pricing-charge.yaml
+      relativeToChangelogFile: true
