@@ -12,6 +12,7 @@ val lombokMapstruct = "0.2.0"
 dependencies {
 
     implementation(project(":common"))
+    implementation(project(":common-logging"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
 

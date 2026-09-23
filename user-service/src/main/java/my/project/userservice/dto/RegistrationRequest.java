@@ -28,4 +28,11 @@ public record RegistrationRequest(
 
 		@NotNull
 		UserRole role
-) {}
+) {
+
+	@Override
+	public String toString() {
+		return "RegistrationRequest[name=" + name + ", surname=" + surname + ", dateOfBirth=" + dateOfBirth
+				+ ", phone=" + phone + ", email=" + email + ", password=***, role=" + role + "]";
+	}
+}

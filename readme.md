@@ -244,7 +244,6 @@ docker compose -f docker-compose.infra.yml up -d
 - `GET /api/v1/restaurants/my`
 - `POST /api/v1/restaurants`
 - `PUT /api/v1/restaurants/{id}`
-- `PATCH /api/v1/restaurants/{id}/active`
 - `DELETE /api/v1/restaurants/{id}`
 
 **Менеджеры**

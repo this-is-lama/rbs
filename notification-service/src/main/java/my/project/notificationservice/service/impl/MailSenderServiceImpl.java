@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.common.logging.Loggable;
 import my.project.notificationservice.entity.MessageType;
 import my.project.notificationservice.events.BookingNotificationEvent;
 import my.project.notificationservice.mapper.MailContextMapper;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+@Loggable
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,14 +35,8 @@ public class MailSenderServiceImpl implements SenderService {
 	private final MailContextMapper mapper;
 
 	public void sendMessage(BookingNotificationEvent event) throws MessagingException {
-		log.info("Подготовка email для отправки, bookingId={}, messageType={}, email={}",
-				event.bookingId(), event.messageType(), event.email());
-
 		var message = createMessage(event);
 		mailSender.send(message);
-
-		log.info("Email успешно отправлен, bookingId={}, messageType={}, email={}",
-				event.bookingId(), event.messageType(), event.email());
 	}
 
 	private MimeMessage createMessage(BookingNotificationEvent event) throws MessagingException {

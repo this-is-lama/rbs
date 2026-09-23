@@ -25,7 +25,7 @@ public class SecurityConfig {
     private final CommonAccessDeniedHandler commonAccessDeniedHandler;
 
     @Bean
-    public SecurityFilterChain security(HttpSecurity http) throws Exception {
+    public SecurityFilterChain security(HttpSecurity http) {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

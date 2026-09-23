@@ -26,7 +26,6 @@
 
 - `POST /api/v1/restaurants`
 - `PUT /api/v1/restaurants/{id}`
-- `PATCH /api/v1/restaurants/{id}/active`
 - `GET /api/v1/restaurants/my`
 - `GET /api/v1/restaurants/{id}`
 - `GET /api/v1/restaurants`

@@ -6,4 +6,10 @@ public record RefreshTokenDto(
 
 		@NotBlank
 		String refreshToken
-) {}
+) {
+
+	@Override
+	public String toString() {
+		return "RefreshTokenDto[refreshToken=***]";
+	}
+}

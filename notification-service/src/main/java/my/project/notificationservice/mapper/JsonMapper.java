@@ -19,8 +19,6 @@ public class JsonMapper {
 
 	public String writeJson(BookingNotificationEvent event) {
 		try {
-			log.debug("Сериализация события в JSON, bookingId={}, messageType={}",
-					event.bookingId(), event.messageType());
 			return objectMapper.writeValueAsString(event);
 		} catch (Exception e) {
 			log.error("Не удалось сериализовать событие, bookingId={}, messageType={}",
@@ -31,8 +29,6 @@ public class JsonMapper {
 
 	public BookingNotificationEvent readJson(MessageType messageType, String json) {
 		try {
-			log.debug("Десериализация события из JSON, messageType={}", messageType);
-
 			return switch (messageType) {
 				case BOOKING_CREATED -> objectMapper.readValue(json, BookingCreatedEvent.class);
 				case BOOKING_CANCELLED -> objectMapper.readValue(json, BookingCancelledEvent.class);

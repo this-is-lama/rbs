@@ -13,6 +13,7 @@ val jwtVersion = "0.13.0"
 dependencies {
 
     implementation(project(":common"))
+    implementation(project(":common-logging"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
 
