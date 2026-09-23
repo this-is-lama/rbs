@@ -11,4 +11,10 @@ public record AuthRequest(
 
 		@NotBlank
 		String password
-) {}
+) {
+
+	@Override
+	public String toString() {
+		return "AuthRequest[email=" + email + ", password=***]";
+	}
+}

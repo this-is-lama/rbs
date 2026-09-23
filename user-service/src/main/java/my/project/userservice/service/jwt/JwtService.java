@@ -50,8 +50,6 @@ public class JwtService {
 
 		List<String> roles = List.of(user.getRole().name());
 
-		log.debug("Генерация access token для userId={}, email={}", user.getId(), user.getEmail());
-
 		return Jwts.builder()
 				.issuer(issuer)
 				.subject(user.getId().toString())
@@ -69,8 +67,6 @@ public class JwtService {
 		Instant now = Instant.now();
 		Instant exp = now.plus(refreshLifetime);
 
-		log.debug("Генерация refresh token для userId={}", user.getId());
-
 		return Jwts.builder()
 				.issuer(issuer)
 				.subject(user.getId().toString())
@@ -85,7 +81,6 @@ public class JwtService {
 	public void validateRefreshToken(String token) {
 		try {
 			parseRefreshToken(token);
-			log.debug("Refresh token успешно прошёл валидацию");
 		} catch (JwtException | IllegalArgumentException e) {
 			log.warn("Ошибка валидации refresh token");
 			throw new InvalidTokenException("user.invalid-token");
@@ -93,15 +88,11 @@ public class JwtService {
 	}
 
 	public UUID getUserIdFromRefreshToken(String token) {
-		UUID userId = UUID.fromString(parseRefreshToken(token).getPayload().getSubject());
-		log.debug("Из refresh token извлечён userId={}", userId);
-		return userId;
+		return UUID.fromString(parseRefreshToken(token).getPayload().getSubject());
 	}
 
 	public String getJtiClaimFromRefreshToken(String token) {
-		String jti = parseRefreshToken(token).getPayload().get(JTI_CLAIM).toString();
-		log.debug("Из refresh token извлечён jti");
-		return jti;
+		return parseRefreshToken(token).getPayload().get(JTI_CLAIM).toString();
 	}
 
 	private Jws<Claims> parseRefreshToken(String token) {

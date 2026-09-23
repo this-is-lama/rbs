@@ -81,8 +81,6 @@ public class RefreshJtiService {
 
 	@Transactional
 	public long deleteAllDeactivatedOrExpired() {
-		long deleted = repository.deleteAllByActiveFalseOrExpiresAtBefore(Instant.now());
-		log.debug("Удалено refresh JTI: {}", deleted);
-		return deleted;
+		return repository.deleteAllByActiveFalseOrExpiresAtBefore(Instant.now());
 	}
 }

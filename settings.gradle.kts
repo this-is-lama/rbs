@@ -7,5 +7,6 @@ include(
     "restaurant-service",
     "booking-service",
     "notification-service",
-    "common"
+    "common",
+    "common-logging"
 )

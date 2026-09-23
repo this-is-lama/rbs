@@ -32,8 +32,6 @@ public class KafkaConsumer {
 				consumerRecord.offset());
 
 		notificationService.send(event);
-
-		log.info("Событие о создании бронирования принято в обработку, key={}", key);
 	}
 
 	@KafkaListener(
@@ -52,7 +50,5 @@ public class KafkaConsumer {
 				consumerRecord.offset());
 
 		notificationService.send(event);
-
-		log.info("Событие об отмене бронирования принято в обработку, key={}", key);
 	}
 }

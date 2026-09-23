@@ -2,14 +2,14 @@ package my.project.bookingservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import my.project.bookingservice.dto.request.CancelBookingRequest;
 import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.dto.response.ManagerBookingResponse;
 import my.project.bookingservice.dto.response.TableAvailabilityResponse;
-import my.project.bookingservice.service.BookingFacadeService;
-import my.project.bookingservice.service.BookingReadService;
+import my.project.bookingservice.service.command.BookingCommandService;
+import my.project.bookingservice.service.query.BookingDetailsService;
+import my.project.bookingservice.service.query.BookingQueryService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,42 +20,36 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/bookings")
 @RequiredArgsConstructor
 public class BookingController {
 
-	private final BookingReadService bookingReadService;
-	private final BookingFacadeService bookingFacadeService;
+	private final BookingCommandService commandService;
+	private final BookingDetailsService detailsService;
+	private final BookingQueryService queryService;
 
 	@PostMapping
 	public ResponseEntity<BookingResponse> create(@RequestBody @Valid CreateBookingRequest req,
 												  Authentication auth) {
-		log.info("Получен запрос на создание бронирования, restaurantId={}, tableId={}",
-				req.restaurantId(), req.tableId());
-		return ResponseEntity.ok(bookingFacadeService.create(req, auth));
+		return ResponseEntity.ok(commandService.create(req, auth));
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<BookingResponse> findById(@PathVariable UUID id, Authentication auth) {
-		log.info("Получен запрос на получение бронирования, bookingId={}", id);
-		return ResponseEntity.ok(bookingReadService.findById(id, auth));
+		return ResponseEntity.ok(detailsService.findById(id, auth));
 	}
 
 	@GetMapping("/me")
 	public ResponseEntity<List<BookingResponse>> findUserBookings(Authentication auth) {
-		log.info("Получен запрос на получение списка бронирований текущего пользователя");
-		return ResponseEntity.ok(bookingReadService.findUserBookings(auth));
+		return ResponseEntity.ok(detailsService.findUserBookings(auth));
 	}
 
 	@DeleteMapping("/{id}/cancel")
 	public ResponseEntity<Void> cancel(@PathVariable UUID id,
 									   @RequestBody(required = false) @Valid CancelBookingRequest req,
 									   Authentication auth) {
-		log.info("Получен запрос на отмену бронирования, bookingId={}", id);
-		bookingFacadeService.cancel(id, req, auth);
-		log.info("Бронирование успешно отменено, bookingId={}", id);
+		commandService.cancel(id, req, auth);
 		return ResponseEntity.noContent().build();
 	}
 
@@ -63,8 +57,7 @@ public class BookingController {
 	@GetMapping("/manager/restaurants/{restId}")
 	public ResponseEntity<List<ManagerBookingResponse>> restaurantBookings(@PathVariable UUID restId,
 																		   Authentication auth) {
-		log.info("Получен запрос на список бронирований ресторана для менеджера, restId={}", restId);
-		return ResponseEntity.ok(bookingReadService.findAllByRestaurantId(restId, auth));
+		return ResponseEntity.ok(detailsService.findAllByRestaurantId(restId, auth));
 	}
 
 	@GetMapping("/public/restaurants/{restaurantId}/tables/{tableId}/availability")
@@ -73,8 +66,6 @@ public class BookingController {
 																				@RequestParam
 																				@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 																				LocalDate date) {
-		log.info("Получен запрос на публичную занятость стола, restaurantId={}, tableId={}, date={}",
-				restaurantId, tableId, date);
-		return ResponseEntity.ok(bookingFacadeService.getPublicTableAvailability(restaurantId, tableId, date));
+		return ResponseEntity.ok(queryService.getTableAvailability(restaurantId, tableId, date));
 	}
 }

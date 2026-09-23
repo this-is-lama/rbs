@@ -8,7 +8,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Slf4j
 @EnableScheduling
-@SpringBootApplication
+@SpringBootApplication(
+		scanBasePackages = {
+				"my.project.notificationservice",
+				"my.project.common.logging"
+		}
+)
 public class NotificationServiceApplication {
 
 	public static void main(String[] args) {

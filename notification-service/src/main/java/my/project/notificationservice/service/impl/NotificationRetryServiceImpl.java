@@ -3,6 +3,7 @@ package my.project.notificationservice.service.impl;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.common.logging.Loggable;
 import my.project.notificationservice.entity.MessageEntity;
 import my.project.notificationservice.entity.MessageType;
 import my.project.notificationservice.mapper.JsonMapper;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 
+@Loggable
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -37,8 +39,6 @@ public class NotificationRetryServiceImpl implements NotificationRetryService {
 
 	@Scheduled(fixedDelayString = "PT10M")
 	public void retry() {
-		log.info("Запущена повторная обработка уведомлений");
-
 		var messages = messageStorageService.getWorkBatch(maxAttempts, stuckMinutes);
 
 		for (var message : messages) {
@@ -75,8 +75,6 @@ public class NotificationRetryServiceImpl implements NotificationRetryService {
 	@Scheduled(fixedDelayString = "PT60M")
 	public void clean() {
 		Instant time = Instant.now().minus(timeAfterDone);
-		long deleted = messageStorageService.cleanDone(time);
-
-		log.info("Очистка DONE-сообщений завершена, deleted={}, olderThan={}", deleted, time);
+		messageStorageService.cleanDone(time);
 	}
 }
