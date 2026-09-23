@@ -6,7 +6,7 @@
 ![Build](https://img.shields.io/badge/build-Gradle-02303A)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey)
 
-`RBS` — микросервисный backend для бронирования столиков в ресторанах. Проект объединяет аутентификацию по JWT, каталог ресторанов с блюдами, столами и фотографиями, создание бронирований с сервисным сбором по фиксированному коэффициенту, событийную интеграцию через Kafka и email-уведомления.
+`RBS` — микросервисный backend для бронирования столиков в ресторанах. Проект объединяет аутентификацию по JWT, каталог ресторанов с блюдами, столами и фотографиями, создание бронирований с предзаказом блюд, событийную интеграцию через Kafka и email-уведомления.
 
 ## Содержание
 
@@ -39,7 +39,6 @@
 - Управление столами (в т.ч. массовое создание и редактирование layout) и блюдами.
 - Загрузка фотографий ресторанов и блюд через presigned URL в MinIO.
 - Проверка доступности стола на дату и создание бронирования с предзаказом блюд.
-- Сервисный сбор по фиксированному коэффициенту при бронировании с предзаказом.
 - Запрет пересекающихся бронирований одного стола на уровне БД (exclusion constraint PostgreSQL).
 - Событийная рассылка email-подтверждений и уведомлений об отмене бронирования через Kafka.
 - Service discovery через Eureka и единая точка входа через API Gateway.
@@ -52,7 +51,7 @@
 | `api-gateway` | 8080 | Единая точка входа, проверка JWT, маршрутизация, CORS |
 | `user-service` | 8083 | Регистрация, логин, refresh/logout, профиль, роли |
 | `restaurant-service` | 8081 | Рестораны, менеджеры, столы, блюда, фото, Redis, MinIO |
-| `booking-service` | 8082 | Бронирования, доступность, сервисный сбор, Kafka producer |
+| `booking-service` | 8082 | Бронирования, доступность, Kafka producer |
 | `notification-service` | 8084 | Kafka consumer, статусы сообщений, email |
 | `common` | — | Общие DTO, исключения, security-утилиты, локализация |
 
@@ -191,7 +190,7 @@ docker compose -f docker-compose.infra.yml up -d
 - Создание бронирования по ресторану, столу, временно́му интервалу и опциональному предзаказу блюд.
 - Проверка доступности стола на дату (публичный эндпоинт).
 - Статусы бронирования: `RESERVED` (создано, ожидает подтверждения) и `CANCELLED` (отменено, не участвует в исторической аналитике); текущая загрузка столов считается только по `RESERVED`.
-- Сервисный сбор считается по фиксированному коэффициенту (`pricing.charge-coefficient`, сейчас `0.1`): без предзаказа `preorderAmount = 0` и `pricingCharge = 0`; с предзаказом `pricingCharge = preorderAmount * coefficient`; `totalAmount = preorderAmount + pricingCharge`.
+- Стоимость бронирования: `preorderAmount` — сумма цен блюд предзаказа (без предзаказа `0`), `totalAmount` сейчас равна `preorderAmount`.
 - Пересекающиеся по времени бронирования одного стола запрещены на уровне БД (PostgreSQL exclusion constraint), а не только проверкой в коде.
 - Публикует в Kafka отдельные события создания и отмены бронирования (`app.kafka.topics.booking-created` → `booking-created-topic`, `app.kafka.topics.booking-cancelled` → `booking-cancelled-topic`).
 - Получает данные ресторана/стола/блюд из `restaurant-service` (`booking-snapshot`, `manager-access`) и данные пользователей из `user-service` через Feign.
@@ -340,9 +339,10 @@ RBS/
 ├── eureka-server/          # service discovery
 ├── user-service/           # аутентификация, пользователи, роли
 ├── restaurant-service/     # рестораны, столы, блюда, фото, Redis, MinIO
-├── booking-service/        # бронирования, доступность, сервисный сбор
+├── booking-service/        # бронирования, доступность
 ├── notification-service/   # Kafka consumer, email-уведомления
 ├── common/                 # общий модуль: ошибки, security, локализация
+├── common-logging/         # аннотация @Loggable и аспект логирования вызовов
 ├── monitoring/             # конфигурация Prometheus, Grafana, Loki, Alloy
 ├── k6-load-tests/          # сценарии нагрузочного тестирования (k6)
 ├── build.gradle.kts        # корневая Gradle-конфигурация (multi-module)

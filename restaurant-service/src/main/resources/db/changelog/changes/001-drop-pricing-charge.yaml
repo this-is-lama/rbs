@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 027-drop-restaurants-pricing-charge
+      author: islam
+      changes:
+        - dropColumn:
+            tableName: restaurants
+            columns:
+              - column: { name: min_pricing_charge }
+              - column: { name: max_pricing_charge }
+      rollback:
+        - addColumn:
+            tableName: restaurants
+            columns:
+              - column: { name: min_pricing_charge, type: "NUMERIC(19,2)", defaultValueNumeric: 0, constraints: { nullable: false } }
+              - column: { name: max_pricing_charge, type: "NUMERIC(19,2)", defaultValueNumeric: 0, constraints: { nullable: false } }

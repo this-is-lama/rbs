@@ -77,9 +77,6 @@ public class BookingEntity {
 	@Column(name = "preorder_amount", precision = 12, scale = 2, nullable = false)
 	private BigDecimal preorderAmount;
 
-	@Column(name = "pricing_charge", precision = 12, scale = 2, nullable = false)
-	private BigDecimal pricingCharge;
-
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
@@ -133,9 +130,9 @@ public class BookingEntity {
 		dish.setBooking(this);
 	}
 
-	public void setPricing(BigDecimal preorderAmount, double coefficient) {
-		pricingCharge = preorderAmount.multiply(BigDecimal.valueOf(coefficient));
-		totalAmount = preorderAmount.add(pricingCharge);
+	public void calculateAmounts(BigDecimal preorderAmount) {
+		this.preorderAmount = preorderAmount;
+		this.totalAmount = preorderAmount;
 	}
 
 	@PrePersist

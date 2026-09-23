@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 015-drop-bookings-pricing-charge
+      author: islam
+      changes:
+        - dropColumn:
+            tableName: bookings
+            columnName: pricing_charge
+      rollback:
+        - addColumn:
+            tableName: bookings
+            columns:
+              - column: { name: pricing_charge, type: "NUMERIC(12,2)", defaultValueNumeric: 0, constraints: { nullable: false } }

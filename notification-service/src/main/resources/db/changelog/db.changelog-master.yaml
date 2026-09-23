@@ -2,3 +2,6 @@ databaseChangeLog:
   - include:
       file: changes/000-baseline.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/001-convert-json-message-to-jsonb.yaml
+      relativeToChangelogFile: true

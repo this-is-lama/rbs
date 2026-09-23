@@ -11,7 +11,6 @@ import my.project.bookingservice.mapper.DishMapper;
 import my.project.bookingservice.mapper.RestaurantMapper;
 import my.project.bookingservice.mapper.TableMapper;
 import my.project.bookingservice.repository.BookingRepositoryService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +22,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class BookingWriteService {
-
-	@Value("${pricing.charge-coefficient}")
-	private double chargeCoefficient;
 
 	private final BookingRepositoryService repositoryService;
 
@@ -63,7 +59,7 @@ public class BookingWriteService {
 				preorderAmount = preorderAmount.add(dishDto.price());
 			}
 		}
-		entity.setPricing(preorderAmount, chargeCoefficient);
+		entity.calculateAmounts(preorderAmount);
 
 		return entity;
 	}

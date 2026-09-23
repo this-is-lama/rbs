@@ -20,7 +20,6 @@ public record BookingCreatedEvent(
 		//pricing
 		BigDecimal totalAmount,
 		BigDecimal preorderAmount,
-		BigDecimal pricingCharge,
 
 		//restaurant
 		String restaurantName,

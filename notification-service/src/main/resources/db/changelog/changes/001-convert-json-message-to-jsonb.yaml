@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-convert-processed-messages-json-message-to-jsonb
+      author: islam
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE processed_messages
+                ALTER COLUMN json_message TYPE jsonb
+                USING json_message::jsonb || jsonb_build_object('messageType', COALESCE(message_type, 'BOOKING_CREATED'));
+      rollback:
+        - sql:
+            sql: |
+              ALTER TABLE processed_messages
+                ALTER COLUMN json_message TYPE text
+                USING (json_message - 'messageType')::text;
