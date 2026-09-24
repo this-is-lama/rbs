@@ -67,6 +67,23 @@ services:
       timeout: 5s
       retries: 10
 
+  postgres-telegram-bot:
+    image: postgres:16
+    restart: unless-stopped
+    env_file: .env.infra
+    environment:
+      POSTGRES_DB: telegrambotdb
+    ports:
+      - "5437:5432"
+    volumes:
+      - pg_telegram_bot_data:/var/lib/postgresql/data
+    networks: [rbs-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   redis:
     image: redis:7
     restart: unless-stopped
@@ -238,6 +255,7 @@ volumes:
   pg_restaurant_data:
   pg_booking_data:
   pg_notification_data:
+  pg_telegram_bot_data:
   redis_data:
   minio_data:
   kafka_data:

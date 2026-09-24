@@ -32,7 +32,7 @@ loki.process "containers" {
 
   // ---------- Наши Spring-сервисы ----------
   stage.match {
-    selector = "{service_name=~\"api-gateway|user-service|restaurant-service|booking-service|notification-service|eureka-server\"}"
+    selector = "{service_name=~\"api-gateway|user-service|restaurant-service|booking-service|notification-service|telegram-bot-service|eureka-server\"}"
 
     // Стектрейс исключения — одна запись, а не 50 отдельных строк.
     // Новая запись начинается с даты: "2026-09-24 21:00:00 ..." или "2026-09-24T21:00:00...".

@@ -7,6 +7,7 @@ include(
     "restaurant-service",
     "booking-service",
     "notification-service",
+    "telegram-bot-service",
     "common",
     "common-logging"
 )

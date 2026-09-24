@@ -1,0 +1,77 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-support-tickets-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: support_tickets
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: support_tickets_pkey, nullable: false } }
+              - column: { name: chat_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: user_display_name, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: username, type: VARCHAR(64) }
+              - column: { name: category, type: VARCHAR(30), constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(20), constraints: { nullable: false } }
+              - column: { name: description, type: TEXT, constraints: { nullable: false } }
+              - column: { name: restaurant, type: VARCHAR(500) }
+              - column: { name: email, type: VARCHAR(255) }
+              - column: { name: rating, type: VARCHAR(20) }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+              - column: { name: closed_at, type: TIMESTAMP WITH TIME ZONE }
+      rollback:
+        - dropTable: { tableName: support_tickets }
+
+  - changeSet:
+      id: 002-add-support-tickets-indexes
+      author: islam
+      changes:
+        # активное обращение пользователя и лимит обращений в сутки
+        - createIndex:
+            tableName: support_tickets
+            indexName: idx_support_tickets_chat_id_created_at
+            columns: [ { column: { name: chat_id } }, { column: { name: created_at } } ]
+        # список открытых обращений для /tickets
+        - createIndex:
+            tableName: support_tickets
+            indexName: idx_support_tickets_status_updated_at
+            columns: [ { column: { name: status } }, { column: { name: updated_at } } ]
+      rollback:
+        - dropIndex: { tableName: support_tickets, indexName: idx_support_tickets_status_updated_at }
+        - dropIndex: { tableName: support_tickets, indexName: idx_support_tickets_chat_id_created_at }
+
+  - changeSet:
+      id: 003-create-support-messages-table
+      author: islam
+      changes:
+        - createTable:
+            tableName: support_messages
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: support_messages_pkey, nullable: false } }
+              - column: { name: ticket_id, type: BIGINT, constraints: { nullable: false, foreignKeyName: fk_support_messages_ticket, references: support_tickets(id), deleteCascade: true } }
+              - column: { name: author, type: VARCHAR(20), constraints: { nullable: false } }
+              - column: { name: content_type, type: VARCHAR(20), constraints: { nullable: false } }
+              - column: { name: text, type: TEXT }
+              - column: { name: user_message_id, type: BIGINT }
+              - column: { name: support_chat_id, type: BIGINT }
+              - column: { name: support_message_id, type: BIGINT }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+      rollback:
+        - dropTable: { tableName: support_messages }
+
+  - changeSet:
+      id: 004-add-support-messages-indexes
+      author: islam
+      changes:
+        # по сообщению в чате поддержки находим обращение, когда на него отвечают (Reply)
+        - addUniqueConstraint:
+            tableName: support_messages
+            constraintName: uq_support_messages_support_chat_message
+            columnNames: support_chat_id, support_message_id
+        - createIndex:
+            tableName: support_messages
+            indexName: idx_support_messages_ticket_id_created_at
+            columns: [ { column: { name: ticket_id } }, { column: { name: created_at } } ]
+      rollback:
+        - dropIndex: { tableName: support_messages, indexName: idx_support_messages_ticket_id_created_at }
+        - dropUniqueConstraint: { tableName: support_messages, constraintName: uq_support_messages_support_chat_message }

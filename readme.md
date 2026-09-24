@@ -22,6 +22,7 @@
   - [restaurant-service](#restaurant-service)
   - [booking-service](#booking-service)
   - [notification-service](#notification-service)
+  - [telegram-bot-service](#telegram-bot-service)
   - [common](#common)
 - [Полный список API](#полный-список-api)
 - [Безопасность и JWT-модель](#безопасность-и-jwt-модель)
@@ -53,6 +54,7 @@
 | `restaurant-service` | 8081 | Рестораны, менеджеры, столы, блюда, фото, Redis, MinIO |
 | `booking-service` | 8082 | Бронирования, доступность, Kafka producer |
 | `notification-service` | 8084 | Kafka consumer, статусы сообщений, email |
+| `telegram-bot-service` | — | Telegram-бот поддержки: обращения, ответы, long polling |
 | `common` | — | Общие DTO, исключения, security-утилиты, локализация |
 
 **Ключевые архитектурные решения:**
@@ -63,7 +65,7 @@
 - Медиафайлы хранятся в MinIO; бакеты `restaurant-media` и `dish-media` создаются автоматически при полном запуске через docker-compose.
 - Создание и отмена бронирования публикуют отдельные события в Kafka (`booking-created-topic`, `booking-cancelled-topic`), которые обрабатывает `notification-service` и отправляет соответствующее HTML-письмо через Thymeleaf/SMTP.
 - Пересечение бронирований одного стола по времени исключается на уровне PostgreSQL exclusion constraint (`booking-service`, расширение `btree_gist`), а не только проверкой в коде.
-- Схема каждой БД версионируется через Liquibase (`booking-service`, `restaurant-service`, `user-service`, `notification-service`); Hibernate работает в режиме `ddl-auto: validate` и схему не создаёт.
+- Схема каждой БД версионируется через Liquibase (`booking-service`, `restaurant-service`, `user-service`, `notification-service`, `telegram-bot-service`); Hibernate работает в режиме `ddl-auto: validate` и схему не создаёт.
 - Между сервисами используется синхронная интеграция через Spring Cloud OpenFeign (например, `booking-service` → `restaurant-service`/`user-service`) и асинхронная — через Kafka (`booking-service` → `notification-service`).
 
 ## Технологический стек
@@ -99,13 +101,13 @@ docker compose -f docker-compose.local.yml up --build
 
 Поднимаются:
 
-- 4 контейнера PostgreSQL (по одному на `user`, `restaurant`, `booking`, `notification`);
+- 5 контейнеров PostgreSQL (по одному на `user`, `restaurant`, `booking`, `notification`, `telegram-bot`);
 - Redis;
 - Kafka;
 - MinIO + `minio-init` (автосоздание бакетов);
 - Mailpit — локальный SMTP-инбокс для проверки писем (`http://localhost:8025`), почта сервисов в этом режиме никуда, кроме него, не уходит;
 - Prometheus, Grafana, Loki, Grafana Alloy — стек мониторинга и логирования (см. [Наблюдаемость](#наблюдаемость));
-- все сервисы приложения (`eureka-server`, `api-gateway`, `user-service`, `restaurant-service`, `booking-service`, `notification-service`).
+- все сервисы приложения (`eureka-server`, `api-gateway`, `user-service`, `restaurant-service`, `booking-service`, `notification-service`, `telegram-bot-service`).
 
 Для продакшен-конфигурации используется `docker-compose.prod.yml` (переменные — из `.env.prod`). Каждый сервис собирается общим `Dockerfile` с build-аргументом `MODULE` (multi-stage сборка на `gradle:8.14.5-jdk21`, рантайм — `eclipse-temurin:21-jre-jammy`).
 
@@ -125,6 +127,7 @@ docker compose -f docker-compose.infra.yml up -d
 ./gradlew :restaurant-service:bootRun
 ./gradlew :booking-service:bootRun
 ./gradlew :notification-service:bootRun
+./gradlew :telegram-bot-service:bootRun
 ./gradlew :api-gateway:bootRun
 ```
 
@@ -143,6 +146,7 @@ docker compose -f docker-compose.infra.yml up -d
 | Redis | `REDIS_HOST`, `REDIS_PORT` | `restaurant-service` |
 | MinIO | `MINIO_ENDPOINT`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `MINIO_PUBLIC_BASE_URL`, `MINIO_BUCKET` | `restaurant-service` |
 | Почта | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS_*`, `MAIL_SMTP_SSL_ENABLE`, `MAIL_DEBUG` | `notification-service` |
+| Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_SUPPORT_CHAT_ID` (необязательно), `TELEGRAM_BOT_ENABLED`, `TELEGRAM_BOT_DB_HOST/PORT` | `telegram-bot-service`, Grafana (алерты) |
 | Прочее | `SPRING_PROFILES_ACTIVE`, `CORS_ALLOWED_ORIGIN`, `MANAGEMENT_HEALTH_MAIL_ENABLED` | `api-gateway`, `notification-service` |
 
 ## Сервисы подробно
@@ -206,6 +210,16 @@ docker compose -f docker-compose.infra.yml up -d
 - Отправляет HTML-письмо через SMTP: подтверждение бронирования (`booking-confirm.html`) или уведомление об отмене (`booking-cancelled.html`), оба со встроенным логотипом; SMTP-хост/порт и шифрование (STARTTLS/SSL) задаются переменными окружения (в проде — Gmail, локально — Mailpit).
 - Планировщики: повторная отправка неуспешных сообщений — каждые 10 минут (`max-attempts=5`); очистка сообщений в статусе `DONE` — каждые 60 минут.
 - Не публикует собственных REST-эндпоинтов — работает исключительно как consumer и background worker.
+
+### telegram-bot-service
+
+Telegram-бот поддержки. Полный сценарий обращения — в [telegram-bot-service/readme.md](telegram-bot-service/readme.md).
+
+- Забирает сообщения у Telegram через long polling (`getUpdates`) — не нужны ни домен, ни открытый порт; запускается строго в одной реплике.
+- Проводит пользователя по шагам (тема → описание → скриншоты → email → проверка), создаёт обращение с номером и присылает карточку в чат поддержки (`TELEGRAM_CHAT_ID`).
+- Ответ сотрудника (Reply на карточку или сообщение) доставляется пользователю; закрытие — кнопкой на карточке, после чего пользователь ставит оценку. `/tickets` — список открытых обращений.
+- Собственная БД `telegrambotdb` (обращения и переписка), черновики диалога — в памяти (Caffeine).
+- Не публикует REST-эндпоинтов.
 
 ### common
 
@@ -398,6 +412,7 @@ RBS/
 ├── restaurant-service/     # рестораны, столы, блюда, фото, Redis, MinIO
 ├── booking-service/        # бронирования, доступность
 ├── notification-service/   # Kafka consumer, email-уведомления
+├── telegram-bot-service/   # Telegram-бот поддержки
 ├── common/                 # общий модуль: ошибки, security, локализация
 ├── common-logging/         # аннотация @Loggable и аспект логирования вызовов
 ├── monitoring/             # Prometheus, Grafana (датасорсы, дашборды, алерты), Loki, Alloy, Tempo
