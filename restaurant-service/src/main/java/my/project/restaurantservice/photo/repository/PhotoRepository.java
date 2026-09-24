@@ -5,6 +5,7 @@ import my.project.restaurantservice.photo.entity.enums.PhotoCategory;
 import my.project.restaurantservice.photo.entity.enums.PhotoStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -42,6 +43,37 @@ public interface PhotoRepository extends JpaRepository<PhotoEntity, UUID> {
 
 	List<PhotoEntity> findAllByDishIdInAndStatusOrderBySortOrderAsc(Collection<UUID> dishIds, PhotoStatus status);
 
-	Optional<PhotoEntity> findByIdAndObjectKeyAndStatus(UUID id, String objectKey, PhotoStatus status);
+	List<PhotoEntity> findAllByIdInAndStatus(Collection<UUID> ids, PhotoStatus status);
+
+	@Modifying(flushAutomatically = true, clearAutomatically = true)
+	@Query("""
+        update PhotoEntity p
+        set p.status = :status,
+            p.restaurant = null,
+            p.dish = null
+        where p.restaurant.id = :restId
+           or p.dish.id in (
+               select d.id
+               from DishEntity d
+               where d.restaurant.id = :restId
+           )
+    """)
+	int detachAllByRestaurantId(@Param("restId") UUID restId, @Param("status") PhotoStatus status);
+
+	@Modifying(flushAutomatically = true, clearAutomatically = true)
+	@Query("""
+        update PhotoEntity p
+        set p.status = :status,
+            p.dish = null
+        where p.dish.id in (
+            select d.id
+            from DishEntity d
+            where d.id = :dishId
+              and d.restaurant.id = :restId
+        )
+    """)
+	int detachAllByDishIdAndRestaurantId(@Param("dishId") UUID dishId,
+										 @Param("restId") UUID restId,
+										 @Param("status") PhotoStatus status);
 
 }

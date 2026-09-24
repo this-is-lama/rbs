@@ -11,6 +11,8 @@ import my.project.restaurantservice.manager.service.query.ManagerQueryService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Loggable
@@ -37,11 +39,11 @@ public class ManagerCommandService {
 		accessService.checkAccess(restId, auth);
 
 		writeService.deleteManagerById(restId, managerId);
-		changeManagerRoleToUser(managerId);
+		changeRoleToUserIfNoRestaurants(List.of(managerId));
 	}
 	//TODO: проверить согласованность данных
-	private void changeManagerRoleToUser(UUID managerId) {
-		if (queryService.managerWithoutRestaurants(managerId)) {
+	public void changeRoleToUserIfNoRestaurants(Collection<UUID> managerIds) {
+		for (UUID managerId : queryService.findManagersWithoutRestaurants(managerIds)) {
 			try {
 				userClient.changeRoleById(new ChangeRoleByIdRequest(managerId, UserRole.ROLE_USER));
 				log.info("Пользователь переведён обратно в ROLE_USER, managerId={}", managerId);

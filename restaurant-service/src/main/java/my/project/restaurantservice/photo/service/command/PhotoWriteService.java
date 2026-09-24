@@ -22,8 +22,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -56,9 +59,22 @@ public class PhotoWriteService {
 	@Transactional
 	public List<UUID> confirm(ContainerType type, UUID containerId, String bucket,
 							  List<PhotoConfirmRequest> uploaded) {
+		if (uploaded.isEmpty()) {
+			return List.of();
+		}
+
+		Set<UUID> requestedIds = uploaded.stream()
+				.map(PhotoConfirmRequest::id)
+				.collect(Collectors.toSet());
+		Map<UUID, PhotoEntity> pendingById = repositoryService.findAllByIdInAndStatus(requestedIds, PhotoStatus.PENDING).stream()
+				.collect(Collectors.toMap(PhotoEntity::getId, Function.identity()));
+
 		List<UUID> ids = new ArrayList<>();
 		for (PhotoConfirmRequest dto : uploaded) {
-			PhotoEntity photo = repositoryService.getByIdAndObjectKeyAndStatus(dto.id(), dto.objectKey(), PhotoStatus.PENDING);
+			PhotoEntity photo = pendingById.remove(dto.id());
+			if (photo == null || !photo.getObjectKey().equals(dto.objectKey())) {
+				throw new NotFoundException("restaurant.photo.not-found", dto.id());
+			}
 			assertBelongsToContainer(photo, type, containerId, bucket);
 			photo.confirm();
 
@@ -79,6 +95,24 @@ public class PhotoWriteService {
 
 		if (!photos.isEmpty()) {
 			log.info("Фотографии помечены как DELETING, count={}", photos.size());
+		}
+	}
+
+	@CacheEvict(cacheNames = "photosByRestaurantId", key = "#restId")
+	@Transactional
+	public void markDeletingByRestaurantId(UUID restId) {
+		int count = repositoryService.detachAllByRestaurantId(restId, PhotoStatus.DELETING);
+		if (count > 0) {
+			log.info("Фотографии ресторана и его блюд помечены как DELETING, restId={}, count={}", restId, count);
+		}
+	}
+
+	@CacheEvict(cacheNames = "photosByDishId", key = "#dishId")
+	@Transactional
+	public void markDeletingByDishId(UUID dishId, UUID restId) {
+		int count = repositoryService.detachAllByDishIdAndRestaurantId(dishId, restId, PhotoStatus.DELETING);
+		if (count > 0) {
+			log.info("Фотографии блюда помечены как DELETING, dishId={}, count={}", dishId, count);
 		}
 	}
 

@@ -7,7 +7,9 @@ import my.project.restaurantservice.manager.repository.ManagerRepository;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -29,8 +31,14 @@ public class ManagerQueryService {
 		return repository.findAllByIdRestaurantIdOrderByCreatedAtAsc(restId);
 	}
 	
-	public boolean managerWithoutRestaurants(UUID id) {
-		return repository.countByIdManagerId(id) == 0;
+	public List<UUID> findManagersWithoutRestaurants(Collection<UUID> managerIds) {
+		if (managerIds.isEmpty()) {
+			return List.of();
+		}
+		Set<UUID> withRestaurants = repository.findManagerIdsWithRestaurants(managerIds);
+		return managerIds.stream()
+				.filter(id -> !withRestaurants.contains(id))
+				.toList();
 	}
 
 }

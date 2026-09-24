@@ -48,20 +48,13 @@ public class BookingQueryService {
 	@Loggable
 	@Transactional(readOnly = true)
 	public TableAvailabilityResponse getTableAvailability(UUID restId, UUID tableId, LocalDate date) {
-		var bookings = repositoryService.findAllByRestaurantIdAndTableIdAndStatusAndStartAtLessThanAndEndAtGreaterThanOrderByStartAtAsc(
+		List<TableAvailabilitySlotResponse> reservedSlots = repositoryService.findTableSlotsBetween(
 				restId,
 				tableId,
 				BookingStatus.RESERVED,
 				date.atStartOfDay(BUSINESS_ZONE).toInstant(),
 				date.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant()
 		);
-
-		List<TableAvailabilitySlotResponse> reservedSlots = bookings.stream()
-				.map(booking -> new TableAvailabilitySlotResponse(
-						booking.getStartAt(),
-						booking.getEndAt()
-				))
-				.toList();
 
 		return new TableAvailabilityResponse(restId, tableId, date, reservedSlots);
 	}
