@@ -73,6 +73,21 @@ services:
       timeout: 5s
       retries: 10
 
+  postgres-telegram-bot:
+    image: postgres:16
+    restart: unless-stopped
+    env_file: .env.prod
+    environment:
+      POSTGRES_DB: telegrambotdb
+    volumes:
+      - pg_telegram_bot_data:/var/lib/postgresql/data
+    networks: [rbs-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   redis:
     image: redis:7
     restart: unless-stopped
@@ -222,6 +237,24 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      eureka-server:
+        condition: service_started
+    networks: [rbs-net]
+
+  telegram-bot-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: telegram-bot-service
+    restart: unless-stopped
+    env_file: .env.prod
+    environment:
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces   # куда слать спаны (Tempo)
+    # только одна реплика: один токен бота может опрашивать Telegram только из одного места
+    depends_on:
+      postgres-telegram-bot:
+        condition: service_healthy
       eureka-server:
         condition: service_started
     networks: [rbs-net]
@@ -397,6 +430,19 @@ services:
       postgres-notification:
         condition: service_healthy
 
+  backup-telegram-bot:
+    <<: *pg-backup
+    environment:
+      <<: *pg-backup-env
+      POSTGRES_HOST: postgres-telegram-bot
+      POSTGRES_DB: telegrambotdb
+    volumes:
+      - ./backups/telegram-bot:/backups
+      - ./scripts/backup-hooks/10-telegram:/hooks/10-telegram:ro
+    depends_on:
+      postgres-telegram-bot:
+        condition: service_healthy
+
   # ---------- Копирование бэкапов в Яндекс Диск (зашифрованно) ----------
   backup-upload:
     image: rclone/rclone:1.71
@@ -430,6 +476,7 @@ volumes:
   pg_restaurant_data:
   pg_booking_data:
   pg_notification_data:
+  pg_telegram_bot_data:
   redis_data:
   minio_data:
   kafka_data:
