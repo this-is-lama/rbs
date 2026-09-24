@@ -44,3 +44,7 @@ bin/
 /*.iml
 /roadmap/
 liquibase.properties
+/backups/
+
+# rclone: токен Яндекс Диска и пароль шифрования бэкапов
+/rclone/
