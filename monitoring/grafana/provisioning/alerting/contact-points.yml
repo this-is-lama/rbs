@@ -1,0 +1,15 @@
+# Куда слать алерты: Telegram-бот.
+# TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID берутся из .env.* (env_file у grafana).
+# Пустые значения ломают старт Grafana, поэтому, пока бота нет, держи там заглушки.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: telegram
+    receivers:
+      - uid: rbs-telegram
+        type: telegram
+        settings:
+          bottoken: ${TELEGRAM_BOT_TOKEN}
+          chatid: ${TELEGRAM_CHAT_ID}
+        disableResolveMessage: false

@@ -18,6 +18,8 @@ public class KafkaConfig {
 
         var factory = new ConcurrentKafkaListenerContainerFactory<String, Object>();
         factory.setConsumerFactory(consumerFactory);
+        // читает traceId из заголовков сообщения и продолжает трейс, начатый в booking-service
+        factory.getContainerProperties().setObservationEnabled(true);
         return factory;
     }
 }

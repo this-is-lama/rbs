@@ -18,6 +18,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
+    // Трейсинг: Micrometer Tracing + OpenTelemetry, спаны уходят в Tempo по OTLP
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")

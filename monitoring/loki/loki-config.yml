@@ -24,11 +24,22 @@ schema_config:
       schema: v13
       index:
         prefix: index_
-        period: 24h
+        period: 24h   # retention работает только с периодом индекса 24h
 
 storage_config:
   filesystem:
     directory: /loki/chunks
 
+# Сколько хранить логи. Старше — удаляет compactor.
+limits_config:
+  retention_period: 336h          # 14 дней
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+
 compactor:
   working_directory: /loki/compactor
+  compaction_interval: 10m
+  retention_enabled: true         # без этого retention_period игнорируется
+  retention_delete_delay: 2h      # пауза перед физическим удалением чанков
+  retention_delete_worker_count: 150
+  delete_request_store: filesystem

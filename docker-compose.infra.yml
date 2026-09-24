@@ -148,6 +148,11 @@ services:
   prometheus:
     image: prom/prometheus:latest
     restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"     # хранить метрики 15 дней
+      - "--storage.tsdb.retention.size=5GB"     # ...но не больше 5 ГБ на диске
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -158,9 +163,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     restart: unless-stopped
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+    env_file: .env.infra   # GF_SECURITY_ADMIN_USER / GF_SECURITY_ADMIN_PASSWORD, TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
@@ -169,6 +172,29 @@ services:
     networks: [ rbs-net ]
     depends_on:
       - prometheus
+      - loki
+      - tempo
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - /:/host:ro
+    networks: [ rbs-net ]
+
+  tempo:
+    image: grafana/tempo:3.0.3
+    restart: unless-stopped
+    command: ["-target=all", "-config.file=/etc/tempo/tempo.yaml"]
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200"   # API Tempo (Grafana ходит внутри сети, порт — для отладки)
+      - "4318:4318"   # OTLP HTTP: сюда сервисы шлют спаны (нужен, если сервисы запущены из IDE)
+    networks: [ rbs-net ]
 
   loki:
     image: grafana/loki:latest
@@ -219,3 +245,4 @@ volumes:
   grafana_data:
   loki-data:
   alloy-data:
+  tempo_data:

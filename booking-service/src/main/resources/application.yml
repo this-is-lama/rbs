@@ -78,6 +78,30 @@ eureka:
     prefer-ip-address: true
 
 management:
+  # Не трассируем внутренние шаги Spring Security — без них трейс запроса читается проще
+  observations:
+    enable:
+      "[spring.security]": false
+  # Гистограмма времени ответа: на дашборде появляются p50/p95/p99, а не только среднее
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  # ---------- Распределённый трейсинг (Micrometer Tracing + OpenTelemetry -> Tempo) ----------
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}   # доля запросов, попадающих в трейсинг (1.0 = все)
+  opentelemetry:
+    resource-attributes:
+      "[service.instance.id]": ${HOSTNAME:local}          # id реплики (в Docker = id контейнера)
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+  otlp:
+    metrics:
+      export:
+        enabled: false   # стартер OpenTelemetry умеет слать и метрики, но их у нас забирает Prometheus
   endpoints:
     web:
       exposure:
@@ -109,7 +133,7 @@ logging:
     org.springframework.cache: INFO
     org.springframework.data.redis: INFO
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%X{traceId:-},%X{spanId:-}] [%thread] %logger{36} - %msg%n"
 
 ---
 
@@ -134,7 +158,12 @@ logging:
     org.springframework.cache: WARN
     org.springframework.data.redis: WARN
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%X{traceId:-},%X{spanId:-}] [%thread] %logger{36} - %msg%n"
+
+management:
+  tracing:
+    export:
+      enabled: false   # в тестах спаны никуда не отправляем
 
 ---
 
@@ -159,4 +188,4 @@ logging:
     org.springframework.cache: WARN
     org.springframework.data.redis: WARN
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%thread] %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%level] [%X{traceId:-},%X{spanId:-}] [%thread] %logger{36} - %msg%n"

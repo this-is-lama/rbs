@@ -156,6 +156,8 @@ services:
         MODULE: user-service
     restart: unless-stopped
     env_file: .env.prod
+    environment:
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces   # куда слать спаны (Tempo)
     depends_on:
       postgres-user:
         condition: service_healthy
@@ -171,6 +173,8 @@ services:
         MODULE: restaurant-service
     restart: unless-stopped
     env_file: .env.prod
+    environment:
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces   # куда слать спаны (Tempo)
     depends_on:
       postgres-restaurant:
         condition: service_healthy
@@ -190,6 +194,8 @@ services:
         MODULE: booking-service
     restart: unless-stopped
     env_file: .env.prod
+    environment:
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces   # куда слать спаны (Tempo)
     depends_on:
       postgres-booking:
         condition: service_healthy
@@ -209,6 +215,8 @@ services:
         MODULE: notification-service
     restart: unless-stopped
     env_file: .env.prod
+    environment:
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces   # куда слать спаны (Tempo)
     depends_on:
       postgres-notification:
         condition: service_healthy
@@ -226,6 +234,8 @@ services:
         MODULE: api-gateway
     restart: unless-stopped
     env_file: .env.prod
+    environment:
+      OTLP_TRACING_ENDPOINT: http://tempo:4318/v1/traces   # куда слать спаны (Tempo)
     ports:
       - "8080:8080"
     depends_on:
@@ -246,12 +256,92 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL}
+        VITE_API_URL: ${VITE_API_URL:-http://restaurant-booking.ru:8080}
     restart: unless-stopped
     ports:
       - "80:80"
     depends_on:
       - api-gateway
+    networks: [rbs-net]
+
+  # ---------- Мониторинг ----------
+  # Порты открыты только на 127.0.0.1 — снаружи сервера не видны.
+  # Доступ через SSH-туннель: ssh -L 3000:localhost:3000 user@server → http://localhost:3000
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--storage.tsdb.retention.size=5GB"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks: [rbs-net]
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    env_file: .env.prod   # GF_SECURITY_ADMIN_USER / GF_SECURITY_ADMIN_PASSWORD, TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID
+    environment:
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks: [rbs-net]
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - /:/host:ro,rslave
+    pid: host
+    networks: [rbs-net]
+
+  tempo:
+    image: grafana/tempo:3.0.3
+    restart: unless-stopped
+    command: ["-target=all", "-config.file=/etc/tempo/tempo.yaml"]
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo_data:/var/tempo
+    networks: [ rbs-net ]
+
+  loki:
+    image: grafana/loki:latest
+    restart: unless-stopped
+    command:
+      - "-config.file=/etc/loki/loki-config.yml"
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data:/loki
+    networks: [rbs-net]
+
+  alloy:
+    image: grafana/alloy:latest
+    restart: unless-stopped
+    command:
+      - "run"
+      - "--server.http.listen-addr=0.0.0.0:12345"
+      - "--storage.path=/var/lib/alloy/data"
+      - "/etc/alloy/config.alloy"
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy/data
+    depends_on:
+      - loki
     networks: [rbs-net]
 
   # ---------- Бэкапы Postgres ----------
@@ -343,3 +433,8 @@ volumes:
   redis_data:
   minio_data:
   kafka_data:
+  prometheus_data:
+  grafana_data:
+  loki-data:
+  alloy-data:
+  tempo_data:

@@ -27,6 +27,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
+    // Трейсинг: Micrometer Tracing + OpenTelemetry, спаны уходят в Tempo по OTLP
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    // передаёт traceId в Feign-запросах к другим сервисам
+    implementation("io.github.openfeign:feign-micrometer")
+
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
