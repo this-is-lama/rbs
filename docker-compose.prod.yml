@@ -1,3 +1,17 @@
+# ---------- Бэкапы Postgres: общие настройки ----------
+x-pg-backup: &pg-backup
+  image: prodrigestivill/postgres-backup-local:16
+  restart: unless-stopped
+  env_file: .env.prod                  # POSTGRES_USER / POSTGRES_PASSWORD
+  networks: [rbs-net]
+
+x-pg-backup-env: &pg-backup-env
+  TZ: Europe/Moscow
+  SCHEDULE: "0 3 * * *"            # каждый день в 03:00 по Москве
+  BACKUP_KEEP_DAYS: 7              # хранить 7 ежедневных копий
+  BACKUP_KEEP_WEEKS: 4             # 4 еженедельных
+  BACKUP_KEEP_MONTHS: 6            # 6 ежемесячных
+
 services:
   postgres-user:
     image: postgres:16
@@ -238,6 +252,82 @@ services:
       - "80:80"
     depends_on:
       - api-gateway
+    networks: [rbs-net]
+
+  # ---------- Бэкапы Postgres ----------
+  backup-user:
+    <<: *pg-backup
+    environment:
+      <<: *pg-backup-env
+      POSTGRES_HOST: postgres-user
+      POSTGRES_DB: userdb
+    volumes:
+      - ./backups/user:/backups
+      - ./scripts/backup-hooks/10-telegram:/hooks/10-telegram:ro
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+
+  backup-restaurant:
+    <<: *pg-backup
+    environment:
+      <<: *pg-backup-env
+      POSTGRES_HOST: postgres-restaurant
+      POSTGRES_DB: restaurantdb
+    volumes:
+      - ./backups/restaurant:/backups
+      - ./scripts/backup-hooks/10-telegram:/hooks/10-telegram:ro
+    depends_on:
+      postgres-restaurant:
+        condition: service_healthy
+
+  backup-booking:
+    <<: *pg-backup
+    environment:
+      <<: *pg-backup-env
+      POSTGRES_HOST: postgres-booking
+      POSTGRES_DB: bookingdb
+    volumes:
+      - ./backups/booking:/backups
+      - ./scripts/backup-hooks/10-telegram:/hooks/10-telegram:ro
+    depends_on:
+      postgres-booking:
+        condition: service_healthy
+
+  backup-notification:
+    <<: *pg-backup
+    environment:
+      <<: *pg-backup-env
+      POSTGRES_HOST: postgres-notification
+      POSTGRES_DB: notificationdb
+    volumes:
+      - ./backups/notification:/backups
+      - ./scripts/backup-hooks/10-telegram:/hooks/10-telegram:ro
+    depends_on:
+      postgres-notification:
+        condition: service_healthy
+
+  # ---------- Копирование бэкапов в Яндекс Диск (зашифрованно) ----------
+  backup-upload:
+    image: rclone/rclone:1.71
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Moscow
+    volumes:
+      - ./backups:/backups:ro          # только читаем бэкапы
+      - ./rclone:/config/rclone        # rclone.conf (не в git!), rclone обновляет в нём токен
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          echo "$$(date '+%F %T') upload start"
+          rclone copy /backups yadisk-crypt: \
+            --filter "- *-latest.sql.gz" --filter "+ /*/last/**" --filter "- **" \
+            --log-level INFO \
+          && rclone delete yadisk-crypt: --min-age 30d --log-level INFO \
+          || echo "$$(date '+%F %T') UPLOAD FAILED"
+          sleep 3600
+        done
     networks: [rbs-net]
 
 networks:
