@@ -78,11 +78,6 @@ public class RestaurantRepositoryService {
 	}
 
 	@Transactional
-	public void flush() {
-		repository.flush();
-	}
-
-	@Transactional
 	public void deleteById(UUID id) {
 		repository.deleteById(id);
 	}

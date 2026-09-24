@@ -2,6 +2,7 @@ package my.project.bookingservice.repository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.bookingservice.dto.response.TableAvailabilitySlotResponse;
 import my.project.bookingservice.entity.BookingEntity;
 import my.project.bookingservice.entity.BookingStatus;
 import my.project.common.exception.ConflictException;
@@ -48,10 +49,10 @@ public class BookingRepositoryService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<BookingEntity> findAllByRestaurantIdAndTableIdAndStatusAndStartAtLessThanAndEndAtGreaterThanOrderByStartAtAsc(UUID restId, UUID tableId,
-																															  BookingStatus status,
-																															  Instant from, Instant to) {
-		return repository.findAllByRestaurantIdAndTableIdAndStatusAndStartAtLessThanAndEndAtGreaterThanOrderByStartAtAsc(restId, tableId, status, from, to);
+	public List<TableAvailabilitySlotResponse> findTableSlotsBetween(UUID restId, UUID tableId,
+																	 BookingStatus status,
+																	 Instant from, Instant to) {
+		return repository.findTableSlotsBetween(restId, tableId, status, from, to);
 	}
 
 	@Transactional

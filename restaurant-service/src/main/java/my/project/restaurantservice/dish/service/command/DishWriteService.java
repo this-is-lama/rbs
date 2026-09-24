@@ -5,6 +5,7 @@ import my.project.restaurantservice.dish.dto.DishDto;
 import my.project.restaurantservice.dish.entity.DishEntity;
 import my.project.restaurantservice.dish.mapper.DishMapper;
 import my.project.restaurantservice.dish.repository.DishRepositoryService;
+import my.project.restaurantservice.photo.service.command.PhotoWriteService;
 import my.project.restaurantservice.restaurant.entity.RestaurantEntity;
 import my.project.restaurantservice.restaurant.repository.RestaurantRepositoryService;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,6 +21,7 @@ public class DishWriteService {
 
 	private final DishRepositoryService repositoryService;
 	private final RestaurantRepositoryService restaurantRepositoryService;
+	private final PhotoWriteService photoWriteService;
 	private final DishMapper mapper;
 
 	@Caching(evict = {
@@ -56,6 +58,7 @@ public class DishWriteService {
 	})
 	@Transactional
 	public void deleteByIdAndRestaurantId(UUID id, UUID restId) {
+		photoWriteService.markDeletingByDishId(id, restId);
 		repositoryService.deleteByIdAndRestaurantId(id, restId);
 	}
 }

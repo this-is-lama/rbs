@@ -38,6 +38,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        order_updates: true
+        jdbc:
+          batch_size: 50
 
   mail:
     host: ${MAIL_HOST}

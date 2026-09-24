@@ -1,8 +1,8 @@
 package my.project.notificationservice.repository;
 
 import my.project.notificationservice.entity.MessageEntity;
-import my.project.notificationservice.entity.MessageStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,7 +27,18 @@ public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
 	List<MessageEntity> lockWorkBatch(@Param("maxAttempts") int maxAttempts, @Param("stuckMinutes") int stuckMinutes);
 
 
-	long deleteTop500ByStatusAndUpdatedAtLessThan(MessageStatus status, Instant processedAt);
+	@Modifying
+	@Query(value = """
+        delete from processed_messages
+        where message_id in (
+            select message_id
+            from processed_messages
+            where status = 'DONE'
+              and updated_at < :processedAt
+            limit 500
+        )
+        """, nativeQuery = true)
+	int deleteDoneBatchUpdatedBefore(@Param("processedAt") Instant processedAt);
 
 
 }

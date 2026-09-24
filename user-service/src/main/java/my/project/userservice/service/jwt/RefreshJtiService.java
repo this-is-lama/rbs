@@ -73,10 +73,9 @@ public class RefreshJtiService {
 
 	@Transactional
 	public void deactivateAllForUser(UUID userId) {
-		repository.findAllByUserIdAndActiveTrue(userId)
-				.forEach(RefreshJtiEntity::deactivate);
+		int deactivated = repository.deactivateAllByUserId(userId);
 
-		log.info("Все активные refresh JTI деактивированы для userId={}", userId);
+		log.info("Все активные refresh JTI деактивированы для userId={}, count={}", userId, deactivated);
 	}
 
 	@Transactional

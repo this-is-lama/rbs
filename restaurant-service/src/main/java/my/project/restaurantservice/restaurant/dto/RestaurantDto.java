@@ -1,6 +1,8 @@
 package my.project.restaurantservice.restaurant.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -10,8 +12,11 @@ import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import my.project.restaurantservice.restaurant.dto.contact.ContactDto;
 import my.project.restaurantservice.restaurant.dto.workinghours.WorkingHoursDto;
+import my.project.restaurantservice.restaurant.entity.WeekDay;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -44,4 +49,18 @@ public class RestaurantDto {
 	@NotEmpty
 	@NotNull
 	List<@Valid ContactDto> contacts;
+
+	@JsonIgnore
+	@AssertTrue(message = "restaurant.workinghours.duplicate-day")
+	public boolean isWorkingHoursDaysUnique() {
+		if (workingHours == null) {
+			return true;
+		}
+		List<WeekDay> days = workingHours.stream()
+				.filter(Objects::nonNull)
+				.map(WorkingHoursDto::dayOfWeek)
+				.filter(Objects::nonNull)
+				.toList();
+		return days.size() == Set.copyOf(days).size();
+	}
 }

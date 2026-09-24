@@ -51,7 +51,7 @@ public class PhotoCleaner {
 		}
 
 		if (!toDelete.isEmpty()) {
-			repositoryService.deleteAllById(toDelete);
+			repositoryService.deleteAllByIdInBatch(toDelete);
 			log.info("Удалены записи о фотографиях из базы данных, status={}, count={}", status, toDelete.size());
 		}
 	}

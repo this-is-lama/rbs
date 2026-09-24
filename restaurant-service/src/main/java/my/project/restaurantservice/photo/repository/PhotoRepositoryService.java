@@ -21,9 +21,8 @@ public class PhotoRepositoryService {
 	private final PhotoRepository repository;
 
 	@Transactional(readOnly = true)
-	public PhotoEntity getByIdAndObjectKeyAndStatus(UUID id, String objectKey, PhotoStatus status) {
-		return repository.findByIdAndObjectKeyAndStatus(id, objectKey, status)
-				.orElseThrow(() -> new NotFoundException("restaurant.photo.not-found", id));
+	public List<PhotoEntity> findAllByIdInAndStatus(Collection<UUID> ids, PhotoStatus status) {
+		return repository.findAllByIdInAndStatus(ids, status);
 	}
 
 	@Transactional(readOnly = true)
@@ -71,7 +70,17 @@ public class PhotoRepositoryService {
 	}
 
 	@Transactional
-	public void deleteAllById(List<UUID> ids) {
-		repository.deleteAllById(ids);
+	public int detachAllByRestaurantId(UUID restId, PhotoStatus status) {
+		return repository.detachAllByRestaurantId(restId, status);
+	}
+
+	@Transactional
+	public int detachAllByDishIdAndRestaurantId(UUID dishId, UUID restId, PhotoStatus status) {
+		return repository.detachAllByDishIdAndRestaurantId(dishId, restId, status);
+	}
+
+	@Transactional
+	public void deleteAllByIdInBatch(List<UUID> ids) {
+		repository.deleteAllByIdInBatch(ids);
 	}
 }

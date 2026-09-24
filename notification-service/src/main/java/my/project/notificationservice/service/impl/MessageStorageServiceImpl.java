@@ -75,7 +75,7 @@ public class MessageStorageServiceImpl implements MessageStorageService {
 
     @Transactional
     public long cleanDone(Instant time) {
-        long deleted = repository.deleteTop500ByStatusAndUpdatedAtLessThan(MessageStatus.DONE, time);
+        long deleted = repository.deleteDoneBatchUpdatedBefore(time);
 
         if (deleted > 0) {
             log.info("Удалены обработанные сообщения, deleted={}, olderThan={}", deleted, time);
