@@ -36,13 +36,19 @@ public class KafkaConfig {
 	public KafkaTemplate<String, BookingCreatedEvent> bookingCreatedEventKafkaTemplate(
 			ProducerFactory<String, BookingCreatedEvent> producerFactory) {
 		log.info("Инициализация KafkaTemplate для событий создания бронирования");
-		return new KafkaTemplate<>(producerFactory);
+		KafkaTemplate<String, BookingCreatedEvent> template = new KafkaTemplate<>(producerFactory);
+		// traceId уходит в заголовках сообщения, и notification-service продолжает тот же трейс
+		template.setObservationEnabled(true);
+		return template;
 	}
 
 	@Bean
 	public KafkaTemplate<String, BookingCancelledEvent> bookingCancelledEventKafkaTemplate(
 			ProducerFactory<String, BookingCancelledEvent> producerFactory) {
 		log.info("Инициализация KafkaTemplate для событий отмены бронирования");
-		return new KafkaTemplate<>(producerFactory);
+		KafkaTemplate<String, BookingCancelledEvent> template = new KafkaTemplate<>(producerFactory);
+		// traceId уходит в заголовках сообщения, и notification-service продолжает тот же трейс
+		template.setObservationEnabled(true);
+		return template;
 	}
 }

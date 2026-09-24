@@ -1,3 +1,6 @@
+// Alloy собирает логи всех контейнеров через Docker-сокет и отправляет их в Loki.
+// Метки потока: service_name (сервис в compose), container (конкретная реплика), level (уровень лога).
+
 discovery.docker "containers" {
   host = "unix:///var/run/docker.sock"
 }
@@ -18,10 +21,62 @@ discovery.relabel "containers" {
 }
 
 loki.source.docker "containers" {
-  host         = "unix:///var/run/docker.sock"
-  targets      = discovery.docker.containers.targets
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
   relabel_rules = discovery.relabel.containers.rules
-  forward_to   = [loki.write.local.receiver]
+  forward_to    = [loki.process.containers.receiver]
+}
+
+loki.process "containers" {
+  forward_to = [loki.write.local.receiver]
+
+  // ---------- Наши Spring-сервисы ----------
+  stage.match {
+    selector = "{service_name=~\"api-gateway|user-service|restaurant-service|booking-service|notification-service|eureka-server\"}"
+
+    // Стектрейс исключения — одна запись, а не 50 отдельных строк.
+    // Новая запись начинается с даты: "2026-09-24 21:00:00 ..." или "2026-09-24T21:00:00...".
+    stage.multiline {
+      firstline     = "^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}"
+      max_wait_time = "3s"
+    }
+
+    // Наш формат: 2026-09-24 21:00:00 [INFO] [traceId,spanId] [thread] logger - msg
+    stage.regex {
+      expression = "^\\S+ \\S+ \\[(?P<level>[A-Z]+)\\] \\[(?P<trace_id>[0-9a-f]*),(?P<span_id>[0-9a-f]*)\\]"
+    }
+
+    // Формат Spring Boot по умолчанию (eureka-server): 2026-09-24T21:00:00.000Z  INFO 1 --- [...]
+    stage.regex {
+      expression = "^\\S+\\s+(?P<level>TRACE|DEBUG|INFO|WARN|ERROR)\\s+\\d+ ---"
+    }
+
+    // level — метка (мало значений, по ней удобно фильтровать). В нижнем регистре,
+    // как detected_level, который Loki сам определяет для остальных контейнеров
+    stage.template {
+      source   = "level"
+      template = "{{ ToLower .Value }}"
+    }
+    stage.labels {
+      values = { level = "" }
+    }
+
+    // trace_id — не метка (у каждого запроса свой), а structured metadata: по нему можно искать,
+    // но он не раздувает индекс Loki. Пишем только если traceId в строке есть.
+    stage.match {
+      selector = "{service_name=~\".+\"} |~ \"\\\\] \\\\[[0-9a-f]{32},\""
+      stage.structured_metadata {
+        values = { trace_id = "" }
+      }
+    }
+  }
+
+  // ---------- Tempo 3 в single-binary режиме каждые 15 с пишет безобидное "no jobs found" ----------
+  stage.match {
+    selector            = "{service_name=\"tempo\"} |= \"no jobs found\""
+    action              = "drop"
+    drop_counter_reason = "tempo_idle_noise"
+  }
 }
 
 loki.write "local" {

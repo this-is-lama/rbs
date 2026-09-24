@@ -1,0 +1,294 @@
+# Алерты RBS. Условия — PromQL (A) + порог (C).
+# $$ — экранирование $ (Grafana подставляет переменные окружения в provisioning-файлы).
+apiVersion: 1
+groups:
+- orgId: 1
+  name: availability
+  folder: RBS Alerts
+  interval: 1m
+  rules:
+  - uid: rbs-service-down
+    title: Сервис недоступен
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: |-
+          label_replace(absent(up{job="eureka-server"} == 1), "application", "EUREKA-SERVER", "", "")
+          or label_replace(absent(up{job="eureka-services", application="API-GATEWAY"} == 1), "application", "API-GATEWAY", "", "")
+          or label_replace(absent(up{job="eureka-services", application="USER-SERVICE"} == 1), "application", "USER-SERVICE", "", "")
+          or label_replace(absent(up{job="eureka-services", application="RESTAURANT-SERVICE"} == 1), "application", "RESTAURANT-SERVICE", "", "")
+          or label_replace(absent(up{job="eureka-services", application="BOOKING-SERVICE"} == 1), "application", "BOOKING-SERVICE", "", "")
+          or label_replace(absent(up{job="eureka-services", application="NOTIFICATION-SERVICE"} == 1), "application", "NOTIFICATION-SERVICE", "", "")
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: '{{ $$labels.application }} недоступен'
+      description: 'Prometheus не может снять метрики с {{ $$labels.application }} больше минуты: сервис упал или выпал из Eureka.'
+    labels:
+      severity: critical
+    isPaused: false
+- orgId: 1
+  name: gateway
+  folder: RBS Alerts
+  interval: 1m
+  rules:
+  - uid: rbs-gateway-5xx
+    title: Рост 5xx на api-gateway
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: |-
+          sum(rate(http_server_requests_seconds_count{application="API-GATEWAY", status=~"5.."}[5m]))
+          / sum(rate(http_server_requests_seconds_count{application="API-GATEWAY"}[5m]))
+          and sum(increase(http_server_requests_seconds_count{application="API-GATEWAY", status=~"5.."}[5m])) > 5
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0.05
+    noDataState: OK
+    execErrState: Error
+    for: 3m
+    annotations:
+      summary: '5xx на gateway: {{ humanizePercentage $$values.A.Value }} запросов'
+      description: Больше 5% ответов api-gateway за последние 5 минут — ошибки 5xx (и не меньше 5 штук). Смотри логи в Grafana → Explore → Loki.
+    labels:
+      severity: critical
+    isPaused: false
+- orgId: 1
+  name: jvm
+  folder: RBS Alerts
+  interval: 1m
+  rules:
+  - uid: rbs-jvm-heap-high
+    title: Heap JVM почти заполнен
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: |-
+          sum by (job, application, instance) (jvm_memory_used_bytes{area="heap"})
+          / sum by (job, application, instance) (jvm_memory_max_bytes{area="heap"} > 0)
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0.9
+    noDataState: OK
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: '{{ or $$labels.application $$labels.job }}: heap {{ humanizePercentage $$values.A.Value }}'
+      description: Heap занят больше чем на 90% в течение 10 минут — возможна утечка памяти или мал -Xmx.
+    labels:
+      severity: warning
+    isPaused: false
+  - uid: rbs-jvm-cpu-high
+    title: Высокая загрузка CPU сервисом
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: max by (job, application, instance) (process_cpu_usage)
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0.8
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '{{ or $$labels.application $$labels.job }}: CPU {{ humanizePercentage $$values.A.Value }}'
+      description: Процесс JVM использует больше 80% доступного CPU дольше 5 минут.
+    labels:
+      severity: warning
+    isPaused: false
+- orgId: 1
+  name: host
+  folder: RBS Alerts
+  interval: 1m
+  rules:
+  - uid: rbs-host-cpu-high
+    title: 'Сервер: высокая загрузка CPU'
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: 1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0.85
+    noDataState: OK
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: CPU сервера {{ humanizePercentage $$values.A.Value }}
+      description: Загрузка CPU всего сервера выше 85% дольше 10 минут.
+    labels:
+      severity: warning
+    isPaused: false
+  - uid: rbs-host-memory-high
+    title: 'Сервер: мало свободной памяти'
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: 1 - max(node_memory_MemAvailable_bytes) / max(node_memory_MemTotal_bytes)
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0.9
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: Память сервера занята на {{ humanizePercentage $$values.A.Value }}
+      description: Доступно меньше 10% RAM дольше 5 минут — скоро придёт OOM killer.
+    labels:
+      severity: critical
+    isPaused: false
+  - uid: rbs-host-disk-high
+    title: 'Сервер: заканчивается диск'
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: 1 - max(node_filesystem_avail_bytes{mountpoint="/", fstype!~"tmpfs|overlay"}) / max(node_filesystem_size_bytes{mountpoint="/", fstype!~"tmpfs|overlay"})
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0.85
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: Диск / занят на {{ humanizePercentage $$values.A.Value }}
+      description: Корневой раздел заполнен больше чем на 85%. Проверь логи Loki, бэкапы в ./backups и docker images (docker system df).
+    labels:
+      severity: critical
+    isPaused: false

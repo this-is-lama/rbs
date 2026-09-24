@@ -81,7 +81,7 @@
 | Почта | Spring Mail, Thymeleaf-шаблоны, Mailpit (локальный SMTP-инбокс для разработки) |
 | Маппинг | MapStruct |
 | Документация API | springdoc-openapi (Swagger UI) |
-| Наблюдаемость | Spring Boot Actuator, Micrometer/Prometheus, Grafana, Loki, Grafana Alloy |
+| Наблюдаемость | Spring Boot Actuator, Micrometer/Prometheus, Micrometer Tracing + OpenTelemetry, Grafana, Loki, Tempo, Grafana Alloy |
 | Инфраструктура | Docker, Docker Compose |
 | Нагрузочное тестирование | k6 |
 
@@ -115,7 +115,7 @@ docker compose -f docker-compose.local.yml up --build
 docker compose -f docker-compose.infra.yml up -d
 ```
 
-Поднимает `postgres` (4 базы), `redis`, `kafka`, `minio`, `mailpit` и стек мониторинга (`prometheus`, `grafana`, `loki`, `alloy`) — переменные из `.env.infra`. Создание бакетов MinIO и запуск сервисов приложения в этом режиме нужно выполнять отдельно.
+Поднимает `postgres` (4 базы), `redis`, `kafka`, `minio`, `mailpit` и стек мониторинга (`prometheus`, `grafana`, `loki`, `alloy`, `node-exporter`, `tempo`) — переменные из `.env.infra`. Создание бакетов MinIO и запуск сервисов приложения в этом режиме нужно выполнять отдельно.
 
 ### Локальный запуск сервисов (Gradle)
 
@@ -329,6 +329,63 @@ Actuator во всех сервисах открывает `health`, `info`, `me
 - Grafana: `http://localhost:3000` (логин/пароль по умолчанию — `admin`/`admin`); датасорсы Prometheus и Loki провижинятся автоматически из `monitoring/grafana/provisioning`.
 - Loki: `http://localhost:3100` — хранилище логов.
 - Grafana Alloy (`http://localhost:12345`) — собирает логи контейнеров через Docker-сокет и отправляет их в Loki (`monitoring/alloy/config.alloy`).
+- node-exporter — метрики самого сервера (CPU, память, диск) для Prometheus.
+- Tempo: `http://localhost:3200` — хранилище трейсов (сервисы шлют спаны по OTLP на `:4318`), конфиг — `monitoring/tempo/tempo.yaml`, трейсы хранятся 7 дней.
+
+### Дашборды (папка `RBS` в Grafana)
+
+Сверху у обоих дашбордов — фильтры: сервис → реплика. Реплики появляются автоматически (например, `docker compose up --scale booking-service=2`).
+
+- **RBS — метрики сервисов** (`rbs-overview.json`): статус каждой реплики, RPS, доля 5xx, время ответа p50/p95/p99 (в целом и по репликам), таблица эндпоинтов, heap/CPU/GC/потоки JVM, пул соединений HikariCP, Kafka (отправка, обработка, lag), маршруты gateway и 429 от rate limiter, ресурсы сервера. Реплика здесь — адрес `ip:порт`, под которым она зарегистрирована в Eureka.
+- **RBS — логи** (`rbs-logs.json`): объём логов по уровням и по репликам, число ошибок и предупреждений по сервисам, сами логи с фильтром по уровню и поиском (текст, traceId, requestId). Реплика здесь — контейнер (`rbs-booking-service-1`, `-2`, ...).
+
+### Распределённый трейсинг
+
+Один запрос пользователя проходит через несколько сервисов (например, создание брони: gateway → booking-service → restaurant-service / user-service → Kafka → notification-service). Трейсинг связывает всё это в одну цепочку с общим `traceId`:
+
+- **Micrometer Tracing + OpenTelemetry** (`spring-boot-starter-opentelemetry`) во всех бизнес-сервисах и gateway: `traceId` создаётся на входе в gateway и передаётся дальше заголовком `traceparent` — через HTTP (Feign, `feign-micrometer`) и через Kafka (observation включён у `KafkaTemplate` и у listener-контейнера).
+- Спаны отправляются в **Tempo** (`OTLP_TRACING_ENDPOINT`, по умолчанию `http://localhost:4318/v1/traces`; в Docker — `http://tempo:4318/v1/traces`). Доля запросов в трейсинге — `TRACING_SAMPLING_PROBABILITY` (по умолчанию `1.0`, то есть все).
+- В каждой строке лога есть `[traceId,spanId]`. Alloy кладёт `traceId` в Loki как structured metadata, уровень лога — как метку `level`.
+- **api-gateway** (`RequestTracingFilter`) возвращает клиенту заголовки `X-Trace-Id` и `X-Request-Id` и пишет access-лог (метод, путь, статус, время). `X-Request-Id` можно прислать свой — он пробросится в сервисы.
+- В Grafana логи и трейсы связаны: в логе у строки с traceId — кнопка «Открыть трейс» (Tempo), в трейсе у спана — «Logs for this span» (Loki).
+
+Как найти, что случилось с конкретным запросом: взять `X-Trace-Id` из ответа (или из лога) → Grafana → Explore → Tempo → вставить traceId. Или вставить его в поиск на дашборде «RBS — логи».
+
+### Алерты
+
+Правила провижинятся из `monitoring/grafana/provisioning/alerting/` (папка `RBS Alerts`), уведомления уходят в Telegram:
+
+| Алерт | Условие |
+|---|---|
+| Сервис недоступен | сервис не отдаёт метрики или выпал из Eureka > 2 мин |
+| Рост 5xx на api-gateway | > 5% ответов 5xx за 5 мин (минимум 5 ошибок), держится 3 мин |
+| Heap JVM почти заполнен | heap > 90% дольше 10 мин |
+| Высокая загрузка CPU сервисом | `process_cpu_usage` > 80% дольше 5 мин |
+| Сервер: CPU / память / диск | CPU > 85% (10 мин), RAM > 90% (5 мин), диск `/` > 85% (5 мин) |
+
+Чтобы уведомления доходили, пропиши в `.env.local` / `.env.infra` / `.env.prod`:
+
+```
+TELEGRAM_BOT_TOKEN=<токен от @BotFather>
+TELEGRAM_CHAT_ID=<id чата, куда бот пишет>
+```
+
+Пустые значения не допускаются (Grafana не стартует) — пока бота нет, оставь заглушки `changeme` / `0`. Проверить отправку: Grafana → Alerting → Contact points → `telegram` → Test.
+
+### Хранение (retention)
+
+- Loki хранит логи **14 дней** (`limits_config.retention_period`), удаляет старые compactor.
+- Prometheus хранит метрики **15 дней, но не больше 5 ГБ** (флаги `--storage.tsdb.retention.*` в compose).
+
+### Мониторинг на проде
+
+В `docker-compose.prod.yml` поднимается тот же стек. Порты Grafana и Prometheus открыты только на `127.0.0.1`, заходить через SSH-туннель:
+
+```bash
+ssh -L 3000:localhost:3000 user@server   # затем http://localhost:3000
+```
+
+Пароль администратора Grafana — `GF_SECURITY_ADMIN_PASSWORD` в `.env.prod`.
 - Mailpit: `http://localhost:8025` — веб-интерфейс для писем, отправленных `notification-service` в локальном режиме (SMTP на `1025`), реальная почта наружу не уходит.
 
 ## Структура проекта
@@ -343,7 +400,7 @@ RBS/
 ├── notification-service/   # Kafka consumer, email-уведомления
 ├── common/                 # общий модуль: ошибки, security, локализация
 ├── common-logging/         # аннотация @Loggable и аспект логирования вызовов
-├── monitoring/             # конфигурация Prometheus, Grafana, Loki, Alloy
+├── monitoring/             # Prometheus, Grafana (датасорсы, дашборды, алерты), Loki, Alloy, Tempo
 ├── k6-load-tests/          # сценарии нагрузочного тестирования (k6)
 ├── build.gradle.kts        # корневая Gradle-конфигурация (multi-module)
 ├── settings.gradle.kts     # список подмодулей
