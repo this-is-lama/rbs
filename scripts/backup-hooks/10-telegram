@@ -1,0 +1,35 @@
+#!/bin/sh
+# Хук образа prodrigestivill/postgres-backup-local: пишет в Telegram об успешном бэкапе или об ошибке.
+# Образ вызывает все файлы из /hooks с аргументом: pre-backup, post-backup или error.
+# TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID приходят из .env.* (env_file у backup-*).
+# Хук никогда не валит сам бэкап: если Telegram недоступен, просто пишет об этом в лог.
+
+ACTION="${1}"
+DB="${POSTGRES_DB:-?}"
+API="${TELEGRAM_API_URL:-https://api.telegram.org}"
+
+if [ -z "${TELEGRAM_BOT_TOKEN}" ] || [ -z "${TELEGRAM_CHAT_ID}" ]; then
+  echo "10-telegram: TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID не заданы, уведомление пропущено"
+  exit 0
+fi
+
+case "${ACTION}" in
+  post-backup)
+    FILE="${BACKUP_DIR:-/backups}/last/${DB}-latest${BACKUP_SUFFIX:-.sql.gz}"
+    SIZE=$(du -hL "${FILE}" 2>/dev/null | cut -f1)
+    TEXT="✅ Бэкап ${DB} готов (${SIZE:-размер неизвестен})"
+    ;;
+  error)
+    TEXT="❌ Бэкап ${DB} НЕ сделан — смотри логи: docker compose logs backup-* "
+    ;;
+  *)
+    exit 0 # pre-backup — молчим
+    ;;
+esac
+
+curl -s -o /dev/null --max-time 10 --retry 3 \
+  "${API}/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+  --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+  --data-urlencode "text=${TEXT}" \
+  || echo "10-telegram: не удалось отправить сообщение в Telegram"
+exit 0

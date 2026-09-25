@@ -194,6 +194,10 @@ services:
     image: grafana/grafana:latest
     restart: unless-stopped
     env_file: .env.local   # GF_SECURITY_ADMIN_USER / GF_SECURITY_ADMIN_PASSWORD, TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID
+    environment:
+      # Не скачивать и не обновлять плагины с grafana.com при старте: встроенные Prometheus/Loki/Tempo
+      # уже есть в образе, а фоновое обновление даёт "Could not load plugin" на дашбордах
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
@@ -228,7 +232,6 @@ services:
 
   loki:
     image: grafana/loki:latest
-    container_name: loki
     restart: unless-stopped
     ports:
       - "3100:3100"
@@ -241,7 +244,6 @@ services:
 
   alloy:
     image: grafana/alloy:latest
-    container_name: alloy
     restart: unless-stopped
     ports:
       - "12345:12345"
