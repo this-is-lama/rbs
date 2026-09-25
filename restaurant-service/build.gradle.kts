@@ -19,7 +19,8 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
-    implementation("org.liquibase:liquibase-core")
+    // В Spring Boot 4 одного liquibase-core мало — без стартера миграции при старте не запускаются
+    implementation("org.springframework.boot:spring-boot-starter-liquibase")
 
     //MinIO
     implementation("io.minio:minio:$minioVersion")

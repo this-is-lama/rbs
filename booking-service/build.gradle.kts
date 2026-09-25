@@ -19,7 +19,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     runtimeOnly("org.postgresql:postgresql")
-    implementation("org.liquibase:liquibase-core")
+    // В Spring Boot 4 одного liquibase-core мало — без стартера миграции при старте не запускаются
+    implementation("org.springframework.boot:spring-boot-starter-liquibase")
 
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
@@ -38,7 +39,8 @@ dependencies {
 
     implementation ("org.springframework.boot:spring-boot-starter-validation")
 
-    implementation("org.springframework.kafka:spring-kafka")
+    // В Spring Boot 4 автонастройка Kafka (ProducerFactory, ConsumerFactory, spring.kafka.*) живёт в отдельном стартере
+    implementation("org.springframework.boot:spring-boot-starter-kafka")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     implementation("com.fasterxml.jackson.core:jackson-databind")
 
