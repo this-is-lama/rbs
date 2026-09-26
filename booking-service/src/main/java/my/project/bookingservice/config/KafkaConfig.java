@@ -23,13 +23,13 @@ public class KafkaConfig {
 	@Bean
 	public NewTopic bookingCreatedTopic() {
 		log.info("Создание Kafka topic bean для топика {}", bookingCreatedTopic);
-		return new NewTopic(bookingCreatedTopic, 1, (short) 1);
+		return new NewTopic(bookingCreatedTopic, 3, (short) 1);
 	}
 
 	@Bean
 	public NewTopic bookingCancelledTopic() {
 		log.info("Создание Kafka topic bean для топика {}", bookingCancelledTopic);
-		return new NewTopic(bookingCancelledTopic, 1, (short) 1);
+		return new NewTopic(bookingCancelledTopic, 3, (short) 1);
 	}
 
 	@Bean
