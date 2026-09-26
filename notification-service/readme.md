@@ -23,9 +23,27 @@
 
 ## Kafka
 
-- consumer group: `my-consumer`
+- consumer group: `notification-service`
 - `app.kafka.topics.booking-created` → `booking-created-topic` (слушатель `listenBookingCreated`)
 - `app.kafka.topics.booking-cancelled` → `booking-cancelled-topic` (слушатель `listenBookingCancelled`)
+- 3 потока чтения (`concurrency = 3`) — по одному на партицию
+
+### Повторы и dead-letter topic
+
+Если обработка сообщения падает (например, недоступна БД), сообщение не теряется:
+
+1. `@RetryableTopic` перекладывает его в retry-топики с паузами **1 с → 10 с → 100 с** (`<topic>-retry-1000`, `-retry-10000`, `-retry-100000`).
+2. После 4-й неудачной попытки — в `<topic>-dlt`. Ошибки, которые повтором не лечатся (битый JSON, `NullPointerException`), уходят в DLT сразу.
+3. `@DltHandler` пишет ERROR «Сообщение ушло в DLT» и увеличивает метрику `notification_kafka_dead_letter_total{topic}` → алерт Grafana `rbs-kafka-dead-letter`.
+
+DLT-топики хранят сообщения 30 дней (ставится при старте сервиса). Переотправка после устранения причины:
+
+```bash
+./scripts/kafka-dlt-replay.sh booking-created-topic          # посмотреть, что лежит в DLT
+./scripts/kafka-dlt-replay.sh booking-created-topic --send   # переотправить в основной топик
+```
+
+Повторы Kafka дополняют, а не заменяют retry через БД: ошибки отправки почты по-прежнему ловятся в `NotificationServiceImpl` и повторяются планировщиком (см. ниже).
 
 ## Статусы сообщений
 

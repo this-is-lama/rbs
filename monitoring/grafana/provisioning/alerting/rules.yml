@@ -367,7 +367,47 @@ groups:
     for: 0s
     annotations:
       summary: 'Kafka: {{ $$labels.topic }} — сообщения в dead-letter topic'
-      description: 'notification-service не смог обработать сообщения из {{ $$labels.topic }} после всех повторов. Причина и payload — в логах notification-service (Loki, поиск по «dead-letter topic»). После исправления сообщения можно переотправить из <topic>.DLT.'
+      description: 'notification-service не смог обработать сообщения из {{ $$labels.topic }} после всех повторов (retry-топики с паузами 1с → 10с → 100с). Причина — в логах notification-service (Loki, поиск по «Сообщение ушло в DLT»). Сообщения лежат в {{ $$labels.topic }}-dlt 30 дней. После устранения причины переотправить: ./scripts/kafka-dlt-replay.sh {{ $$labels.topic }} --send'
+    labels:
+      severity: warning
+    isPaused: false
+  - uid: rbs-kafka-consumer-lag
+    title: 'Kafka: consumer не успевает обрабатывать сообщения'
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        # records_lag_max — сколько сообщений consumer ещё не прочитал (максимум по его партициям).
+        # Метрику отдаёт KafkaMetricsAutoConfiguration Spring Boot для consumer'ов из ConsumerFactory.
+        # Порог 100 и for: 10m — чтобы не срабатывать на сообщения, которые штатно ждут паузы в retry-топиках.
+        expr: max by (application) (kafka_consumer_fetch_manager_records_lag_max{job="eureka-services"})
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 100
+    noDataState: OK
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: '{{ $$labels.application }}: отстаёт от Kafka на {{ printf "%.0f" $$values.A.Value }} сообщений'
+      description: 'Consumer в {{ $$labels.application }} уже 10 минут не успевает читать топики: письма о бронях уходят с задержкой. Частые причины: медленный SMTP, долгие ретраи, завис поток обработки. Смотри логи сервиса и consumer group в Kafka UI (http://localhost:8090 локально).'
     labels:
       severity: warning
     isPaused: false

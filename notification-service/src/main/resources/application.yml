@@ -64,16 +64,17 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP}
     consumer:
-      group-id: my-consumer
+      group-id: notification-service
       auto-offset-reset: earliest
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
-        spring.json.value.default.type: my.project.notificationservice.events.BookingCreatedEvent
+    # producer (нужен для @RetryableTopic) настроен в KafkaConfig.retryKafkaTemplate, а не здесь:
+    # yml позволяет указать только один value-serializer, а нам нужно два - JSON для событий и byte[] для битых сообщений
 
 app:
   kafka:

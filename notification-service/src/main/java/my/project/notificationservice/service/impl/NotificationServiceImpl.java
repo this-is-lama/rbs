@@ -24,8 +24,7 @@ public class NotificationServiceImpl implements NotificationService {
 		var messageId = storageService.messageId(event);
 
 		if (!storageService.save(event)) {
-			log.info("Дубликат события пропущен, messageId={}, bookingId={}, messageType={}",
-					messageId, event.bookingId(), event.messageType());
+			log.info("Дубликат события пропущен, messageId={}, bookingId={}, messageType={}", messageId, event.bookingId(), event.messageType());
 			return;
 		}
 
@@ -33,8 +32,7 @@ public class NotificationServiceImpl implements NotificationService {
 			mailSenderService.sendMessage(event);
 			storageService.markStatus(messageId, MessageEntity::done);
 		} catch (MessagingException | MailException e) {
-			log.error("Не удалось отправить уведомление, messageId={}, bookingId={}, messageType={}",
-					messageId, event.bookingId(), event.messageType(), e);
+			log.error("Не удалось отправить уведомление, messageId={}, bookingId={}, messageType={}", messageId, event.bookingId(), event.messageType(), e);
 			storageService.markStatus(messageId, MessageEntity::processing);
 		}
 	}

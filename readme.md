@@ -204,7 +204,7 @@ docker compose -f docker-compose.infra.yml up -d
 
 Фоновая обработка событий бронирования и отправка email.
 
-- Слушает два Kafka-топика: `booking-created-topic` (создание) и `booking-cancelled-topic` (отмена), потребитель — consumer group `my-consumer`.
+- Слушает два Kafka-топика: `booking-created-topic` (создание) и `booking-cancelled-topic` (отмена), потребитель — consumer group `notification-service`.
 - Дедуплицирует входящие сообщения по паре (тип события, `bookingId`).
 - Хранит статус обработки каждого сообщения: `CREATED → PROCESSING → DONE`, либо `FAILED` при ошибке.
 - Отправляет HTML-письмо через SMTP: подтверждение бронирования (`booking-confirm.html`) или уведомление об отмене (`booking-cancelled.html`), оба со встроенным логотипом; SMTP-хост/порт и шифрование (STARTTLS/SSL) задаются переменными окружения (в проде — Gmail, локально — Mailpit).

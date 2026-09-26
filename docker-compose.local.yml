@@ -145,7 +145,7 @@ services:
       "
 
   kafka:
-    image: apache/kafka:latest
+    image: apache/kafka:4.3.1   # версия зафиксирована: latest может без предупреждения обновиться до новой мажорной
     restart: unless-stopped
     env_file: .env.local
     ports:
@@ -165,6 +165,20 @@ services:
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     volumes:
       - kafka_data:/var/lib/kafka/data
+    networks: [rbs-net]
+
+  # Веб-интерфейс Kafka: http://localhost:8090 — топики, сообщения (в т.ч. -retry-N и -dlt),
+  # партиции, consumer groups и их отставание (lag). Только для локальной разработки, в prod не поднимаем.
+  kafka-ui:
+    image: kafbat/kafka-ui:v1.5.0
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: rbs-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    depends_on:
+      - kafka
     networks: [rbs-net]
 
   mailpit:
