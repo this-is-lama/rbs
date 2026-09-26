@@ -87,9 +87,15 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URL}
+    # как часто забирать свежую копию реестра (дефолт 30 с)
+    registry-fetch-interval-seconds: 10
   instance:
     instance-id: ${spring.application.name}:${random.uuid}
     prefer-ip-address: true
+    # как часто шлём Eureka "я жив" (дефолт 30 с)
+    lease-renewal-interval-in-seconds: 10
+    # через сколько секунд без heartbeat нас считают мёртвым (дефолт 90 с) ≈ 3 пропущенных heartbeat'а
+    lease-expiration-duration-in-seconds: 30
 
 management:
   # Гистограмма времени ответа: на дашборде появляются p50/p95/p99, а не только среднее

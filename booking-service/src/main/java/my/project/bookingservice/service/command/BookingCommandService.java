@@ -2,8 +2,8 @@ package my.project.bookingservice.service.command;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import my.project.bookingservice.client.RestaurantServiceClient;
-import my.project.bookingservice.client.UserServiceClient;
+import my.project.bookingservice.client.RestaurantGateway;
+import my.project.bookingservice.client.UserGateway;
 import my.project.bookingservice.dto.client.BookingSnapshotRequest;
 import my.project.bookingservice.dto.client.UserDto;
 import my.project.bookingservice.dto.request.CancelBookingRequest;
@@ -32,12 +32,12 @@ public class BookingCommandService {
 	private final BookingDetailsService detailsService;
 	private final BookingMapper mapper;
 
-	private final RestaurantServiceClient restaurantClient;
-	private final UserServiceClient userServiceClient;
+	private final RestaurantGateway restaurantGateway;
+	private final UserGateway userGateway;
 	private final KafkaProducer kafkaProducer;
 
 	public BookingResponse create(CreateBookingRequest req, Authentication auth) {
-		var snapshot = restaurantClient.bookingSnapshot(
+		var snapshot = restaurantGateway.bookingSnapshot(
 				req.restaurantId(),
 				new BookingSnapshotRequest(req.tableId(), req.dishesQuantities().keySet())
 		);
@@ -61,7 +61,7 @@ public class BookingCommandService {
 			return;
 		}
 
-		UserDto user = userServiceClient.getUserById(booking.userId());
+		UserDto user = userGateway.getUserById(booking.userId());
 
 		boolean cancelledByManagerOrAdmin = AuthUtil.isManager(auth) || AuthUtil.isAdmin(auth);
 		String reason = checkReason(bookingId, request, cancelledByManagerOrAdmin);

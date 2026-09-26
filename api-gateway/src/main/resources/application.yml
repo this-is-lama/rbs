@@ -29,7 +29,7 @@ spring:
       cache:
         enabled: true
         caffeine:
-          spec: maximumSize=1000,expireAfterWrite=30s
+          spec: maximumSize=1000,expireAfterWrite=10s
     gateway:
       server:
         webflux:
@@ -58,30 +58,51 @@ spring:
                     redis-rate-limiter.requestedTokens: 1
                     key-resolver: "#{@rateLimiterKeyResolver}"
 
+                - name: CircuitBreaker
+                  args:
+                    name: userService
+                    fallbackUri: forward:/fallback/users
+
             - id: user-route
               uri: lb://user-service
               predicates:
                 - Path=/api/v1/users/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: userService
+                    fallbackUri: forward:/fallback/users
 
             - id: restaurant-route
               uri: lb://restaurant-service
               predicates:
                 - Path=/api/v1/restaurants/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: restaurantService
+                    fallbackUri: forward:/fallback/restaurants
 
             - id: dish-photo-route
               uri: lb://restaurant-service
               predicates:
                 - Path=/api/v1/dishes/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: dishPhoto   # отдельный breaker: загрузка фото долгая, ей нужен свой таймаут
+                    fallbackUri: forward:/fallback/restaurants
 
             - id: booking-route
               uri: lb://booking-service
               predicates:
                 - Path=/api/v1/bookings/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: bookingService                    # имя breaker'а → его настройки в resilience4j.*
+                    fallbackUri: forward:/fallback/booking
 
-            - id: notification-route
-              uri: lb://notification-service
-              predicates:
-                - Path=/api/v1/notifications/**
 
           globalcors:
             cors-configurations:
@@ -99,11 +120,62 @@ spring:
                   - "*"
                 allowCredentials: true
 
+resilience4j:
+  # ---------- Circuit Breaker на маршрутах: защищает сам Gateway от зависшего сервиса ----------
+  # сбоем считается только "нет ответа" (таймаут, отказ соединения); ответ 4xx/5xx уходит клиенту как есть
+  circuitbreaker:
+    configs:
+      default:
+        # размер окна: breaker смотрит на последние 10 запросов (дефолт 100 — при нашем трафике не сработал бы)
+        sliding-window-size: 10
+        # пока запросов меньше 5 — ничего не решаем
+        minimum-number-of-calls: 5
+        # >= 50% сбоев в окне -> OPEN
+        failure-rate-threshold: 50
+        # сколько держим OPEN (сразу fallback), потом HALF_OPEN (дефолт 60 с)
+        wait-duration-in-open-state: 10s
+        # сколько пробных запросов в HALF_OPEN
+        permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      # имя = args.name у фильтра CircuitBreaker в маршруте
+      bookingService:
+        base-config: default
+      restaurantService:
+        base-config: default
+      userService:
+        base-config: default
+      dishPhoto:
+        base-config: default
+
+  # ---------- TimeLimiter: сколько Gateway ждёт ответа (ДЕФОЛТ 1 с — для нас мало) ----------
+  # правило: внешний таймаут > внутреннего, иначе клиент получит 503, а сервис всё равно доделает операцию
+  timelimiter:
+    instances:
+      bookingService:
+        # внутри booking-service -> restaurant-service: 3 попытки * 3 с + паузы ≈ 9,6 с
+        timeout-duration: 12s
+      restaurantService:
+        # внутри restaurant-service -> user-service: 3 попытки * 3 с + паузы ≈ 9,6 с
+        timeout-duration: 12s
+      userService:
+        # user-service никуда не ходит, но логин/регистрация считают bcrypt
+        timeout-duration: 5s
+      dishPhoto:
+        # загрузка файлов
+        timeout-duration: 30s
+
 
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URL}
+    # как часто забирать свежую копию реестра (дефолт 30 с)
+    registry-fetch-interval-seconds: 10
+  instance:
+    # как часто шлём Eureka "я жив" (дефолт 30 с)
+    lease-renewal-interval-in-seconds: 10
+    # через сколько секунд без heartbeat нас считают мёртвым (дефолт 90 с) ≈ 3 пропущенных heartbeat'а
+    lease-expiration-duration-in-seconds: 30
 
 management:
   # Не трассируем внутренние шаги Spring Security — без них трейс запроса читается проще

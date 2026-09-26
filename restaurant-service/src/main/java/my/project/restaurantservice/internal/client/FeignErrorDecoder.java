@@ -27,12 +27,10 @@ public class FeignErrorDecoder implements ErrorDecoder {
 
 		try (InputStream input = body.asInputStream()) {
 			ApiError error = objectMapper.readValue(input, ApiError.class);
-			log.warn("Получена ошибка от внешнего сервиса через Feign, method={}, status={}, code={}",
-					methodName, response.status(), error.code());
+			log.warn("Получена ошибка от внешнего сервиса через Feign, method={}, status={}, code={}", methodName, response.status(), error.code());
 			return new ApiException(error);
 		} catch (Exception e) {
-			log.warn("Не удалось декодировать ошибку Feign-ответа, method={}, status={}",
-					methodName, response.status(), e);
+			log.warn("Не удалось декодировать ошибку Feign-ответа, method={}, status={}", methodName, response.status(), e);
 			return defaultDecoder.decode(methodName, response);
 		}
 	}

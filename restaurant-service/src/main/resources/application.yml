@@ -12,6 +12,12 @@ spring:
     default: dev
 
   cloud:
+    openfeign:
+      client:
+        config:
+          user-service:
+            connect-timeout: 1000
+            read-timeout: 3000
     loadbalancer:
       cache:
         enabled: true
@@ -73,9 +79,75 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URL}
+    # как часто забирать свежую копию реестра (дефолт 30 с)
+    registry-fetch-interval-seconds: 10
   instance:
     instance-id: ${spring.application.name}:${random.uuid}
     prefer-ip-address: true
+    # как часто шлём Eureka "я жив" (дефолт 30 с)
+    lease-renewal-interval-in-seconds: 10
+    # через сколько секунд без heartbeat нас считают мёртвым (дефолт 90 с) ≈ 3 пропущенных heartbeat'а
+    lease-expiration-duration-in-seconds: 30
+
+resilience4j:
+  # ---------- Circuit Breaker: перестаёт звать сервис, если тот сбоит ----------
+  # CLOSED (всё ок, считаем ошибки) -> OPEN (сразу отказ, в сеть не идём) -> HALF_OPEN (пробные вызовы) -> CLOSED/OPEN
+  circuitbreaker:
+    configs:
+      default:
+        # как считать окно: COUNT_BASED — последние N вызовов, TIME_BASED — вызовы за последние N секунд
+        sliding-window-type: COUNT_BASED
+        # размер окна: breaker смотрит на последние 10 вызовов
+        sliding-window-size: 10
+        # пока вызовов меньше 5 — ничего не решаем (иначе 1 ошибка из 1 = 100% и сразу OPEN)
+        minimum-number-of-calls: 5
+        # >= 50% ошибок в окне -> OPEN
+        failure-rate-threshold: 50
+        # вызов дольше 2 с считается медленным, даже если ответ успешный
+        slow-call-duration-threshold: 2s
+        # >= 50% медленных вызовов в окне -> OPEN (ловит зависание без ошибок)
+        slow-call-rate-threshold: 50
+        # сколько держим OPEN (отказываем мгновенно), потом сами переходим в HALF_OPEN
+        wait-duration-in-open-state: 10s
+        # сколько пробных вызовов пропускаем в HALF_OPEN; по их результату -> CLOSED или снова OPEN
+        permitted-number-of-calls-in-half-open-state: 3
+        # эти исключения НЕ считаются сбоем:
+        # ApiException — сервис ответил ошибкой (404, 409...), значит он жив
+        ignore-exceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+          - my.project.common.exception.ApiException
+    instances:
+      # имя = @CircuitBreaker(name = "...") в коде; base-config — берём настройки из configs.default
+      userService:
+        base-config: default
+
+  # ---------- Retry: повторяет вызов при кратковременном сбое ----------
+  # Порядок по умолчанию: Retry( CircuitBreaker( вызов ) ) — каждая попытка считается в окне breaker'а
+  retry:
+    configs:
+      default:
+        # всего попыток ВМЕСТЕ с первой: 1 обычная + 2 повтора
+        # помни: худшее ожидание = max-attempts * read-timeout (3 * 3 с ≈ 9 с + паузы)
+        max-attempts: 3
+        # пауза перед первым повтором
+        wait-duration: 200ms
+        # каждая следующая пауза длиннее: 200 мс -> 400 мс (не добиваем больной сервис)
+        enable-exponential-backoff: true
+        # во сколько раз растёт пауза
+        exponential-backoff-multiplier: 2
+        # повторяем ТОЛЬКО эти ошибки: RetryableException = таймаут/обрыв соединения ("не ответил")
+        retry-exceptions:
+          - feign.RetryableException
+        # никогда не повторяем:
+        # CallNotPermittedException — breaker в OPEN, повтор тоже получит отказ
+        # ApiException — сервис ответил ошибкой, повтор даст тот же ответ
+        ignore-exceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+          - my.project.common.exception.ApiException
+    instances:
+      # имя = @Retry(name = "...") в коде
+      userService:
+        base-config: default
 
 management:
   # Не трассируем внутренние шаги Spring Security — без них трейс запроса читается проще

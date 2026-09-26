@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.common.logging.Loggable;
 import my.project.common.security.UserRole;
-import my.project.restaurantservice.internal.client.UserServiceClient;
+import my.project.restaurantservice.internal.client.UserGateway;
 import my.project.restaurantservice.manager.dto.ChangeRoleByIdRequest;
 import my.project.restaurantservice.manager.service.query.ManagerAccessService;
 import my.project.restaurantservice.manager.service.query.ManagerQueryService;
@@ -25,11 +25,11 @@ public class ManagerCommandService {
 	private final ManagerAccessService accessService;
 	private final ManagerQueryService queryService;
 
-	private final UserServiceClient userClient;
+	private final UserGateway userGateway;
 
 	public UUID addManagerById(UUID restId, UUID managerId, Authentication auth) {
 		accessService.checkAccess(restId, auth);
-		userClient.changeRoleById(new ChangeRoleByIdRequest(managerId, UserRole.ROLE_MANAGER));
+		userGateway.changeRoleById(new ChangeRoleByIdRequest(managerId, UserRole.ROLE_MANAGER));
 		writeService.save(restId, managerId);
 
 		return managerId;
@@ -45,7 +45,7 @@ public class ManagerCommandService {
 	public void changeRoleToUserIfNoRestaurants(Collection<UUID> managerIds) {
 		for (UUID managerId : queryService.findManagersWithoutRestaurants(managerIds)) {
 			try {
-				userClient.changeRoleById(new ChangeRoleByIdRequest(managerId, UserRole.ROLE_USER));
+				userGateway.changeRoleById(new ChangeRoleByIdRequest(managerId, UserRole.ROLE_USER));
 				log.info("Пользователь переведён обратно в ROLE_USER, managerId={}", managerId);
 			} catch (Exception ex) {
 				log.warn("Не удалось перевести пользователя обратно в ROLE_USER, managerId={}", managerId, ex);
