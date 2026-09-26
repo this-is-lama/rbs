@@ -29,6 +29,7 @@ public class InternalController {
 		return ResponseEntity.ok(managerQueryService.managerHasAccess(restId, AuthUtil.id(auth)));
 	}
 
+	@Loggable
 	@PostMapping("/api/v1/restaurants/{restId}/booking-snapshot")
 	public ResponseEntity<BookingSnapshotResponse> bookingSnapshot(@PathVariable UUID restId,
 																   @RequestBody @Valid BookingSnapshotRequest req) {

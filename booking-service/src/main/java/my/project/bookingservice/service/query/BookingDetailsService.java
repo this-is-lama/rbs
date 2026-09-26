@@ -2,8 +2,8 @@ package my.project.bookingservice.service.query;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import my.project.bookingservice.client.RestaurantServiceClient;
-import my.project.bookingservice.client.UserServiceClient;
+import my.project.bookingservice.client.RestaurantGateway;
+import my.project.bookingservice.client.UserGateway;
 import my.project.bookingservice.dto.client.UserDto;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.dto.response.ManagerBookingResponse;
@@ -30,8 +30,8 @@ public class BookingDetailsService {
 	private final BookingQueryService queryService;
 	private final BookingMapper mapper;
 
-	private final RestaurantServiceClient restaurantClient;
-	private final UserServiceClient userClient;
+	private final RestaurantGateway restaurantGateway;
+	private final UserGateway userGateway;
 
 	public BookingResponse findById(UUID id, Authentication auth) {
 		var booking = AuthUtil.isUser(auth)
@@ -39,7 +39,7 @@ public class BookingDetailsService {
 				: queryService.getById(id);
 
 		UUID restId = booking.restaurant().restaurantId();
-		if (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(restId)) {
+		if (AuthUtil.isManager(auth) && !restaurantGateway.hasManagerAccess(restId)) {
 			log.warn("Менеджеру запрещён доступ к бронированию, bookingId={}, restId={}", id, restId);
 			throw new ForbiddenException("booking.forbidden.booking-access");
 		}
@@ -52,7 +52,7 @@ public class BookingDetailsService {
 	}
 
 	public List<ManagerBookingResponse> findAllByRestaurantId(UUID restId, Authentication auth) {
-		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !restaurantClient.hasManagerAccess(restId))) {
+		if (AuthUtil.isUser(auth) || (AuthUtil.isManager(auth) && !restaurantGateway.hasManagerAccess(restId))) {
 			log.warn("Доступ к списку бронирований ресторана запрещён, restId={}", restId);
 			throw new ForbiddenException("booking.forbidden.restaurant-bookings");
 		}
@@ -62,8 +62,9 @@ public class BookingDetailsService {
 				.map(BookingResponse::userId)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toSet());
-		var usersMap = userClient.getUsersByIds(userIds)
+		var usersMap = userGateway.getUsersByIds(userIds)
 				.stream()
+				.filter(Objects::nonNull)
 				.collect(Collectors.toMap(
 						UserDto::id,
 						Function.identity(),
@@ -71,7 +72,7 @@ public class BookingDetailsService {
 				));
 
 		return bookings.stream()
-				.map(booking -> mapper.toManagerResponse(booking, usersMap.get(booking.userId())))
+				.map(booking -> mapper.toManagerResponse(booking, usersMap.getOrDefault(booking.userId(), null)))
 				.toList();
 	}
 }

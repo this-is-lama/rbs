@@ -42,10 +42,11 @@ dependencies {
     implementation("io.github.openfeign:feign-micrometer")
 
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
-
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
-
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
+    // аннотации @CircuitBreaker/@Retry работают через аспекты — без AspectJ они молча игнорируются
+    implementation("org.springframework.boot:spring-boot-starter-aspectj")
 
     implementation ("org.springframework.boot:spring-boot-starter-validation")
 

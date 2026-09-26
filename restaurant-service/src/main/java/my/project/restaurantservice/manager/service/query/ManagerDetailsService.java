@@ -2,7 +2,7 @@ package my.project.restaurantservice.manager.service.query;
 
 import lombok.RequiredArgsConstructor;
 import my.project.common.logging.Loggable;
-import my.project.restaurantservice.internal.client.UserServiceClient;
+import my.project.restaurantservice.internal.client.UserGateway;
 import my.project.restaurantservice.internal.dto.UserDto;
 import my.project.restaurantservice.manager.dto.RestaurantManagerDto;
 import my.project.restaurantservice.manager.entity.ManagerEntity;
@@ -25,9 +25,9 @@ public class ManagerDetailsService {
 
 	private final ManagerMapper mapper;
 
-	private final UserServiceClient userClient;
+	private final UserGateway userGateway;
 
-	@Transactional(readOnly = true)
+
 	public List<RestaurantManagerDto> findAllManagersByRestaurantId(UUID restId, Authentication auth) {
 		accessService.checkAccess(restId, auth);
 
@@ -47,8 +47,9 @@ public class ManagerDetailsService {
 				.map(m -> m.getId().getManagerId())
 				.collect(Collectors.toCollection(LinkedHashSet::new));
 
-		return userClient.getUsersByIds(ids).stream().collect(
-						Collectors.toMap(UserDto::id, Function.identity()));
+		return userGateway.getUsersByIds(ids).stream()
+				.filter(Objects::nonNull)
+				.collect(Collectors.toMap(UserDto::id, Function.identity()));
 	}
 
 	private List<RestaurantManagerDto> buildRestaurantManagersDto(List<ManagerEntity> managers,

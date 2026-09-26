@@ -292,3 +292,119 @@ groups:
     labels:
       severity: critical
     isPaused: false
+- orgId: 1
+  name: resilience
+  folder: RBS Alerts
+  interval: 1m
+  rules:
+  - uid: rbs-circuit-breaker-open
+    title: 'Circuit breaker открыт'
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 900
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: max by (application, name) (resilience4j_circuitbreaker_state{state=~"open|forced_open"})
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: Error
+    for: 1m
+    annotations:
+      summary: '{{ $$labels.application }}: вызовы к {{ $$labels.name }} отключены'
+      description: 'Circuit breaker в {{ $$labels.application }} открыт: {{ $$labels.name }} отвечает ошибками или таймаутами, запросы к нему сразу получают 503. Проверь, жив ли {{ $$labels.name }} (логи, Eureka).'
+    labels:
+      severity: critical
+    isPaused: false
+  - uid: rbs-kafka-dead-letter
+    title: 'Сообщения Kafka ушли в DLT'
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 900
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: sum by (topic) (increase(notification_kafka_dead_letter_total[15m]))
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: Error
+    for: 0s
+    annotations:
+      summary: 'Kafka: {{ $$labels.topic }} — сообщения в dead-letter topic'
+      description: 'notification-service не смог обработать сообщения из {{ $$labels.topic }} после всех повторов. Причина и payload — в логах notification-service (Loki, поиск по «dead-letter topic»). После исправления сообщения можно переотправить из <topic>.DLT.'
+    labels:
+      severity: warning
+    isPaused: false
+  - uid: rbs-notifications-failed
+    title: 'Уведомления не отправлены'
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 900
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: max(delta(notification_messages_failed[15m]))
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+    noDataState: OK
+    execErrState: Error
+    for: 0s
+    annotations:
+      summary: 'Появились неотправленные уведомления (FAILED)'
+      description: 'Письма о бронировании не ушли после всех повторов. Смотри логи notification-service (ошибки SMTP) и таблицу processed_messages со status=FAILED.'
+    labels:
+      severity: warning
+    isPaused: false

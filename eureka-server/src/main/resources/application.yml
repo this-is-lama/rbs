@@ -9,6 +9,17 @@ eureka:
   client:
     register-with-eureka: false
     fetch-registry: false
+  server:
+    # self-preservation: если heartbeat'ов < 85% ожидаемых, Eureka перестаёт удалять записи.
+    # У нас ~6 сервисов: падение одного = -17% heartbeat'ов -> защита включится и мёртвые записи зависнут
+    enable-self-preservation: false
+    # как часто чистить мёртвые записи (дефолт 60 с)
+    eviction-interval-timer-in-ms: 5000
+    # как часто обновлять кэш ответов реестра (дефолт 30 с)
+    response-cache-update-interval-ms: 5000
+    # сколько секунд между heartbeat'ами ждёт сервер — должно совпадать с lease-renewal клиентов
+    expected-client-renewal-interval-seconds: 10
+
 
 management:
   endpoints:
