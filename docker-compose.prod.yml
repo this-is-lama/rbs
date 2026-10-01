@@ -178,6 +178,8 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_started
+      kafka:
+        condition: service_started
     networks: [rbs-net]
 
   restaurant-service:
@@ -198,6 +200,8 @@ services:
       minio:
         condition: service_started
       eureka-server:
+        condition: service_started
+      kafka:
         condition: service_started
     networks: [rbs-net]
 

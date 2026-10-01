@@ -345,7 +345,7 @@ groups:
       datasourceUid: prometheus
       model:
         refId: A
-        expr: sum by (topic) (increase(notification_kafka_dead_letter_total[15m]))
+        expr: sum by (application, topic) (increase(notification_kafka_dead_letter_total[15m]) or increase(user_kafka_dead_letter_total[15m]))
         instant: true
         range: false
     - refId: C
@@ -366,10 +366,47 @@ groups:
     execErrState: Error
     for: 0s
     annotations:
-      summary: 'Kafka: {{ $$labels.topic }} — сообщения в dead-letter topic'
-      description: 'notification-service не смог обработать сообщения из {{ $$labels.topic }} после всех повторов (retry-топики с паузами 1с → 10с → 100с). Причина — в логах notification-service (Loki, поиск по «Сообщение ушло в DLT»). Сообщения лежат в {{ $$labels.topic }}-dlt 30 дней. После устранения причины переотправить: ./scripts/kafka-dlt-replay.sh {{ $$labels.topic }} --send'
+      summary: '{{ $$labels.application }}: сообщения из {{ $$labels.topic }} ушли в dead-letter topic'
+      description: '{{ $$labels.application }} не смог обработать сообщения из {{ $$labels.topic }} после всех повторов (retry-топики с паузами 1с → 10с → 100с). Причина — в логах {{ $$labels.application }} (Loki, поиск по «Сообщение ушло в DLT»). Сообщения лежат в {{ $$labels.topic }}-dlt 30 дней. После устранения причины переотправить: ./scripts/kafka-dlt-replay.sh {{ $$labels.topic }} --send'
     labels:
       severity: warning
+    isPaused: false
+  - uid: rbs-outbox-stuck
+    title: 'Outbox: события не уходят в Kafka'
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: max by (application) (outbox_oldest_age_seconds)
+        instant: true
+        range: false
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 300
+    noDataState: OK
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: '{{ $$labels.application }}: событие в outbox не отправляется уже {{ printf "%.0f" $$values.A.Value }} с'
+      description: 'Воркер outbox в {{ $$labels.application }} не может отправить самое старое событие в Kafka больше 5 минут. Проверь, жива ли Kafka, и ошибки «Ошибка отправки OutboxEvent в Kafka» в логах {{ $$labels.application }} (колонки attempts и last_error в таблице outbox показывают, какие события застряли). Пока событие не ушло, роль менеджера или уведомление о брони не дойдут.'
+    labels:
+      severity: critical
     isPaused: false
   - uid: rbs-kafka-consumer-lag
     title: 'Kafka: consumer не успевает обрабатывать сообщения'

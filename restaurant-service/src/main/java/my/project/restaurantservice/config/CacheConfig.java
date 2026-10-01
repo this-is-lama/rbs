@@ -30,6 +30,7 @@ public class CacheConfig {
     @Bean
     public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(RedisCacheConfiguration base) {
         return builder -> builder
+            .transactionAware()
             .cacheDefaults(base.entryTtl(Duration.ofMinutes(10)))
 
             .withCacheConfiguration("publicRestaurantById", base.entryTtl(Duration.ofMinutes(5)))
@@ -49,7 +50,7 @@ public class CacheConfig {
             .withCacheConfiguration("photosByDishId", base.entryTtl(Duration.ofMinutes(1)))
             .withCacheConfiguration("photosByRestaurantId", base.entryTtl(Duration.ofMinutes(1)))
 
-            .withCacheConfiguration("managerHasAccess", base.entryTtl(Duration.ofMinutes(30)))
+            .withCacheConfiguration("managerHasAccess", base.entryTtl(Duration.ofMinutes(5)))
             .withCacheConfiguration("restaurantManagers", base.entryTtl(Duration.ofMinutes(10)));
     }
 }

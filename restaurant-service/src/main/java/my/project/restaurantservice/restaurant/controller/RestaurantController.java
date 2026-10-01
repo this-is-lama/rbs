@@ -45,6 +45,15 @@ public class RestaurantController {
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+	@PatchMapping("/{id}/active")
+	public ResponseEntity<Void> changeActive(@PathVariable UUID id,
+											 @RequestParam boolean active,
+											 Authentication auth) {
+		commandService.changeActive(id, active, auth);
+		return ResponseEntity.noContent().build();
+	}
+
+	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@GetMapping("/my")
 	public ResponseEntity<Page<RestaurantCardDto>> findMy(@RequestParam(required = false) Boolean active,
 														  @RequestParam(required = false) String category,

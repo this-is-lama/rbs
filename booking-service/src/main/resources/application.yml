@@ -71,6 +71,10 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
       properties:
         spring.json.add.type.headers: false
+        # без таймаутов поток запроса зависает на 60 с, если Kafka недоступна
+        max.block.ms: 3000
+        request.timeout.ms: 3000
+        delivery.timeout.ms: 5000
 
 app:
   kafka:

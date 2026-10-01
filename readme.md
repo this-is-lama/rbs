@@ -180,11 +180,11 @@ docker compose -f docker-compose.infra.yml up -d
 Рестораны, менеджеры, столы, блюда, фотографии.
 
 - CRUD ресторанов: базовые данные, часы работы (`WorkingHoursEntity`), контакты (`ContactEntity`), категории, активность.
-- Управление менеджерами: при добавлении менеджера пользователю выставляется `ROLE_MANAGER` (вызов `user-service` через Feign); если после удаления связей менеджер не привязан ни к одному ресторану — роль возвращается на `ROLE_USER`.
+- Управление менеджерами: изменение связей менеджера и запись в `outbox` идут в одной транзакции, затем событие `ManagerRestaurantsChangedEvent(managerId, hasRestaurants)` уходит в Kafka, а `user-service` выставляет `ROLE_MANAGER` или `ROLE_USER`.
 - Столы: создание (в т.ч. массовое, `/tables/all`), обновление, обновление layout целиком, удаление.
 - Блюда: CRUD с привязкой к ресторану.
 - Фото: presigned upload → подтверждение → раздача; поддерживаемые типы — `image/jpeg`, `image/png`, `image/webp`; категории — `BANNER`, `SCHEME`, `GALLERY`; статусы жизненного цикла — `PENDING → ACTIVE`, а также `EXPIRED`/`DELETING` для неподтверждённых и удаляемых файлов.
-- Кэширование в Redis (`restaurant-service::` prefix) с разными TTL: рестораны — 5 мин, блюда/столы — 2–5 мин, фото — 1 мин, `managerAccess` — 30 мин, `restaurantBookingTable` — 2 мин.
+- Кэширование в Redis (`restaurant-service::` prefix) с разными TTL: рестораны — 5 мин, блюда/столы — 2–5 мин, фото — 1 мин, `managerAccess` — 5 мин, `restaurantBookingTable` — 2 мин.
 - Отдаёт `booking-service` snapshot данных ресторана, стола и блюд для создания бронирования, а также проверяет доступ менеджера к ресторану (`booking-snapshot`, `manager-access`).
 
 ### booking-service
@@ -243,7 +243,6 @@ Telegram-бот поддержки. Полный сценарий обращен
 - `GET /api/v1/users/me`
 - `PUT /api/v1/users/me`
 - `PATCH /api/v1/users/me/password`
-- `POST /api/v1/users/change-role-by-id`
 - `GET /api/v1/users/email?email=`
 - `GET /api/v1/users/{id}`
 - `POST /api/v1/users` (batch-получение по списку id)
@@ -257,6 +256,7 @@ Telegram-бот поддержки. Полный сценарий обращен
 - `GET /api/v1/restaurants/my`
 - `POST /api/v1/restaurants`
 - `PUT /api/v1/restaurants/{id}`
+- `PATCH /api/v1/restaurants/{id}/active?active=true|false` (включить/отключить ресторан: отключённый не принимает брони)
 - `DELETE /api/v1/restaurants/{id}`
 
 **Менеджеры**
@@ -305,7 +305,7 @@ Telegram-бот поддержки. Полный сценарий обращен
 - Access-токен валидируется в `api-gateway` и во внутренних сервисах (HS256), issuer зафиксирован как `user-service`, обязателен claim `token_type=access_token`.
 - Access-токен содержит claim'ы: `roles`, `email`, `name` (`фамилия + имя`), `token_type=access_token`.
 - Refresh-токен содержит: `jti`, `token_type=refresh_token`; подписывается отдельным секретом (`JWT_REFRESH_SECRET`), отличным от access.
-- TTL из конфигурации: access — `1h`, refresh — `1d`. `JWT_SECRET`/`JWT_REFRESH_SECRET` передаются как base64-строки.
+- TTL из конфигурации: access — `15m`, refresh — `1d`. `JWT_SECRET`/`JWT_REFRESH_SECRET` передаются как base64-строки.
 - Refresh-токен деактивируется по JTI при каждом обновлении (`refresh`) и при `logout` — использованный или отозванный refresh-токен повторно не работает.
 
 **Публично доступные маршруты (без токена):**

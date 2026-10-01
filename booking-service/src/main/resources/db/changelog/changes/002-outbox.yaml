@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-create-outbox
+      author: islam
+      changes:
+        - createTable:
+            tableName: outbox
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: event_type, type: "VARCHAR(50)", constraints: { nullable: false } }
+              - column: { name: booking_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: payload, type: TEXT, constraints: { nullable: false } }
+              - column: { name: attempts, type: INTEGER, defaultValueNumeric: 0, constraints: { nullable: false } }
+              - column: { name: last_error, type: "VARCHAR(1000)" }
+              - column: { name: created_at, type: TIMESTAMPTZ, constraints: { nullable: false } }
+        - createIndex:
+            tableName: outbox
+            indexName: idx_outbox_created_at
+            columns:
+              - column: { name: created_at }
+      rollback:
+        - dropTable: { tableName: outbox }

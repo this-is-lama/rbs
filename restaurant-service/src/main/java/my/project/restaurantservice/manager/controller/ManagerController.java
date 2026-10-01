@@ -25,7 +25,7 @@ public class ManagerController {
 	public ResponseEntity<UUID> addManagerById(@PathVariable UUID restId,
 											   @PathVariable UUID managerId,
 											   Authentication auth) {
-		UUID addedManagerId = commandService.addManagerById(restId, managerId, auth);
+		UUID addedManagerId = commandService.addManager(restId, managerId, auth);
 		return ResponseEntity.ok(addedManagerId);
 	}
 
@@ -41,7 +41,7 @@ public class ManagerController {
 	public ResponseEntity<Void> deleteManagerById(@PathVariable UUID restId,
 												  @PathVariable UUID managerId,
 												  Authentication auth) {
-		commandService.deleteManagerById(restId, managerId, auth);
+		commandService.deleteManager(restId, managerId, auth);
 		return ResponseEntity.noContent().build();
 	}
 }

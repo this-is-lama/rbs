@@ -26,6 +26,7 @@
 
 - `POST /api/v1/restaurants`
 - `PUT /api/v1/restaurants/{id}`
+- `PATCH /api/v1/restaurants/{id}/active?active=true|false` (включить/отключить ресторан: отключённый не принимает брони)
 - `GET /api/v1/restaurants/my`
 - `GET /api/v1/restaurants/{id}`
 - `GET /api/v1/restaurants`
@@ -128,7 +129,7 @@
 - рестораны: `5` минут
 - блюда и столы: `2-5` минут
 - фото: `1` минута
-- `managerAccess`: `30` минут
+- `managerAccess`: `5` минут
 - `restaurantBookingTable`: `2` минуты
 
 ## Интеграции
@@ -136,10 +137,16 @@
 - MinIO для хранения медиа
 - Redis для кэша
 - `user-service` через OpenFeign:
-  - `POST /api/v1/users/change-role-by-id`
   - `POST /api/v1/users` (batch-получение по списку id)
+- `booking-service` через OpenFeign:
+  - `GET /api/v1/bookings/manager/restaurants/{restId}` (удалить можно только отключённый ресторан, и перед удалением проверяется, что нет активных броней: `RESERVED` и время окончания в будущем; иначе `409`)
+- Kafka (producer): топик `manager-restaurants-changed-topic`, событие `ManagerRestaurantsChangedEvent(managerId, hasRestaurants)`, ключ - `managerId`.
 
-При добавлении менеджера сервис переводит пользователя в `ROLE_MANAGER`. Если после удаления связей менеджер больше не прикреплен ни к одному ресторану, роль переводится обратно в `ROLE_USER`.
+### Согласованность роли менеджера (outbox + Kafka)
+
+При добавлении/удалении менеджера (и при удалении ресторана) в одной транзакции меняется таблица менеджеров и пишется строка в таблицу `outbox` (только `managerId`). После коммита `OutboxProcessorService` сразу пытается отправить событие; если не получилось, повторяет `OutboxWorker` (каждые `5` секунд).
+
+Роль в outbox не хранится: в момент отправки считается, есть ли у менеджера рестораны, и в Kafka уходит факт `hasRestaurants`. `user-service` сам выставляет `ROLE_MANAGER` (`true`) или `ROLE_USER` (`false`), администратора не трогает. Повторная доставка безопасна, порядок событий не важен.
 
 ## Конфигурация
 

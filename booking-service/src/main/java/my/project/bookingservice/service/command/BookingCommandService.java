@@ -4,14 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.bookingservice.client.RestaurantGateway;
 import my.project.bookingservice.client.UserGateway;
+import my.project.bookingservice.consistency.outbox.service.OutboxProcessorService;
 import my.project.bookingservice.dto.client.BookingSnapshotRequest;
 import my.project.bookingservice.dto.client.UserDto;
 import my.project.bookingservice.dto.request.CancelBookingRequest;
 import my.project.bookingservice.dto.request.CreateBookingRequest;
 import my.project.bookingservice.dto.response.BookingResponse;
 import my.project.bookingservice.entity.BookingStatus;
-import my.project.bookingservice.kafka.KafkaProducer;
-import my.project.bookingservice.mapper.BookingMapper;
 import my.project.bookingservice.service.query.BookingDetailsService;
 import my.project.common.exception.ConflictException;
 import my.project.common.exception.ValidationException;
@@ -29,12 +28,12 @@ import java.util.UUID;
 public class BookingCommandService {
 
 	private final BookingWriteService writeService;
+	private final BookingOutboxService outboxService;
+	private final OutboxProcessorService processorService;
 	private final BookingDetailsService detailsService;
-	private final BookingMapper mapper;
 
 	private final RestaurantGateway restaurantGateway;
 	private final UserGateway userGateway;
-	private final KafkaProducer kafkaProducer;
 
 	public BookingResponse create(CreateBookingRequest req, Authentication auth) {
 		var snapshot = restaurantGateway.bookingSnapshot(
@@ -43,15 +42,16 @@ public class BookingCommandService {
 		);
 
 		if (snapshot.table().capacity() < req.guests()) {
-			log.warn("Невозможно создать бронирование: количество гостей превышает вместимость стола, restaurantId={}, tableId={}",
-					req.restaurantId(), req.tableId());
+			log.warn("Невозможно создать бронирование: количество гостей превышает вместимость стола, restaurantId={}, tableId={}", req.restaurantId(), req.tableId());
 			throw new ConflictException("booking.table.guest-more-capacity");
 		}
 
-		var booking = writeService.save(req, AuthUtil.id(auth), snapshot);
-		kafkaProducer.sendBookingCreated(mapper.toEvent(booking, AuthUtil.email(auth), AuthUtil.username(auth)));
+		var saved = outboxService.saveBookingAndOutbox(
+				req, AuthUtil.id(auth), snapshot, AuthUtil.email(auth), AuthUtil.username(auth));
 
-		return booking;
+		processorService.process(saved.outboxId());
+
+		return saved.booking();
 	}
 
 	public void cancel(UUID bookingId, CancelBookingRequest request, Authentication auth) {
@@ -66,9 +66,13 @@ public class BookingCommandService {
 		boolean cancelledByManagerOrAdmin = AuthUtil.isManager(auth) || AuthUtil.isAdmin(auth);
 		String reason = checkReason(bookingId, request, cancelledByManagerOrAdmin);
 
-		var cancelled = writeService.cancel(bookingId, reason);
-
-		sendBookingEvent(cancelledByManagerOrAdmin, cancelled, user, reason);
+		if (cancelledByManagerOrAdmin) {
+			String username = user.surname() + " " + user.name();
+			UUID outboxId = outboxService.cancelBookingAndOutbox(bookingId, reason, user.email(), username);
+			processorService.process(outboxId);
+		} else {
+			writeService.cancel(bookingId, reason);
+		}
 	}
 
 	private String checkReason(UUID bookingId, CancelBookingRequest request, boolean cancelledByManagerOrAdmin) {
@@ -78,15 +82,5 @@ public class BookingCommandService {
 			throw new ValidationException("booking.cancel.reason-required");
 		}
 		return reason;
-	}
-
-	private void sendBookingEvent(boolean cancelledByManagerOrAdmin,
-								  BookingResponse booking,
-								  UserDto user, String reason) {
-		if (cancelledByManagerOrAdmin) {
-			String username = user.surname() + " " + user.name();
-			var event = mapper.toCancelledEvent(booking, user.email(), username, reason);
-			kafkaProducer.sendBookingCancelled(event);
-		}
 	}
 }

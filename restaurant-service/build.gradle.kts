@@ -50,6 +50,9 @@ dependencies {
 
     implementation ("org.springframework.boot:spring-boot-starter-validation")
 
+    // В Spring Boot 4 автонастройка Kafka (ProducerFactory, spring.kafka.*) живёт в отдельном стартере
+    implementation("org.springframework.boot:spring-boot-starter-kafka")
+
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
 
 

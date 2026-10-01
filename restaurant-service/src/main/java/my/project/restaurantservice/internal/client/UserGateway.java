@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import my.project.common.exception.ApiException;
 import my.project.common.exception.ServiceUnavailableException;
 import my.project.restaurantservice.internal.dto.UserDto;
-import my.project.restaurantservice.manager.dto.ChangeRoleByIdRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,17 +17,6 @@ import java.util.UUID;
 public class UserGateway {
 
 	private final UserServiceClient client;
-
-	@Retry(name = "userService", fallbackMethod = "changeRoleFallback")
-	@CircuitBreaker(name = "userService")
-	public UUID changeRoleById(ChangeRoleByIdRequest req) {
-		return client.changeRoleById(req);
-	}
-
-	private UUID changeRoleFallback(ChangeRoleByIdRequest req, Throwable ex) {
-		if (ex instanceof ApiException apiEx) throw apiEx;
-		throw new ServiceUnavailableException("Сервис пользователей временно не доступен");
-	}
 
 	@Retry(name = "userService", fallbackMethod = "usersFallback")
 	@CircuitBreaker(name = "userService")

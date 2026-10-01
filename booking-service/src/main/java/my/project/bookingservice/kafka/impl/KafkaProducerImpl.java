@@ -10,14 +10,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 @Loggable
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class KafkaProducerImpl implements KafkaProducer {
 
-	private final KafkaTemplate<String, BookingCreatedEvent> bookingCreatedKafkaTemplate;
-	private final KafkaTemplate<String, BookingCancelledEvent> bookingCancelledKafkaTemplate;
+	private static final long SEND_TIMEOUT_SECONDS = 5;
+
+	private final KafkaTemplate<String, Object> kafkaTemplate;
 
 	@Value("${app.kafka.topics.booking-created}")
 	private String bookingCreatedTopic;
@@ -26,26 +31,24 @@ public class KafkaProducerImpl implements KafkaProducer {
 	private String bookingCancelledTopic;
 
 	public void sendBookingCreated(BookingCreatedEvent event) {
-		String key = event.bookingId().toString();
-
-		bookingCreatedKafkaTemplate.send(bookingCreatedTopic, key, event).whenComplete((result, ex) -> {
-			if (ex != null) {
-				log.error("Не удалось отправить BookingCreatedEvent, key={}", key, ex);
-			} else {
-				log.info("BookingCreatedEvent успешно отправлен, key={}", key);
-			}
-		});
+		send(bookingCreatedTopic, event.bookingId().toString(), event);
 	}
 
 	public void sendBookingCancelled(BookingCancelledEvent event) {
-		String key = event.bookingId().toString();
+		send(bookingCancelledTopic, event.bookingId().toString(), event);
+	}
 
-		bookingCancelledKafkaTemplate.send(bookingCancelledTopic, key, event).whenComplete((result, ex) -> {
-			if (ex != null) {
-				log.error("Не удалось отправить BookingCancelledEvent, key={}", key, ex);
-			} else {
-				log.info("BookingCancelledEvent успешно отправлен, key={}", key);
-			}
-		});
+	private void send(String topic, String key, Object event) {
+		String eventName = event.getClass().getSimpleName();
+
+		try {
+			kafkaTemplate.send(topic, key, event).get(SEND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+			log.info("{} успешно отправлен, key={}", eventName, key);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Отправка " + eventName + " прервана, key=" + key, e);
+		} catch (ExecutionException | TimeoutException e) {
+			throw new IllegalStateException("Не удалось отправить " + eventName + ", key=" + key, e);
+		}
 	}
 }

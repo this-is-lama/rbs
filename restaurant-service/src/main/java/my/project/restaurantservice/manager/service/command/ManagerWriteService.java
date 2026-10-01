@@ -47,7 +47,7 @@ public class ManagerWriteService {
 			@CacheEvict(cacheNames = "restaurantManagers", key = "#restId", beforeInvocation = true)
 	})
 	@Transactional
-	public void deleteManagerById(UUID restId, UUID managerId) {
+	public void deleteManager(UUID restId, UUID managerId) {
 		if (!repository.existsByIdRestaurantIdAndIdManagerId(restId, managerId)) {
 			log.warn("Связь менеджера с рестораном не найдена, restId={}, managerId={}", restId, managerId);
 			throw new NotFoundException("restaurant.manager.not-found", managerId);
@@ -68,6 +68,7 @@ public class ManagerWriteService {
 		evictManagerAccess(restId, managerIds);
 
 		log.info("Менеджеры отвязаны от удаляемого ресторана, restId={}, count={}", restId, managerIds.size());
+
 		return managerIds;
 	}
 

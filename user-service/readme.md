@@ -33,7 +33,6 @@
 - `GET /api/v1/users/me`
 - `PUT /api/v1/users/me`
 - `PATCH /api/v1/users/me/password`
-- `POST /api/v1/users/change-role-by-id` (`ROLE_MANAGER`/`ROLE_ADMIN`)
 - `GET /api/v1/users/email?email=` (`ROLE_MANAGER`/`ROLE_ADMIN`)
 - `GET /api/v1/users/{id}` (`ROLE_MANAGER`/`ROLE_ADMIN`)
 - `POST /api/v1/users` (`ROLE_MANAGER`/`ROLE_ADMIN`; batch-получение по списку id в теле запроса)
@@ -105,9 +104,10 @@
 
 Сервис не использует внешние REST-клиенты, но предоставляет внутренние endpoints для других модулей:
 
-- `POST /api/v1/users/change-role-by-id` — использует `restaurant-service`.
 - `GET /api/v1/users/{id}` — использует `booking-service`.
 - `POST /api/v1/users` (batch по списку id) — используют `restaurant-service` и `booking-service`.
+
+Kafka (consumer): топик `manager-restaurants-changed-topic` (группа `user-service`). Событие `ManagerRestaurantsChangedEvent(managerId, hasRestaurants)` от `restaurant-service`: `true` — `ROLE_MANAGER`, `false` — `ROLE_USER` (администратор пропускается), после смены роли refresh-токены пользователя деактивируются. Ошибки обрабатываются через `@RetryableTopic` (4 попытки) и DLT `manager-restaurants-changed-topic-dlt`, метрика `user_kafka_dead_letter_total`.
 
 Ответ всех этих эндпоинтов — единый `UserDto` (отдельных DTO для «summary»/«brief» нет).
 

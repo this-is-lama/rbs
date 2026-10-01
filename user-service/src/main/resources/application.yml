@@ -4,7 +4,7 @@ server:
 jwt:
   access-secret: ${JWT_SECRET}
   refresh-secret: ${JWT_REFRESH_SECRET}
-  access-lifetime: 1h
+  access-lifetime: 15m
   refresh-lifetime: 1d
   issuer: user-service
 
@@ -44,6 +44,26 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP}
+    consumer:
+      group-id: user-service
+      auto-offset-reset: earliest
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+    # producer (нужен для @RetryableTopic) настроен в KafkaConfig.retryKafkaTemplate, а не здесь:
+    # yml позволяет указать только один value-serializer, а нам нужно два - JSON для событий и byte[] для битых сообщений
+
+app:
+  kafka:
+    topics:
+      manager-restaurants-changed: manager-restaurants-changed-topic
 
 eureka:
   client:

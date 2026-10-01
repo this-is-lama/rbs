@@ -69,15 +69,22 @@ public class RestaurantWriteService {
 	}
 
 	@Caching(evict = {
+			@CacheEvict(cacheNames = "publicRestaurantById", key = "#id"),
+			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id")
+	})
+	@Transactional
+	public void changeActive(UUID id, boolean active) {
+		repositoryService.getById(id).setActive(active);
+	}
+
+	@Caching(evict = {
 			@CacheEvict(cacheNames = "publicRestaurantById", key = "#id", beforeInvocation = true),
 			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id", beforeInvocation = true)
 	})
 	@Transactional
-	public List<UUID> deleteById(UUID id) {
+	public void deleteById(UUID id) {
 		photoWriteService.markDeletingByRestaurantId(id);
-		List<UUID> managerIds = managerWriteService.deleteAllByRestaurantId(id);
 		repositoryService.deleteById(id);
-		return managerIds;
 	}
 
 	private void syncWorkingHours(RestaurantEntity restaurant, List<WorkingHoursDto> dtos) {

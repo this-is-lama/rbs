@@ -94,6 +94,11 @@ public class RestaurantQueryService {
 	}
 
 	@Transactional(readOnly = true)
+	public boolean isActive(UUID id) {
+		return repositoryService.getById(id).isActive();
+	}
+
+	@Transactional(readOnly = true)
 	public BookingRestaurantDto getBookingRestaurant(UUID id) {
 		return mapper.toBookingDto(repositoryService.getByIdAndActiveTrue(id));
 	}

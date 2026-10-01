@@ -1,8 +1,6 @@
 package my.project.bookingservice.config;
 
 import lombok.extern.slf4j.Slf4j;
-import my.project.bookingservice.dto.events.BookingCancelledEvent;
-import my.project.bookingservice.dto.events.BookingCreatedEvent;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,21 +31,9 @@ public class KafkaConfig {
 	}
 
 	@Bean
-	public KafkaTemplate<String, BookingCreatedEvent> bookingCreatedEventKafkaTemplate(
-			ProducerFactory<String, BookingCreatedEvent> producerFactory) {
-		log.info("Инициализация KafkaTemplate для событий создания бронирования");
-		KafkaTemplate<String, BookingCreatedEvent> template = new KafkaTemplate<>(producerFactory);
-		// traceId уходит в заголовках сообщения, и notification-service продолжает тот же трейс
-		template.setObservationEnabled(true);
-		return template;
-	}
-
-	@Bean
-	public KafkaTemplate<String, BookingCancelledEvent> bookingCancelledEventKafkaTemplate(
-			ProducerFactory<String, BookingCancelledEvent> producerFactory) {
-		log.info("Инициализация KafkaTemplate для событий отмены бронирования");
-		KafkaTemplate<String, BookingCancelledEvent> template = new KafkaTemplate<>(producerFactory);
-		// traceId уходит в заголовках сообщения, и notification-service продолжает тот же трейс
+	public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
+		log.info("Инициализация универсального KafkaTemplate");
+		KafkaTemplate<String, Object> template = new KafkaTemplate<>(producerFactory);
 		template.setObservationEnabled(true);
 		return template;
 	}

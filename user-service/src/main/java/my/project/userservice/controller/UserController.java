@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import my.project.common.security.AuthUtil;
 import my.project.userservice.dto.ChangePasswordRequest;
-import my.project.userservice.dto.ChangeRoleByIdRequest;
 import my.project.userservice.dto.UpdateUserRequest;
 import my.project.userservice.dto.UserDto;
 import my.project.userservice.service.user.UserCommandService;
@@ -45,14 +44,6 @@ public class UserController {
 												 Authentication auth) {
 		commandService.changePassword(req, auth);
 		return ResponseEntity.ok().build();
-	}
-
-	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
-	@PostMapping("/change-role-by-id")
-	public ResponseEntity<UUID> changeRoleById(@RequestBody @Valid ChangeRoleByIdRequest req,
-											   Authentication auth) {
-		UUID id = commandService.changeRoleById(req, auth);
-		return ResponseEntity.ok(id);
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")

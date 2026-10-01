@@ -1,0 +1,33 @@
+databaseChangeLog:
+  # Старая таблица outbox появилась от ddl-auto: update, структура другая (target_role вместо попыток).
+  # События в ней временные, поэтому пересоздаём. На чистой базе changeSet пропускается.
+  - changeSet:
+      id: 028-drop-legacy-outbox
+      author: islam
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: outbox
+      changes:
+        - dropTable: { tableName: outbox }
+
+  - changeSet:
+      id: 029-create-outbox
+      author: islam
+      changes:
+        - createTable:
+            tableName: outbox
+            columns:
+              - column: { name: id, type: UUID, constraints: { primaryKey: true, primaryKeyName: outbox_pkey, nullable: false } }
+              - column: { name: manager_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: attempts, type: INTEGER, defaultValueNumeric: 0, constraints: { nullable: false } }
+              - column: { name: last_error, type: VARCHAR(1000) }
+              - column: { name: created_at, type: TIMESTAMP WITH TIME ZONE, constraints: { nullable: false } }
+        # воркер читает события по порядку создания
+        - createIndex:
+            tableName: outbox
+            indexName: idx_outbox_created_at
+            columns:
+              - column: { name: created_at }
+      rollback:
+        - dropTable: { tableName: outbox }

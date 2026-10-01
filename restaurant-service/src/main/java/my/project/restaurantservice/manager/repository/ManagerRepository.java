@@ -8,9 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -27,12 +25,7 @@ public interface ManagerRepository extends JpaRepository<ManagerEntity, ManagerI
             """)
     List<UUID> findManagerIdsByRestaurantId(@Param("restId") UUID restId);
 
-    @Query("""
-            select distinct m.id.managerId
-            from ManagerEntity m
-            where m.id.managerId in :managerIds
-            """)
-    Set<UUID> findManagerIdsWithRestaurants(@Param("managerIds") Collection<UUID> managerIds);
+    boolean existsByIdManagerId(UUID managerId);
 
     void deleteByIdRestaurantIdAndIdManagerId(UUID restId, UUID managerId);
 
