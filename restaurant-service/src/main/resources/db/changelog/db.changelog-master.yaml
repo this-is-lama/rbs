@@ -8,3 +8,9 @@ databaseChangeLog:
   - include:
       file: changes/002-outbox.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/003-restaurant-status.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/004-address-and-normalization.yaml
+      relativeToChangelogFile: true

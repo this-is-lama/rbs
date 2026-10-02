@@ -1,6 +1,7 @@
-package my.project.restaurantservice.restaurant.entity;
+package my.project.restaurantservice.workinghours.entity;
 
 import jakarta.persistence.*;
+import my.project.restaurantservice.restaurant.entity.RestaurantEntity;
 import lombok.*;
 
 import java.time.LocalTime;

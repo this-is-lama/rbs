@@ -4,7 +4,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import my.project.restaurantservice.photo.dto.PhotoDto;
-import my.project.restaurantservice.restaurant.dto.workinghours.WorkingHoursDto;
+import my.project.restaurantservice.workinghours.dto.WorkingHoursDto;
+import my.project.restaurantservice.restaurant.entity.RestaurantStatus;
 
 import java.util.UUID;
 
@@ -20,9 +21,13 @@ public class RestaurantCardDto {
 
 		String description;
 
-		String address;
+		String city;
 
-		Boolean active;
+		String street;
+
+		String house;
+
+		RestaurantStatus status;
 
 		WorkingHoursDto workingHour;
 

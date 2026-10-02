@@ -25,13 +25,23 @@
 ### Restaurants
 
 - `POST /api/v1/restaurants`
-- `PUT /api/v1/restaurants/{id}`
-- `PATCH /api/v1/restaurants/{id}/active?active=true|false` (включить/отключить ресторан: отключённый не принимает брони)
+- `PUT /api/v1/restaurants/{id}` (основные данные: название, категория, описание, адрес)
+- `PATCH /api/v1/restaurants/{id}/active?active=true|false` (включить/отключить ресторан: отключённый не принимает брони; доступно только для `ACTIVE`/`INACTIVE`)
 - `GET /api/v1/restaurants/my`
 - `GET /api/v1/restaurants/{id}`
 - `GET /api/v1/restaurants`
 - `DELETE /api/v1/restaurants/{id}`
 - `GET /api/v1/restaurants/categories`
+
+### Contacts
+
+- `PUT /api/v1/restaurants/{restId}/contacts` (список заменяется целиком)
+
+### Working hours
+
+- `PUT /api/v1/restaurants/{restId}/working-hours` (расписание заменяется целиком)
+
+Контакты и часы работы отдельным `GET` не отдаются: они приходят в `GET /api/v1/restaurants/{id}`.
 
 ### Managers
 
@@ -97,6 +107,16 @@
 - вложенные `tables`
 - `photos`
 
+## Статусы ресторана
+
+- `DRAFT` — создан, ещё не отправлен на верификацию (после создания ресторан получает этот статус)
+- `PENDING_VERIFICATION` — заявка на верификацию на рассмотрении
+- `REJECTED` — верификация отклонена
+- `ACTIVE` — прошёл верификацию, виден гостям и принимает брони
+- `INACTIVE` — отключён менеджером
+
+Публичные запросы видят только `ACTIVE`. Менеджер видит `ACTIVE` и свои рестораны в любом статусе. Список можно фильтровать параметром `status`.
+
 ## Фото
 
 Поддерживаемые content type:
@@ -127,6 +147,7 @@
 В конфигурации заданы отдельные cache names и TTL:
 
 - рестораны: `5` минут
+- контакты и часы работы ресторана: `5` минут
 - блюда и столы: `2-5` минут
 - фото: `1` минута
 - `managerAccess`: `5` минут

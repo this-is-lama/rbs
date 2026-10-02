@@ -19,16 +19,24 @@ public class RestaurantSpecifications {
                         cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%");
     }
 
-    public static Specification<RestaurantEntity> isActive(Boolean active) {
+    public static Specification<RestaurantEntity> hasStatus(RestaurantStatus status) {
         return (root, query, cb) ->
-                active == null ? null :
-                        cb.equal(root.get("active"), active);
+                status == null ? null :
+                        cb.equal(root.get("status"), status);
     }
 
+    /** Поиск по адресу: подстрока ищется в строке «город улица дом». */
     public static Specification<RestaurantEntity> hasAddress(String address) {
-        return (root, query, cb) ->
-                address == null || address.isBlank() ? null :
-                        cb.like(cb.lower(root.get("address")), "%" + address.toLowerCase() + "%");
+        return (root, query, cb) -> {
+            if (address == null || address.isBlank()) {
+                return null;
+            }
+            var fullAddress = cb.concat(
+                    cb.concat(cb.concat(root.<String>get("city"), " "), root.<String>get("street")),
+                    cb.concat(" ", root.<String>get("house"))
+            );
+            return cb.like(cb.lower(fullAddress), "%" + address.toLowerCase() + "%");
+        };
     }
 
     public static Specification<RestaurantEntity> ownedByManager(UUID managerId) {
@@ -44,18 +52,18 @@ public class RestaurantSpecifications {
 			query.distinct(true);
 			var join = root.join("managers", JoinType.LEFT);
             return cb.or(
-                    cb.isTrue(root.get("active")),
+                    cb.equal(root.get("status"), RestaurantStatus.ACTIVE),
                     cb.equal(join.get("id").get("managerId"), managerId)
             );
         };
     }
 
     public static Specification<RestaurantEntity> getSpecification(String category, String name,
-                                                                   Boolean active, String address) {
+                                                                   RestaurantStatus status, String address) {
         return Specification
                 .where(RestaurantSpecifications.hasCategory(category))
                 .and(RestaurantSpecifications.hasName(name))
-                .and(RestaurantSpecifications.isActive(active))
+                .and(RestaurantSpecifications.hasStatus(status))
                 .and(RestaurantSpecifications.hasAddress(address));
     }
 }

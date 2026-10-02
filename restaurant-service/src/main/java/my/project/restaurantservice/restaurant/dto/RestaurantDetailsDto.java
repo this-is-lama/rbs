@@ -2,8 +2,9 @@ package my.project.restaurantservice.restaurant.dto;
 
 import my.project.restaurantservice.dish.dto.DishDetailsDto;
 import my.project.restaurantservice.photo.dto.PhotoDto;
-import my.project.restaurantservice.restaurant.dto.contact.ContactDto;
-import my.project.restaurantservice.restaurant.dto.workinghours.WorkingHoursDto;
+import my.project.restaurantservice.contact.dto.ContactDto;
+import my.project.restaurantservice.workinghours.dto.WorkingHoursDto;
+import my.project.restaurantservice.restaurant.entity.RestaurantStatus;
 import my.project.restaurantservice.table.dto.TableDto;
 
 import java.util.List;
@@ -19,9 +20,13 @@ public record RestaurantDetailsDto(
 
 		String description,
 
-		String address,
+		String city,
 
-		Boolean active,
+		String street,
+
+		String house,
+
+		RestaurantStatus status,
 
 		List<WorkingHoursDto> workingHours,
 

@@ -1,7 +1,7 @@
-package my.project.restaurantservice.restaurant.mapper;
+package my.project.restaurantservice.contact.mapper;
 
-import my.project.restaurantservice.restaurant.dto.contact.ContactDto;
-import my.project.restaurantservice.restaurant.entity.ContactEntity;
+import my.project.restaurantservice.contact.dto.ContactDto;
+import my.project.restaurantservice.contact.entity.ContactEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;

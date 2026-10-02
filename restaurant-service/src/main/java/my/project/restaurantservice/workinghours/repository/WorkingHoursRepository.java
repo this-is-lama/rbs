@@ -1,7 +1,7 @@
-package my.project.restaurantservice.restaurant.repository;
+package my.project.restaurantservice.workinghours.repository;
 
-import my.project.restaurantservice.restaurant.entity.WorkingHoursEntity;
-import my.project.restaurantservice.restaurant.entity.WeekDay;
+import my.project.restaurantservice.workinghours.entity.WorkingHoursEntity;
+import my.project.restaurantservice.workinghours.entity.WeekDay;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

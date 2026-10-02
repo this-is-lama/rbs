@@ -1,0 +1,52 @@
+databaseChangeLog:
+  # Заменяем флаг is_active на статус ресторана. Существующие рестораны переносим как есть:
+  # активные -> ACTIVE, отключённые -> INACTIVE.
+  - changeSet:
+      id: 030-replace-restaurants-is-active-with-status
+      author: islam
+      changes:
+        - addColumn:
+            tableName: restaurants
+            columns:
+              - column: { name: status, type: VARCHAR(50) }
+        - sql:
+            sql: "UPDATE restaurants SET status = CASE WHEN is_active THEN 'ACTIVE' ELSE 'INACTIVE' END"
+        - addNotNullConstraint: { tableName: restaurants, columnName: status, columnDataType: "VARCHAR(50)" }
+        - dropIndex: { tableName: restaurants, indexName: idx_restaurants_is_active_created_at }
+        - dropIndex: { tableName: restaurants, indexName: idx_restaurants_category_is_active }
+        - dropColumn: { tableName: restaurants, columnName: is_active }
+        - createIndex:
+            tableName: restaurants
+            indexName: idx_restaurants_status_created_at
+            columns:
+              - column: { name: status }
+              - column: { name: created_at }
+        - createIndex:
+            tableName: restaurants
+            indexName: idx_restaurants_category_status
+            columns:
+              - column: { name: category }
+              - column: { name: status }
+      rollback:
+        - addColumn:
+            tableName: restaurants
+            columns:
+              - column: { name: is_active, type: BOOLEAN }
+        - sql:
+            sql: "UPDATE restaurants SET is_active = (status = 'ACTIVE')"
+        - addNotNullConstraint: { tableName: restaurants, columnName: is_active, columnDataType: BOOLEAN }
+        - dropIndex: { tableName: restaurants, indexName: idx_restaurants_status_created_at }
+        - dropIndex: { tableName: restaurants, indexName: idx_restaurants_category_status }
+        - dropColumn: { tableName: restaurants, columnName: status }
+        - createIndex:
+            tableName: restaurants
+            indexName: idx_restaurants_is_active_created_at
+            columns:
+              - column: { name: is_active }
+              - column: { name: created_at }
+        - createIndex:
+            tableName: restaurants
+            indexName: idx_restaurants_category_is_active
+            columns:
+              - column: { name: category }
+              - column: { name: is_active }

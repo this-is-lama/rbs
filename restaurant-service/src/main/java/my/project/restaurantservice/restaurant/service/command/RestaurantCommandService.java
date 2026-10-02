@@ -9,8 +9,11 @@ import my.project.restaurantservice.internal.client.BookingGateway;
 import my.project.restaurantservice.internal.dto.BookingStatus;
 import my.project.restaurantservice.manager.consistency.outbox.service.OutboxProcessorService;
 import my.project.restaurantservice.manager.service.query.ManagerAccessService;
+import my.project.restaurantservice.restaurant.dto.RestaurantCreateRequest;
 import my.project.restaurantservice.restaurant.dto.RestaurantDto;
+import my.project.restaurantservice.restaurant.dto.RestaurantUpdateDto;
 import my.project.restaurantservice.restaurant.service.query.RestaurantQueryService;
+import my.project.restaurantservice.workinghours.validator.WorkingHoursValidator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -30,13 +33,15 @@ public class RestaurantCommandService {
 	private final RestaurantOutboxService restaurantOutboxService;
 	private final OutboxProcessorService outboxProcessorService;
 	private final BookingGateway bookingGateway;
+	private final WorkingHoursValidator workingHoursValidator;
 
-	public UUID create(RestaurantDto dto, Authentication auth) {
+	public UUID create(RestaurantCreateRequest dto, Authentication auth) {
+		workingHoursValidator.validate(dto.workingHours());
 		UUID managerId = AuthUtil.isManager(auth) ? AuthUtil.id(auth) : null;
 		return writeService.save(dto, managerId);
 	}
 
-	public RestaurantDto update(UUID id, RestaurantDto dto, Authentication auth) {
+	public RestaurantDto update(UUID id, RestaurantUpdateDto dto, Authentication auth) {
 		managerAccessService.checkAccess(id, auth);
 		writeService.update(id, dto);
 		return queryService.getPrivateById(id);

@@ -2,28 +2,23 @@ package my.project.restaurantservice.restaurant.service.command;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import my.project.common.exception.ConflictException;
+import my.project.restaurantservice.contact.mapper.ContactMapper;
 import my.project.restaurantservice.manager.service.command.ManagerWriteService;
 import my.project.restaurantservice.photo.service.command.PhotoWriteService;
-import my.project.restaurantservice.restaurant.dto.RestaurantDto;
-import my.project.restaurantservice.restaurant.dto.contact.ContactDto;
-import my.project.restaurantservice.restaurant.dto.workinghours.WorkingHoursDto;
+import my.project.restaurantservice.restaurant.dto.RestaurantCreateRequest;
+import my.project.restaurantservice.restaurant.dto.RestaurantUpdateDto;
 import my.project.restaurantservice.restaurant.entity.RestaurantEntity;
-import my.project.restaurantservice.restaurant.entity.WeekDay;
-import my.project.restaurantservice.restaurant.mapper.ContactMapper;
+import my.project.restaurantservice.restaurant.entity.RestaurantStatus;
 import my.project.restaurantservice.restaurant.mapper.RestaurantMapper;
-import my.project.restaurantservice.restaurant.mapper.WorkingHoursMapper;
 import my.project.restaurantservice.restaurant.repository.RestaurantRepositoryService;
+import my.project.restaurantservice.workinghours.mapper.WorkingHoursMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,11 +34,12 @@ public class RestaurantWriteService {
 	private final WorkingHoursMapper workingHoursMapper;
 
 	@Transactional
-	public UUID save(RestaurantDto dto, UUID managerId) {
+	public UUID save(RestaurantCreateRequest dto, UUID managerId) {
 		RestaurantEntity restaurant = mapper.toEntity(dto);
+		restaurant.setStatus(RestaurantStatus.DRAFT);
 
-		contactMapper.toEntity(dto.getContacts()).forEach(restaurant::addContact);
-		workingHoursMapper.toEntity(dto.getWorkingHours()).forEach(restaurant::addWorkingHours);
+		contactMapper.toEntity(dto.contacts()).forEach(restaurant::addContact);
+		workingHoursMapper.toEntity(dto.workingHours()).forEach(restaurant::addWorkingHours);
 
 		UUID restId = repositoryService.save(restaurant).getId();
 
@@ -60,12 +56,9 @@ public class RestaurantWriteService {
 			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id")
 	})
 	@Transactional
-	public void update(UUID id, RestaurantDto dto) {
+	public void update(UUID id, RestaurantUpdateDto dto) {
 		var restaurant = repositoryService.getById(id);
-
 		mapper.updateEntity(restaurant, dto);
-		syncWorkingHours(restaurant, dto.getWorkingHours());
-		syncContacts(restaurant, dto.getContacts());
 	}
 
 	@Caching(evict = {
@@ -74,46 +67,25 @@ public class RestaurantWriteService {
 	})
 	@Transactional
 	public void changeActive(UUID id, boolean active) {
-		repositoryService.getById(id).setActive(active);
+		var restaurant = repositoryService.getById(id);
+		if (restaurant.getStatus() != RestaurantStatus.ACTIVE && restaurant.getStatus() != RestaurantStatus.INACTIVE) {
+			log.warn("Смена активности отклонена: ресторан не верифицирован, restId={}, status={}",
+					id, restaurant.getStatus());
+			throw new ConflictException("restaurant.status.change-not-allowed", id);
+		}
+
+		restaurant.setStatus(active ? RestaurantStatus.ACTIVE : RestaurantStatus.INACTIVE);
 	}
 
 	@Caching(evict = {
 			@CacheEvict(cacheNames = "publicRestaurantById", key = "#id", beforeInvocation = true),
-			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id", beforeInvocation = true)
+			@CacheEvict(cacheNames = "privateRestaurantById", key = "#id", beforeInvocation = true),
+			@CacheEvict(cacheNames = "contactsByRestaurantId", key = "#id", beforeInvocation = true),
+			@CacheEvict(cacheNames = "workingHoursByRestaurantId", key = "#id", beforeInvocation = true)
 	})
 	@Transactional
 	public void deleteById(UUID id) {
 		photoWriteService.markDeletingByRestaurantId(id);
 		repositoryService.deleteById(id);
-	}
-
-	private void syncWorkingHours(RestaurantEntity restaurant, List<WorkingHoursDto> dtos) {
-		Map<WeekDay, WorkingHoursDto> byDay = dtos.stream()
-				.collect(Collectors.toMap(WorkingHoursDto::dayOfWeek, Function.identity()));
-
-		for (var wh : new ArrayList<>(restaurant.getWorkingHours())) {
-			var dto = byDay.remove(wh.getDayOfWeek());
-			if (dto == null) {
-				restaurant.removeWorkingHours(wh);
-			} else {
-				workingHoursMapper.updateEntity(wh, dto);
-			}
-		}
-
-		byDay.values().stream()
-				.map(workingHoursMapper::toEntity)
-				.forEach(restaurant::addWorkingHours);
-	}
-
-	private void syncContacts(RestaurantEntity restaurant, List<ContactDto> dtos) {
-		List<ContactDto> toAdd = new ArrayList<>(dtos);
-
-		for (var contact : new ArrayList<>(restaurant.getContacts())) {
-			if (!toAdd.remove(contactMapper.toDto(contact))) {
-				restaurant.removeContact(contact);
-			}
-		}
-
-		contactMapper.toEntity(toAdd).forEach(restaurant::addContact);
 	}
 }

@@ -1,0 +1,83 @@
+databaseChangeLog:
+  # Адрес ресторана делим на город, улицу и дом.
+  # Старые адреса переносим по запятым: "Казань, Баумана, 1" -> город / улица / дом.
+  # Если частей меньше трёх, недостающие заполняются "-", такие записи стоит поправить вручную.
+  - changeSet:
+      id: 031-split-restaurants-address
+      author: islam
+      changes:
+        - addColumn:
+            tableName: restaurants
+            columns:
+              - column: { name: city, type: "VARCHAR(100)" }
+              - column: { name: street, type: "VARCHAR(255)" }
+              - column: { name: house, type: "VARCHAR(20)" }
+        - sql:
+            sql: |
+              UPDATE restaurants SET
+                city = left(COALESCE(NULLIF(btrim(split_part(address, ',', 1)), ''), '-'), 100),
+                street = left(COALESCE(NULLIF(btrim(split_part(address, ',', 2)), ''), '-'), 255),
+                house = left(COALESCE(NULLIF(btrim(split_part(address, ',', 3)), ''), '-'), 20)
+        - addNotNullConstraint: { tableName: restaurants, columnName: city, columnDataType: "VARCHAR(100)" }
+        - addNotNullConstraint: { tableName: restaurants, columnName: street, columnDataType: "VARCHAR(255)" }
+        - addNotNullConstraint: { tableName: restaurants, columnName: house, columnDataType: "VARCHAR(20)" }
+        - dropUniqueConstraint: { tableName: restaurants, constraintName: uk_restaurant_name_restaurant_address }
+        - dropColumn: { tableName: restaurants, columnName: address }
+        - addUniqueConstraint: { tableName: restaurants, columnNames: "name,city,street,house", constraintName: uk_restaurant_name_city_street_house }
+      rollback:
+        - addColumn:
+            tableName: restaurants
+            columns:
+              - column: { name: address, type: "VARCHAR(255)" }
+        - sql:
+            sql: "UPDATE restaurants SET address = left(city || ', ' || street || ', ' || house, 255)"
+        - addNotNullConstraint: { tableName: restaurants, columnName: address, columnDataType: "VARCHAR(255)" }
+        - dropUniqueConstraint: { tableName: restaurants, constraintName: uk_restaurant_name_city_street_house }
+        - dropColumn: { tableName: restaurants, columnName: city }
+        - dropColumn: { tableName: restaurants, columnName: street }
+        - dropColumn: { tableName: restaurants, columnName: house }
+        - addUniqueConstraint: { tableName: restaurants, columnNames: "name,address", constraintName: uk_restaurant_name_restaurant_address }
+
+  # Категории приводим к единому виду (как CategoryNormalizer): без лишних пробелов, первая буква заглавная, остальные строчные.
+  - changeSet:
+      id: 032-normalize-restaurants-category
+      author: islam
+      changes:
+        - sql:
+            sql: |
+              UPDATE restaurants r SET category = upper(left(x.n, 1)) || substr(x.n, 2)
+              FROM (
+                SELECT id, lower(btrim(regexp_replace(category, '\s+', ' ', 'g'))) AS n
+                FROM restaurants
+              ) x
+              WHERE x.id = r.id AND x.n <> ''
+      rollback:
+        - sql:
+            sql: "SELECT 1"
+
+  # Телефоны приводим к единому виду (как ContactValueNormalizer): +7XXXXXXXXXX.
+  - changeSet:
+      id: 033-normalize-restaurant-phone-contacts
+      author: islam
+      changes:
+        - sql:
+            sql: |
+              UPDATE restaurant_contacts c SET value = x.norm
+              FROM (
+                SELECT id,
+                  CASE
+                    WHEN length(d) = 11 AND left(d, 1) IN ('7', '8') THEN '+7' || substr(d, 2)
+                    WHEN length(d) = 10 THEN '+7' || d
+                    WHEN btrim(value) LIKE '+%' AND length(d) BETWEEN 8 AND 15 THEN '+' || d
+                    ELSE NULL
+                  END AS norm
+                FROM (
+                  SELECT id, value, regexp_replace(value, '\D', '', 'g') AS d
+                  FROM restaurant_contacts
+                  WHERE type = 'PHONE'
+                ) t
+              ) x
+              WHERE x.id = c.id AND x.norm IS NOT NULL
+      rollback:
+        - sql:
+            sql: "SELECT 1"

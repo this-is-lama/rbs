@@ -7,7 +7,9 @@ import my.project.restaurantservice.photo.service.query.PhotoQueryService;
 import my.project.restaurantservice.restaurant.dto.RestaurantCardDto;
 import my.project.restaurantservice.restaurant.dto.RestaurantDto;
 import my.project.restaurantservice.restaurant.entity.RestaurantEntity;
-import my.project.restaurantservice.restaurant.entity.WeekDay;
+import my.project.restaurantservice.restaurant.entity.RestaurantStatus;
+import my.project.restaurantservice.workinghours.entity.WeekDay;
+import my.project.restaurantservice.workinghours.service.query.WorkingHoursQueryService;
 import my.project.restaurantservice.restaurant.mapper.RestaurantMapper;
 import my.project.restaurantservice.restaurant.repository.RestaurantRepositoryService;
 import org.springframework.cache.annotation.Cacheable;
@@ -35,25 +37,18 @@ public class RestaurantQueryService {
 	private final RestaurantMapper mapper;
 
 	private final PhotoQueryService photoQueryService;
+	private final WorkingHoursQueryService workingHoursQueryService;
 
 	@Cacheable(cacheNames = "publicRestaurantById", key = "#id", sync = true)
 	@Transactional(readOnly = true)
 	public RestaurantDto getPublicById(UUID id) {
-		var restaurant = repositoryService.getByIdAndActiveTrue(id);
-
-		var wh = repositoryService.findAllWorkingHoursByRestaurantId(id);
-		var contacts = repositoryService.findAllContactsByRestaurantId(id);
-		return mapper.toDto(restaurant, wh, contacts);
+		return mapper.toDto(repositoryService.getActiveById(id));
 	}
 
 	@Cacheable(cacheNames = "privateRestaurantById", key = "#id", sync = true)
 	@Transactional(readOnly = true)
 	public RestaurantDto getPrivateById(UUID id) {
-		var restaurant = repositoryService.getById(id);
-
-		var wh = repositoryService.findAllWorkingHoursByRestaurantId(id);
-		var contacts = repositoryService.findAllContactsByRestaurantId(id);
-		return mapper.toDto(restaurant, wh, contacts);
+		return mapper.toDto(repositoryService.getById(id));
 	}
 
 	@Transactional(readOnly = true)
@@ -71,11 +66,7 @@ public class RestaurantQueryService {
 		WeekDay today = WeekDay.valueOf(LocalDate.now(BUSINESS_ZONE).getDayOfWeek().name());
 
 		var banners = photoQueryService.findBannersForRestaurants(restIds);
-		var whs = repositoryService.findTodayWorkingHoursForRestaurants(restIds, today).stream()
-				.collect(Collectors.toMap(
-						wh -> wh.getRestaurant().getId(),
-						wh -> wh)
-				);
+		var whs = workingHoursQueryService.findTodayForRestaurants(restIds, today);
 
 		List<RestaurantCardDto> cards = restaurantsPage.getContent().stream()
 				.map(r -> mapper.toCardDto(r, banners.get(r.getId()), whs.get(r.getId())))
@@ -87,19 +78,16 @@ public class RestaurantQueryService {
 	@Loggable
 	@Transactional(readOnly = true)
 	public List<String> findAllCategories() {
-		return repositoryService.findDistinctCategories().stream()
-				.map(String::trim)
-				.distinct()
-				.toList();
+		return repositoryService.findDistinctCategories();
 	}
 
 	@Transactional(readOnly = true)
 	public boolean isActive(UUID id) {
-		return repositoryService.getById(id).isActive();
+		return repositoryService.getById(id).getStatus() == RestaurantStatus.ACTIVE;
 	}
 
 	@Transactional(readOnly = true)
 	public BookingRestaurantDto getBookingRestaurant(UUID id) {
-		return mapper.toBookingDto(repositoryService.getByIdAndActiveTrue(id));
+		return mapper.toBookingDto(repositoryService.getActiveById(id));
 	}
 }

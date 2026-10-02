@@ -1,4 +1,4 @@
-package my.project.restaurantservice.restaurant.entity;
+package my.project.restaurantservice.workinghours.entity;
 
 public enum WeekDay {
     MONDAY,

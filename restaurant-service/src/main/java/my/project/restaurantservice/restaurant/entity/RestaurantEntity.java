@@ -5,11 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import my.project.restaurantservice.contact.entity.ContactEntity;
 import my.project.restaurantservice.dish.entity.DishEntity;
 import my.project.restaurantservice.manager.entity.ManagerEntity;
 import my.project.restaurantservice.photo.entity.PhotoContainer;
 import my.project.restaurantservice.photo.entity.PhotoEntity;
 import my.project.restaurantservice.table.entity.TableEntity;
+import my.project.restaurantservice.workinghours.entity.WorkingHoursEntity;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,20 +24,22 @@ import java.util.UUID;
 @Table(
         name = "restaurants",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_restaurant_name_restaurant_address",
+                name = "uk_restaurant_name_city_street_house",
                 columnNames = {
                         "name",
-                        "address"
+                        "city",
+                        "street",
+                        "house"
                 }
         ),
         indexes = {
                 @Index(
-                        name = "idx_restaurants_is_active_created_at",
-                        columnList = "is_active, created_at"
+                        name = "idx_restaurants_status_created_at",
+                        columnList = "status, created_at"
                 ),
                 @Index(
-                        name = "idx_restaurants_category_is_active",
-                        columnList = "category, is_active"
+                        name = "idx_restaurants_category_status",
+                        columnList = "category, status"
                 )
         }
 )
@@ -55,11 +59,18 @@ public class RestaurantEntity implements PhotoContainer {
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
-    @Column(name = "address", nullable = false, length = 255)
-    private String address;
+    @Column(name = "city", nullable = false, length = 100)
+    private String city;
 
-    @Column(name = "is_active", nullable = false)
-    private boolean active;
+    @Column(name = "street", nullable = false, length = 255)
+    private String street;
+
+    @Column(name = "house", nullable = false, length = 20)
+    private String house;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 50)
+    private RestaurantStatus status;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -91,6 +102,11 @@ public class RestaurantEntity implements PhotoContainer {
     @OneToMany
     @JoinColumn(name = "restaurant_id", referencedColumnName = "id", insertable = false, updatable = false)
     private List<ManagerEntity> managers;
+
+    /** Адрес одной строкой: город, улица, дом. */
+    public String getFullAddress() {
+        return city + ", " + street + ", " + house;
+    }
 
     @PrePersist
     public void prePersist() {

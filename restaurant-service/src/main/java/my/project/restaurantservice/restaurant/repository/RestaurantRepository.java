@@ -1,6 +1,7 @@
 package my.project.restaurantservice.restaurant.repository;
 
 import my.project.restaurantservice.restaurant.entity.RestaurantEntity;
+import my.project.restaurantservice.restaurant.entity.RestaurantStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +15,7 @@ import java.util.UUID;
 public interface RestaurantRepository extends JpaRepository<RestaurantEntity, UUID>,
 		JpaSpecificationExecutor<RestaurantEntity> {
 
-	Optional<RestaurantEntity> findByIdAndActiveTrue(UUID id);
+	Optional<RestaurantEntity> findByIdAndStatus(UUID id, RestaurantStatus status);
 
 	@Query("""
             select distinct r.category

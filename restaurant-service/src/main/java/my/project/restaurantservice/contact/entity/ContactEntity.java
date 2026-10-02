@@ -1,6 +1,8 @@
-package my.project.restaurantservice.restaurant.entity;
+package my.project.restaurantservice.contact.entity;
 
 import jakarta.persistence.*;
+import my.project.restaurantservice.contact.util.ContactValueNormalizer;
+import my.project.restaurantservice.restaurant.entity.RestaurantEntity;
 import lombok.*;
 
 import java.time.Instant;
@@ -41,5 +43,16 @@ public class ContactEntity {
     @PrePersist
     public void prePersist() {
         this.createdAt = Instant.now();
+        normalizeValue();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        normalizeValue();
+    }
+
+    /** Телефоны хранятся в едином виде +7XXXXXXXXXX, остальные контакты не меняются. */
+    private void normalizeValue() {
+        this.value = ContactValueNormalizer.normalize(this.type, this.value);
     }
 }

@@ -4,7 +4,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import my.project.restaurantservice.restaurant.dto.RestaurantCardDto;
 import my.project.restaurantservice.restaurant.dto.RestaurantDetailsDto;
+import my.project.restaurantservice.restaurant.dto.RestaurantCreateRequest;
 import my.project.restaurantservice.restaurant.dto.RestaurantDto;
+import my.project.restaurantservice.restaurant.dto.RestaurantUpdateDto;
+import my.project.restaurantservice.restaurant.entity.RestaurantStatus;
 import my.project.restaurantservice.restaurant.service.command.RestaurantCommandService;
 import my.project.restaurantservice.restaurant.service.query.RestaurantDetailsService;
 import my.project.restaurantservice.restaurant.service.query.RestaurantQueryService;
@@ -29,7 +32,7 @@ public class RestaurantController {
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@PostMapping
-	public ResponseEntity<UUID> create(@Valid @RequestBody RestaurantDto dto,
+	public ResponseEntity<UUID> create(@Valid @RequestBody RestaurantCreateRequest dto,
 									   Authentication auth) {
 		UUID id = commandService.create(dto, auth);
 		return ResponseEntity.status(HttpStatus.CREATED).body(id);
@@ -38,7 +41,7 @@ public class RestaurantController {
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@PutMapping("/{id}")
 	public ResponseEntity<RestaurantDto> update(@PathVariable UUID id,
-												@RequestBody @Valid RestaurantDto dto,
+												@RequestBody @Valid RestaurantUpdateDto dto,
 												Authentication auth) {
 		RestaurantDto response = commandService.update(id, dto, auth);
 		return ResponseEntity.ok(response);
@@ -55,14 +58,14 @@ public class RestaurantController {
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
 	@GetMapping("/my")
-	public ResponseEntity<Page<RestaurantCardDto>> findMy(@RequestParam(required = false) Boolean active,
+	public ResponseEntity<Page<RestaurantCardDto>> findMy(@RequestParam(required = false) RestaurantStatus status,
 														  @RequestParam(required = false) String category,
 														  @RequestParam(required = false) String name,
 														  @RequestParam(required = false) String address,
 														  @RequestParam(defaultValue = "0") int page,
 														  @RequestParam(defaultValue = "10") int size,
 														  Authentication auth) {
-		return ResponseEntity.ok(detailsService.findMy(active, category, name, address, page, size, auth));
+		return ResponseEntity.ok(detailsService.findMy(status, category, name, address, page, size, auth));
 	}
 
 	@GetMapping("/{id}")
@@ -73,12 +76,12 @@ public class RestaurantController {
 	@GetMapping
 	public ResponseEntity<Page<RestaurantCardDto>> findAll(@RequestParam(required = false) String category,
 														   @RequestParam(required = false) String name,
-														   @RequestParam(required = false) Boolean active,
+														   @RequestParam(required = false) RestaurantStatus status,
 														   @RequestParam(required = false) String address,
 														   @RequestParam(defaultValue = "0") int page,
 														   @RequestParam(defaultValue = "10") int size,
 														   Authentication auth) {
-		return ResponseEntity.ok(detailsService.findAll(category, name, active, address, page, size, auth));
+		return ResponseEntity.ok(detailsService.findAll(category, name, status, address, page, size, auth));
 	}
 
 	@PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")

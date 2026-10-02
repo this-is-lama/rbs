@@ -1,7 +1,7 @@
-package my.project.restaurantservice.restaurant.mapper;
+package my.project.restaurantservice.workinghours.mapper;
 
-import my.project.restaurantservice.restaurant.dto.workinghours.WorkingHoursDto;
-import my.project.restaurantservice.restaurant.entity.WorkingHoursEntity;
+import my.project.restaurantservice.workinghours.dto.WorkingHoursDto;
+import my.project.restaurantservice.workinghours.entity.WorkingHoursEntity;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

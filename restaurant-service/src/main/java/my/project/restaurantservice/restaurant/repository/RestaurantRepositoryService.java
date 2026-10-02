@@ -3,10 +3,8 @@ package my.project.restaurantservice.restaurant.repository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import my.project.common.exception.NotFoundException;
-import my.project.restaurantservice.restaurant.entity.ContactEntity;
 import my.project.restaurantservice.restaurant.entity.RestaurantEntity;
-import my.project.restaurantservice.restaurant.entity.WeekDay;
-import my.project.restaurantservice.restaurant.entity.WorkingHoursEntity;
+import my.project.restaurantservice.restaurant.entity.RestaurantStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -23,8 +20,6 @@ import java.util.UUID;
 public class RestaurantRepositoryService {
 
 	private final RestaurantRepository repository;
-	private final WorkingHoursRepository workingHoursRepository;
-	private final ContactRepository contactRepository;
 
 	@Transactional(readOnly = true)
 	public RestaurantEntity getRef(UUID id) {
@@ -40,8 +35,8 @@ public class RestaurantRepositoryService {
 	}
 
 	@Transactional(readOnly = true)
-	public RestaurantEntity getByIdAndActiveTrue(UUID id) {
-		return repository.findByIdAndActiveTrue(id).orElseThrow(() -> {
+	public RestaurantEntity getActiveById(UUID id) {
+		return repository.findByIdAndStatus(id, RestaurantStatus.ACTIVE).orElseThrow(() -> {
 			log.warn("Ресторан не найден, restId={}", id);
 			return new NotFoundException("restaurant.not-found", id);
 		});
@@ -55,21 +50,6 @@ public class RestaurantRepositoryService {
 	@Transactional(readOnly = true)
 	public List<String> findDistinctCategories() {
 		return repository.findDistinctCategories();
-	}
-
-	@Transactional(readOnly = true)
-	public List<WorkingHoursEntity> findAllWorkingHoursByRestaurantId(UUID restId) {
-		return workingHoursRepository.findAllByRestaurantId(restId);
-	}
-
-	@Transactional(readOnly = true)
-	public List<WorkingHoursEntity> findTodayWorkingHoursForRestaurants(Set<UUID> restIds, WeekDay today) {
-		return workingHoursRepository.findTodayWorkingHoursForRestaurants(restIds, today);
-	}
-
-	@Transactional(readOnly = true)
-	public List<ContactEntity> findAllContactsByRestaurantId(UUID restId) {
-		return contactRepository.findAllByRestaurantId(restId);
 	}
 
 	@Transactional

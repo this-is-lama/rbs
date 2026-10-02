@@ -1,9 +1,9 @@
-package my.project.restaurantservice.restaurant.dto.contact;
+package my.project.restaurantservice.contact.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import my.project.restaurantservice.restaurant.entity.ContactType;
+import my.project.restaurantservice.contact.entity.ContactType;
 
 public record ContactDto(
 

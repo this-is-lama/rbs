@@ -36,6 +36,9 @@ public class CacheConfig {
             .withCacheConfiguration("publicRestaurantById", base.entryTtl(Duration.ofMinutes(5)))
             .withCacheConfiguration("privateRestaurantById", base.entryTtl(Duration.ofMinutes(5)))
 
+            .withCacheConfiguration("contactsByRestaurantId", base.entryTtl(Duration.ofMinutes(5)))
+            .withCacheConfiguration("workingHoursByRestaurantId", base.entryTtl(Duration.ofMinutes(5)))
+
             .withCacheConfiguration("publicDishById", base.entryTtl(Duration.ofMinutes(5)))
             .withCacheConfiguration("privateDishById", base.entryTtl(Duration.ofMinutes(5)))
             .withCacheConfiguration("publicDishesByRestaurantId", base.entryTtl(Duration.ofMinutes(2)))
